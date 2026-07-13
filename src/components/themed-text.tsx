@@ -1,73 +1,40 @@
-import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
+import { Text, TextProps } from "react-native";
 
-import { Fonts, ThemeColor } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-
-export type ThemedTextProps = TextProps & {
-  type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
-  themeColor?: ThemeColor;
-};
-
-export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
-  const theme = useTheme();
-
-  return (
-    <Text
-      style={[
-        { color: theme[themeColor ?? 'text'] },
-        type === 'default' && styles.default,
-        type === 'title' && styles.title,
-        type === 'small' && styles.small,
-        type === 'smallBold' && styles.smallBold,
-        type === 'subtitle' && styles.subtitle,
-        type === 'link' && styles.link,
-        type === 'linkPrimary' && styles.linkPrimary,
-        type === 'code' && styles.code,
-        style,
-      ]}
-      {...rest}
-    />
-  );
+interface ThemedTextProps extends TextProps {
+  className?: string;
+  type?: "default" | "title" | "subtitle" | "caption" | "accent";
 }
 
-const styles = StyleSheet.create({
-  small: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 500,
-  },
-  smallBold: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
-  },
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: 500,
-  },
-  title: {
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
-  },
-  subtitle: {
-    fontSize: 32,
-    lineHeight: 44,
-    fontWeight: 600,
-  },
-  link: {
-    lineHeight: 30,
-    fontSize: 14,
-  },
-  linkPrimary: {
-    lineHeight: 30,
-    fontSize: 14,
-    color: '#3c87f7',
-  },
-  code: {
-    fontFamily: Fonts.mono,
-    fontWeight: Platform.select({ android: 700 }) ?? 500,
-    fontSize: 12,
-  },
-});
+export function ThemedText({
+  className = "",
+  type = "default",
+  ...props
+}: ThemedTextProps) {
+  let typeClasses = "";
+
+  switch (type) {
+    case "title":
+      // Títulos principales: Grandes, atrevidos y usando el azul marino corporativo
+      typeClasses = "text-3xl font-bold text-brand-blue tracking-tight";
+      break;
+    case "subtitle":
+      // Subtítulos para secciones: Azul marino más suave o pizarra oscuro
+      typeClasses = "text-xl font-semibold text-brand-text";
+      break;
+    case "accent":
+      // Textos destacados o botones de texto plano: Dorado de la marca
+      typeClasses = "text-base font-medium text-brand-gold";
+      break;
+    case "caption":
+      // Textos secundarios o notas legales: Gris neutro
+      typeClasses = "text-sm text-brand-muted";
+      break;
+    case "default":
+    default:
+      // Texto de cuerpo normal: Pizarra oscuro para máxima legibilidad
+      typeClasses = "text-base text-brand-text";
+      break;
+  }
+
+  return <Text className={`${typeClasses} ${className}`} {...props} />;
+}
