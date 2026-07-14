@@ -1,10 +1,11 @@
 import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthProvider, useAuth, USER_ROLE } from "@/hooks/useAuth";
 import { QueryProvider } from "@/providers/query-providers";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { configureReanimatedLogger } from "react-native-reanimated";
 import Toast from "react-native-toast-message";
 import "../../global.css";
@@ -14,20 +15,21 @@ function RootLayoutNav() {
   const { user, role, isLoading } = useAuth();
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <ThemedView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
         <ActivityIndicator size="large" />
         <ThemedText style={{ marginTop: 16 }}>
           Cargando datos del usuario...
         </ThemedText>
-      </View>
+      </ThemedView>
     );
   }
-  // if (user) signOut();
+
   const isAdmin = role === USER_ROLE.ADMIN;
   const isPilot = role === USER_ROLE.PILOT;
   const isClient = role === USER_ROLE.CLIENT;
   const isOwner = role === USER_ROLE.OWNER;
-  console.log("RootLayoutNav - user:", user);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -64,7 +66,7 @@ export function RootLayout() {
     <QueryProvider>
       <AuthProvider>
         <RootLayoutNav />
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <Toast />
       </AuthProvider>
     </QueryProvider>

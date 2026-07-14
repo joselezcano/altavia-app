@@ -1,5 +1,9 @@
 import { auth, db } from "@/config/firebase";
-import { User, onAuthStateChanged } from "firebase/auth";
+import {
+  User,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+} from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
@@ -19,6 +23,7 @@ interface AuthContextType {
   role: Role;
   isLoading: boolean;
   userData: UserData | null;
+  signOut: () => Promise<void>;
 }
 
 export interface UserData {
@@ -34,6 +39,7 @@ const AuthContext = createContext<AuthContextType>({
   role: null,
   isLoading: true,
   userData: null,
+  signOut: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -45,12 +51,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        setUser(firebaseUser);
         // Consultar el rol del usuario en Firestore
         try {
           const userDocRef = doc(db, "users", firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
+            setUser(firebaseUser);
             setRole(userDoc.data().role as Role);
             setUserData(userDoc.data() as UserData); // Guardar los datos del usuario en el estado
           } else {
@@ -63,6 +69,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setUser(null);
         setRole(null);
+        setUserData(null);
+        setIsLoading(false);
+        return;
       }
       setIsLoading(false);
     });
@@ -70,8 +79,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return unsubscribe;
   }, []);
 
+  const signOut = async () => {
+    try {
+      console.log("Cerrando sesión...");
+      await firebaseSignOut(auth);
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, role, userData, isLoading }}>
+    <AuthContext.Provider value={{ user, role, userData, isLoading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

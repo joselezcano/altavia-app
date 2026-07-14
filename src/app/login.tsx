@@ -21,29 +21,30 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleLogin = async () => {
+    // 1. Validaciones básicas
     if (!email || !password) {
-      Alert.alert(
-        "Campos incompletos",
-        "Por favor, ingresa tu correo y contraseña.",
-      );
+      Alert.alert("Error", "Por favor ingresa usuario y contraseña");
       return;
     }
-
     setLoading(true);
-    try {
-      // Autenticación con Firebase
-      await signInWithEmailAndPassword(auth, email.trim(), password);
 
-      // Nota Arquitectónica:
-      // No hacemos router.replace('/(algo)') aquí.
-      // Al ser exitoso el login, onAuthStateChanged en tu AuthProvider
-      // actualizará el 'user' y el '_layout.tsx' hará la redirección por ti.
+    try {
+      // 2. INTENTO DE LOGIN REAL EN FIREBASE
+      await signInWithEmailAndPassword(auth, email, password);
+
+      // 3. ¡NO NAVEGAMOS MANUALMENTE!
+      // El AuthProvider detectará el usuario y hará el redirect solo.
+      console.log("Login exitoso!");
     } catch (error: any) {
-      console.error("Error en login:", error);
-      Alert.alert(
-        "Error de Autenticación",
-        "Credenciales incorrectas o usuario no registrado.",
-      );
+      console.error(error);
+      let msg = "Error desconocido";
+      if (error.code === "auth/invalid-credential")
+        msg = "Usuario o contraseña incorrectos.";
+      if (error.code === "auth/too-many-requests")
+        msg = "Demasiados intentos. Intenta más tarde.";
+      if (error.code === "auth/user-not-found") msg = "Usuario no encontrado.";
+
+      Alert.alert("Error de Acceso", msg);
     } finally {
       setLoading(false);
     }
