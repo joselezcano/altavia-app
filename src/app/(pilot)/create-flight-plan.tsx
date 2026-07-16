@@ -100,7 +100,7 @@ export default function CreateFlightPlanScreen() {
       // Add additional metadata and save to Firestore
       const docRef = await addDoc(collection(db, "flight-plans"), {
         ...data,
-        ownerId: user.uid,
+        pilotId: user.uid,
         createdAt: serverTimestamp(),
         status: "Pending", // Set initial status
       });

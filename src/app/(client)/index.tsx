@@ -29,7 +29,7 @@ export default function ClientDashboard() {
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
           if (userData.acceptedTermsVersion !== CURRENT_CONTRACT_VERSION) {
-            router.replace("/(client)/terms");
+            router.replace("/terms");
             return;
           }
         }
