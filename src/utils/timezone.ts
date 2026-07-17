@@ -1,5 +1,6 @@
-import { find } from 'geo-tz/dist/find-now';
+import { Airport } from '@/types/all-roles';
+import tzlookup from '@photostructure/tz-lookup';
 
-export const getAirportTimezone = (latitude: number, longitude: number) => {
-    return find(latitude, longitude);
+export const getAirportTimezone = (airport: Airport) => {
+    return tzlookup(airport.latitude_deg, airport.longitude_deg);
 }

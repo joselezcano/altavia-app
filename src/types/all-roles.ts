@@ -11,4 +11,6 @@ export interface Airport {
     iata_code: string | null;
     icao_code: string | null;
     gps_code: string | null;
+    search_tags?: Array<string>;
+    timezone?: string;
 };
