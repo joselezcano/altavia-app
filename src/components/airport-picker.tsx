@@ -29,6 +29,7 @@ interface AirportPickerProps {
     value: Airport | undefined;
     onChange: (airport: Airport | null) => void;
     error?: string;
+    allowedTypes?: string[];
 }
 
 // Build search result string for display in input
@@ -57,7 +58,7 @@ const formatSearchResult = (airport: Airport | undefined): string => {
 };
 
 
-export default function AirportPicker({ value, onChange, error }: AirportPickerProps) {
+export default function AirportPicker({ value, onChange, error, allowedTypes }: AirportPickerProps) {
     const [modalVisible, setModalVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [airports, setAirports] = useState<Airport[]>([]);
@@ -70,18 +71,19 @@ export default function AirportPicker({ value, onChange, error }: AirportPickerP
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
 
-    const LIMIT = 10;
+    const LIMIT = 20;
 
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            fetchInitialAirports(searchQuery);
-        }, 300);
-        return () => clearTimeout(delayDebounceFn);
-    }, [searchQuery]);
-
-    const fetchInitialAirports = async (queryStr: string) => {
+    const fetchInitialAirports = useCallback(async (queryStr: string) => {
         const formattedQuery = queryStr.trim().toLowerCase();
         if (formattedQuery.length < 2) {
+            setAirports([]);
+            setLastVisible(null);
+            setHasMore(false);
+            return;
+        }
+
+        const searchKeywords = getSearchKeywords(formattedQuery);
+        if (searchKeywords.length === 0) {
             setAirports([]);
             setLastVisible(null);
             setHasMore(false);
@@ -91,11 +93,9 @@ export default function AirportPicker({ value, onChange, error }: AirportPickerP
         setLoading(true);
         setHasMore(true);
 
-        const searchKeywords = getSearchKeywords(formattedQuery);
         try {
             const q = query(
                 collection(db, 'airports'),
-                // where('search_tags', 'array-contains', formattedQuery),
                 where('search_tags', 'array-contains-any', searchKeywords),
                 limit(LIMIT)
             );
@@ -117,12 +117,17 @@ export default function AirportPicker({ value, onChange, error }: AirportPickerP
                 return data;
             });
 
+            let filteredItems = items;
+            if (allowedTypes && allowedTypes.length > 0) {
+                filteredItems = items.filter(airport => allowedTypes.includes(airport.type));
+            }
+
             // Order by airport type first, then by matchingScore in descending order
-            const largeAirports = items.filter(airport => airport.type === 'large_airport');
-            const mediumAirports = items.filter(airport => airport.type === 'medium_airport');
-            const smallAirports = items.filter(airport => airport.type === 'small_airport');
-            const heliports = items.filter(airport => airport.type === 'heliport');
-            const closedAirports = items.filter(airport => airport.type === 'closed');
+            const largeAirports = filteredItems.filter(airport => airport.type === 'large_airport');
+            const mediumAirports = filteredItems.filter(airport => airport.type === 'medium_airport');
+            const smallAirports = filteredItems.filter(airport => airport.type === 'small_airport');
+            const heliports = filteredItems.filter(airport => airport.type === 'heliport');
+            const closedAirports = filteredItems.filter(airport => airport.type === 'closed');
             largeAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
             mediumAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
             smallAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
@@ -138,7 +143,14 @@ export default function AirportPicker({ value, onChange, error }: AirportPickerP
         } finally {
             setLoading(false);
         }
-    };
+    }, [allowedTypes]);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            fetchInitialAirports(searchQuery);
+        }, 300);
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery, fetchInitialAirports]);
 
     const fetchMoreAirports = async () => {
         if (loadingMore || !hasMore || !lastVisible) return;
@@ -149,7 +161,6 @@ export default function AirportPicker({ value, onChange, error }: AirportPickerP
         try {
             const q = query(
                 collection(db, 'airports'),
-                // where('search_tags', 'array-contains', formattedQuery),
                 where('search_tags', 'array-contains-any', searchKeywords),
                 startAfter(lastVisible),
                 limit(LIMIT)
@@ -177,10 +188,31 @@ export default function AirportPicker({ value, onChange, error }: AirportPickerP
                 return data;
             });
 
-            // Order by matchingScore in descending order
-            newItems.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+            let filteredNewItems = newItems;
+            if (allowedTypes && allowedTypes.length > 0) {
+                filteredNewItems = newItems.filter(airport => allowedTypes.includes(airport.type));
+            }
 
-            setAirports(prev => [...prev, ...newItems]);
+            // // Order by matchingScore in descending order
+            // filteredNewItems.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+
+            const aggregatedItems = [...airports, ...filteredNewItems];
+
+            // Order by airport type first, then by matchingScore in descending order
+            const largeAirports = aggregatedItems.filter(airport => airport.type === 'large_airport');
+            const mediumAirports = aggregatedItems.filter(airport => airport.type === 'medium_airport');
+            const smallAirports = aggregatedItems.filter(airport => airport.type === 'small_airport');
+            const heliports = aggregatedItems.filter(airport => airport.type === 'heliport');
+            const closedAirports = aggregatedItems.filter(airport => airport.type === 'closed');
+            largeAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+            mediumAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+            smallAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+            heliports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+            closedAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+
+            const orderedItems = [...largeAirports, ...mediumAirports, ...smallAirports, ...heliports, ...closedAirports];
+
+            setAirports(orderedItems);
             setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
             if (snapshot.docs.length < LIMIT) setHasMore(false);
         } catch (e) {

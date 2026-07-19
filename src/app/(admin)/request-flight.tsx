@@ -46,6 +46,16 @@ export default function FlightRequestFormScreen() {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedAirportTypes, setSelectedAirportTypes] = useState<string[]>([
+    "large_airport",
+    "medium_airport",
+  ]);
+
+  const toggleAirportType = (type: string) => {
+    setSelectedAirportTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+  };
 
   const [defaultValues] = useState<FlightRequestForm>(() => {
     const tomorrow = new Date();
@@ -132,6 +142,10 @@ export default function FlightRequestFormScreen() {
 
       // Reset form and go back to step 1
       reset(defaultValues);
+      setSelectedAirportTypes([
+        "large_airport",
+        "medium_airport",
+      ]);
       setCurrentStep(1);
     } catch (error: any) {
       console.error("Error creating flight request:", error);
@@ -220,6 +234,7 @@ export default function FlightRequestFormScreen() {
                         onChange(airport);
                         setValue("trip.origin_airport_ident", airport?.ident || "");
                       }}
+                      allowedTypes={selectedAirportTypes}
                     />
                   )}
                 />
@@ -245,6 +260,7 @@ export default function FlightRequestFormScreen() {
                         onChange(airport);
                         setValue("trip.destination_airport_ident", airport?.ident || "");
                       }}
+                      allowedTypes={selectedAirportTypes}
                     />
                   )}
                 />
@@ -255,9 +271,49 @@ export default function FlightRequestFormScreen() {
                 )}
               </View>
 
+              {/* Airport Types Filter */}
+              <View>
+                <ThemedText type="caption" className="font-bold mb-4">
+                  Tipos de aeropuerto
+                </ThemedText>
+                <View className="flex-row flex-wrap gap-x-4 gap-y-3">
+                  {[
+                    { key: "large_airport", label: "Grande" },
+                    { key: "medium_airport", label: "Mediano" },
+                    { key: "small_airport", label: "Pequeño" },
+                    { key: "heliport", label: "Helipuerto" },
+                    { key: "closed", label: "Cerrado" },
+                  ].map((item) => {
+                    const isChecked = selectedAirportTypes.includes(item.key);
+                    return (
+                      <TouchableOpacity
+                        key={item.key}
+                        className="flex-row items-center"
+                        onPress={() => toggleAirportType(item.key)}
+                        activeOpacity={0.7}
+                      >
+                        <View
+                          className={`w-5 h-5 rounded border items-center justify-center mr-2 ${isChecked
+                            ? "bg-brand-blue border-brand-blue"
+                            : "border-slate-400 bg-white"
+                            }`}
+                        >
+                          {isChecked && (
+                            <Ionicons name="checkmark" size={14} color="white" />
+                          )}
+                        </View>
+                        <ThemedText className="text-sm font-medium">
+                          {item.label}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
               {/* Passengers */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">
+                <ThemedText type="caption" className="font-bold mt-3 mb-1">
                   Cantidad de Pasajeros
                 </ThemedText>
                 <Controller
@@ -318,7 +374,7 @@ export default function FlightRequestFormScreen() {
               {/* Arrival Datetime (Optional) */}
               <View>
                 <ThemedText type="caption" className="font-bold mb-1">
-                  Fecha / Hora de Llegada (Opcional)
+                  Fecha / Hora de Retorno (Opcional)
                 </ThemedText>
                 <Controller
                   control={control}
@@ -327,7 +383,7 @@ export default function FlightRequestFormScreen() {
                     <CustomDatePicker
                       value={value}
                       onChange={onChange}
-                      placeholder="Seleccionar fecha y hora de llegada"
+                      placeholder="Seleccionar fecha y hora de retorno"
                       minimumDate={departureDate}
                     />
                   )}
