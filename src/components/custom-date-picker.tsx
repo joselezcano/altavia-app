@@ -11,10 +11,10 @@ import {
 import { ThemedText } from './themed-text';
 
 interface CustomDatePickerProps {
-  value: Date | undefined;
+  value: Date | null;
   onChange: (date: Date | undefined) => void;
   placeholder?: string;
-  minimumDate?: Date;
+  minimumDate?: Date | null;
 }
 
 export function CustomDatePicker({
@@ -83,7 +83,7 @@ export function CustomDatePicker({
         <DateTimePicker
           value={tempDate || new Date()}
           mode="date"
-          minimumDate={minimumDate}
+          minimumDate={minimumDate === null ? undefined : minimumDate}
           presentation="dialog"
           onValueChange={(event, date) => {
             if (date) {
@@ -146,7 +146,7 @@ export function CustomDatePicker({
                 <DateTimePicker
                   value={iosTempDate}
                   mode="datetime"
-                  minimumDate={minimumDate}
+                  minimumDate={minimumDate === null ? undefined : minimumDate}
                   display="inline"
                   style={styles.picker}
                   onValueChange={(event, date) => {

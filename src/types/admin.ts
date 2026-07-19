@@ -1,21 +1,28 @@
+import { AirportSchema } from '@/types/all-roles';
 import { z } from 'zod';
 
 
 export const FlightRequestFormSchema = z.object({
     trip: z.object({
-        origin_airport_ident: z.string(),
-        destination_airport_ident: z.string(),
-        passangers: z.number().positive().int(),
+        origin_airport_ident: z.string().min(1, "Seleccione un origen"),
+        origin_airport: AirportSchema.optional(),
+        origin_timezone: z.string().optional(),
+        destination_airport_ident: z.string().min(1, "Seleccione un destino"),
+        destination_airport: AirportSchema.optional(),
+        destination_timezone: z.string().optional(),
+        passangers: z.number({
+            error: "Campo obligatorio"
+        }).positive("Debe haber al menos un pasajero").int(),
     }),
     schedule: z.object({
-        departure_datetime_utc: z.union([z.date("La fecha de salida es obligatoria"), z.undefined()]),
-        arrival_datetime_utc: z.date().optional(),
+        departure_datetime_utc: z.date("La fecha de salida es obligatoria").nullable(),
+        arrival_datetime_utc: z.date().nullable(),
     }),
     financials: z.object({
         ticket_initial_price: z.number().positive("Debe ser mayor a cero"),
-        ticket_final_price: z.number().positive().optional(),
-        ticket_price_change_period_days: z.number().positive().int().optional(),
-        flight_budget: z.number().positive().optional(),
+        ticket_final_price: z.number().positive().nullable(),
+        ticket_price_change_period_days: z.number().positive().int().nullable(),
+        flight_budget: z.number().positive().nullable(),
     }),
     // refine should return a falsy value to signal failure
 }).refine((data) => !!data.financials.ticket_final_price === !!data.financials.ticket_price_change_period_days, {

@@ -1,14 +1,14 @@
+import AirportPicker from "@/components/airport-picker";
 import { CustomDatePicker } from "@/components/custom-date-picker";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { FlightRequestForm, FlightRequestFormSchema } from "@/types/admin";
-import { Airport } from "@/types/all-roles";
 import { getDistanceBetweenAirports } from "@/utils/flight-distance";
 import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addDoc, collection, getDocs, query, serverTimestamp, where } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -23,20 +23,24 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 
+
 // Helper to remove undefined values so Firestore does not throw errors
-const sanitizeRequest = (obj: any): any => {
+const sanitizeFirestoreObject = (obj: any): any => {
   const clean: any = {};
   for (const key in obj) {
-    if (obj[key] === undefined) continue;
+    if (obj[key] === undefined) {
+      obj[key] = null;
+      continue;
+    }
     if (obj[key] !== null && typeof obj[key] === "object" && !(obj[key] instanceof Date)) {
-      clean[key] = sanitizeRequest(obj[key]);
+      clean[key] = sanitizeFirestoreObject(obj[key]);
     } else {
       clean[key] = obj[key];
     }
   }
-  console.log(clean);
   return clean;
 };
+
 
 export default function FlightRequestFormScreen() {
   const { user } = useAuth();
@@ -53,14 +57,14 @@ export default function FlightRequestFormScreen() {
         passangers: 1,
       },
       schedule: {
-        departure_datetime_utc: undefined,
-        arrival_datetime_utc: undefined,
+        departure_datetime_utc: null,
+        arrival_datetime_utc: null,
       },
       financials: {
-        ticket_initial_price: 150,
-        ticket_final_price: undefined,
-        ticket_price_change_period_days: undefined,
-        flight_budget: undefined,
+        ticket_initial_price: 0,
+        ticket_final_price: null,
+        ticket_price_change_period_days: null,
+        flight_budget: null,
       },
     };
   });
@@ -72,6 +76,7 @@ export default function FlightRequestFormScreen() {
     trigger,
     reset,
     watch,
+    setValue,
   } = useForm<FlightRequestForm>({
     resolver: zodResolver(FlightRequestFormSchema),
     defaultValues,
@@ -88,44 +93,31 @@ export default function FlightRequestFormScreen() {
 
     setIsSubmitting(true);
     try {
-      let distance_km = 300; // Default fallback distance in km
+      let distance_km = 0; // Default fallback distance in km
 
-      try {
-        const originIdent = data.trip.origin_airport_ident.trim().toUpperCase();
-        const destIdent = data.trip.destination_airport_ident.trim().toUpperCase();
+      distance_km = getDistanceBetweenAirports(
+        data.trip.origin_airport,
+        data.trip.destination_airport,
+        "km"
+      );
 
-        const airportsRef = collection(db, "airports");
-        const qOrigin = query(airportsRef, where("ident", "==", originIdent));
-        const qDest = query(airportsRef, where("ident", "==", destIdent));
-
-        const [originSnap, destSnap] = await Promise.all([
-          getDocs(qOrigin),
-          getDocs(qDest),
-        ]);
-
-        if (!originSnap.empty && !destSnap.empty) {
-          const originAir = originSnap.docs[0].data() as Airport;
-          const destAir = destSnap.docs[0].data() as Airport;
-          distance_km = getDistanceBetweenAirports(
-            originAir.latitude_deg,
-            originAir.longitude_deg,
-            destAir.latitude_deg,
-            destAir.longitude_deg,
-            "km"
-          );
-        } else {
-          console.warn("One or both airports not found in database, using fallback distance.");
-        }
-      } catch (distErr) {
-        console.error("Failed to calculate flight distance:", distErr);
+      const { trip: { origin_airport, destination_airport, passangers }, ...request } = data;
+      const requestComplete = {
+        ...request,
+        trip: {
+          origin_airport_ident: origin_airport?.ident,
+          destination_airport_ident: destination_airport?.ident,
+          origin_timezone: origin_airport?.timezone,
+          destination_timezone: destination_airport?.timezone,
+          passangers: passangers
+        },
       }
-
-      const cleanedRequest = sanitizeRequest(data);
+      const cleanedRequest = sanitizeFirestoreObject(requestComplete);
 
       const flightRequestDoc = {
         admin_id: user.uid,
         request: cleanedRequest,
-        distance_km: Math.round(distance_km),
+        distance_km,
         status: "pending",
         createdAt: serverTimestamp(),
       };
@@ -213,21 +205,21 @@ export default function FlightRequestFormScreen() {
                 1. Ruta y Pasajeros
               </ThemedText>
 
-              {/* Origin ICAO */}
+              {/* Origin */}
               <View>
                 <ThemedText type="caption" className="font-bold mb-1">
-                  Aeropuerto de Origen (OACI)
+                  Origen
                 </ThemedText>
                 <Controller
                   control={control}
-                  name="trip.origin_airport_ident"
+                  name="trip.origin_airport"
                   render={({ field: { onChange, value } }) => (
-                    <TextInput
+                    <AirportPicker
                       value={value}
-                      onChangeText={(val) => onChange(val.toUpperCase())}
-                      placeholder="SGAS"
-                      maxLength={4}
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
+                      onChange={(airport) => {
+                        onChange(airport);
+                        setValue("trip.origin_airport_ident", airport?.ident || "");
+                      }}
                     />
                   )}
                 />
@@ -238,21 +230,21 @@ export default function FlightRequestFormScreen() {
                 )}
               </View>
 
-              {/* Destination ICAO */}
+              {/* Destination */}
               <View>
                 <ThemedText type="caption" className="font-bold mb-1">
-                  Aeropuerto de Destino (OACI)
+                  Destino
                 </ThemedText>
                 <Controller
                   control={control}
-                  name="trip.destination_airport_ident"
+                  name="trip.destination_airport"
                   render={({ field: { onChange, value } }) => (
-                    <TextInput
+                    <AirportPicker
                       value={value}
-                      onChangeText={(val) => onChange(val.toUpperCase())}
-                      placeholder="SULS"
-                      maxLength={4}
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
+                      onChange={(airport) => {
+                        onChange(airport);
+                        setValue("trip.destination_airport_ident", airport?.ident || "");
+                      }}
                     />
                   )}
                 />
@@ -273,12 +265,12 @@ export default function FlightRequestFormScreen() {
                   name="trip.passangers"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value !== undefined ? String(value) : ""}
+                      value={isNaN(value) ? "" : String(value)}
                       onChangeText={(val) => {
                         const parsed = parseInt(val, 10);
-                        onChange(isNaN(parsed) ? 1 : parsed);
+                        onChange(parsed);
                       }}
-                      placeholder="1"
+                      placeholder=""
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -346,6 +338,12 @@ export default function FlightRequestFormScreen() {
                   </ThemedText>
                 )}
               </View>
+
+              <View>
+                <ThemedText type="caption" className="font-babse mb-1">
+                  Utilizar el horario local de cada aeropuerto
+                </ThemedText>
+              </View>
             </View>
           )}
 
@@ -366,7 +364,7 @@ export default function FlightRequestFormScreen() {
                   name="financials.ticket_initial_price"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value !== undefined ? String(value) : ""}
+                      value={value !== null ? String(value) : ""}
                       onChangeText={(val) => {
                         const parsed = parseFloat(val);
                         onChange(isNaN(parsed) ? 0 : parsed);
@@ -394,13 +392,13 @@ export default function FlightRequestFormScreen() {
                   name="financials.ticket_final_price"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value !== undefined ? String(value) : ""}
+                      value={value !== null ? String(value) : ""}
                       onChangeText={(val) => {
                         if (val === "") {
-                          onChange(undefined);
+                          onChange(null);
                         } else {
                           const parsed = parseFloat(val);
-                          onChange(isNaN(parsed) ? undefined : parsed);
+                          onChange(isNaN(parsed) ? null : parsed);
                         }
                       }}
                       placeholder=""
@@ -426,13 +424,13 @@ export default function FlightRequestFormScreen() {
                   name="financials.ticket_price_change_period_days"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value !== undefined ? String(value) : ""}
+                      value={value !== null ? String(value) : ""}
                       onChangeText={(val) => {
                         if (val === "") {
-                          onChange(undefined);
+                          onChange(null);
                         } else {
                           const parsed = parseInt(val, 10);
-                          onChange(isNaN(parsed) ? undefined : parsed);
+                          onChange(isNaN(parsed) ? null : parsed);
                         }
                       }}
                       placeholder=""
@@ -458,13 +456,13 @@ export default function FlightRequestFormScreen() {
                   name="financials.flight_budget"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value !== undefined ? String(value) : ""}
+                      value={value !== null ? String(value) : ""}
                       onChangeText={(val) => {
                         if (val === "") {
-                          onChange(undefined);
+                          onChange(null);
                         } else {
                           const parsed = parseFloat(val);
-                          onChange(isNaN(parsed) ? undefined : parsed);
+                          onChange(isNaN(parsed) ? null : parsed);
                         }
                       }}
                       placeholder=""
