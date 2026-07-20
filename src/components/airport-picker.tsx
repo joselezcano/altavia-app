@@ -7,6 +7,7 @@ import {
     getDocs,
     limit,
     query,
+    Query,
     QueryDocumentSnapshot,
     startAfter,
     where
@@ -57,6 +58,23 @@ const formatSearchResult = (airport: Airport | undefined): string => {
     return searchResult;
 };
 
+// Helper to sort airports by type and matchingScore
+const orderAirports = (items: Airport[]): Airport[] => {
+    const largeAirports = items.filter(airport => airport.type === 'large_airport');
+    const mediumAirports = items.filter(airport => airport.type === 'medium_airport');
+    const smallAirports = items.filter(airport => airport.type === 'small_airport');
+    const heliports = items.filter(airport => airport.type === 'heliport');
+    const closedAirports = items.filter(airport => airport.type === 'closed');
+
+    largeAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+    mediumAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+    smallAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+    heliports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+    closedAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
+
+    return [...largeAirports, ...mediumAirports, ...smallAirports, ...heliports, ...closedAirports];
+};
+
 
 export default function AirportPicker({ value, onChange, error, allowedTypes }: AirportPickerProps) {
     const [modalVisible, setModalVisible] = useState(false);
@@ -94,50 +112,61 @@ export default function AirportPicker({ value, onChange, error, allowedTypes }: 
         setHasMore(true);
 
         try {
-            const q = query(
-                collection(db, 'airports'),
-                where('search_tags', 'array-contains-any', searchKeywords),
-                limit(LIMIT)
-            );
-            const snapshot = await getDocs(q);
+            let tempLastVisible: QueryDocumentSnapshot<DocumentData, DocumentData> | null = null;
+            let tempHasMore = true;
+            let accumulatedFiltered: Airport[] = [];
 
-            const items: Airport[] = snapshot.docs.map(doc => {
-                const data = doc.data() as Airport;
-                // Re-order here based on multi-term matching score
-                const searchableFields = getSearchableFields(data);
-                const search_tags = buildSearchTags(searchableFields);
-                // Count the number of elements in searchKeywords that are present in search_tags
-                let matchingScore = 0;
-                searchKeywords.forEach(keyword => {
-                    if (search_tags.includes(keyword)) {
-                        matchingScore++;
-                    }
+            while (accumulatedFiltered.length < LIMIT && tempHasMore) {
+                const q: Query<DocumentData, DocumentData> = tempLastVisible
+                    ? query(
+                        collection(db, 'airports'),
+                        where('search_tags', 'array-contains-any', searchKeywords),
+                        startAfter(tempLastVisible),
+                        limit(LIMIT)
+                    )
+                    : query(
+                        collection(db, 'airports'),
+                        where('search_tags', 'array-contains-any', searchKeywords),
+                        limit(LIMIT)
+                    );
+
+                const snapshot = await getDocs(q);
+                if (snapshot.docs.length === 0) {
+                    tempHasMore = false;
+                    break;
+                }
+
+                const items: Airport[] = snapshot.docs.map(doc => {
+                    const data = doc.data() as Airport;
+                    const searchableFields = getSearchableFields(data);
+                    const search_tags = buildSearchTags(searchableFields);
+                    let matchingScore = 0;
+                    searchKeywords.forEach(keyword => {
+                        if (search_tags.includes(keyword)) {
+                            matchingScore++;
+                        }
+                    });
+                    data.matchingScore = matchingScore;
+                    return data;
                 });
-                data.matchingScore = matchingScore;
-                return data;
-            });
 
-            let filteredItems = items;
-            if (allowedTypes && allowedTypes.length > 0) {
-                filteredItems = items.filter(airport => allowedTypes.includes(airport.type));
+                let filteredItems = items;
+                if (allowedTypes && allowedTypes.length > 0) {
+                    filteredItems = items.filter(airport => allowedTypes.includes(airport.type));
+                }
+
+                accumulatedFiltered = [...accumulatedFiltered, ...filteredItems];
+                tempLastVisible = snapshot.docs[snapshot.docs.length - 1];
+
+                if (snapshot.docs.length < LIMIT) {
+                    tempHasMore = false;
+                }
             }
 
-            // Order by airport type first, then by matchingScore in descending order
-            const largeAirports = filteredItems.filter(airport => airport.type === 'large_airport');
-            const mediumAirports = filteredItems.filter(airport => airport.type === 'medium_airport');
-            const smallAirports = filteredItems.filter(airport => airport.type === 'small_airport');
-            const heliports = filteredItems.filter(airport => airport.type === 'heliport');
-            const closedAirports = filteredItems.filter(airport => airport.type === 'closed');
-            largeAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
-            mediumAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
-            smallAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
-            heliports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
-            closedAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
-
-            const orderedItems = [...largeAirports, ...mediumAirports, ...smallAirports, ...heliports, ...closedAirports];
+            const orderedItems = orderAirports(accumulatedFiltered);
             setAirports(orderedItems);
-            setLastVisible(snapshot.docs[snapshot.docs.length - 1] || null);
-            if (snapshot.docs.length < LIMIT) setHasMore(false);
+            setLastVisible(tempLastVisible);
+            setHasMore(tempHasMore);
         } catch (e) {
             console.error(e);
         } finally {
@@ -159,62 +188,58 @@ export default function AirportPicker({ value, onChange, error, allowedTypes }: 
         const searchKeywords = getSearchKeywords(formattedQuery);
 
         try {
-            const q = query(
-                collection(db, 'airports'),
-                where('search_tags', 'array-contains-any', searchKeywords),
-                startAfter(lastVisible),
-                limit(LIMIT)
-            );
-            const snapshot = await getDocs(q);
+            let tempLastVisible = lastVisible;
+            let tempHasMore = true;
+            let accumulatedFiltered: Airport[] = [];
 
-            if (snapshot.docs.length === 0) {
-                setHasMore(false);
-                return;
-            }
+            while (accumulatedFiltered.length < LIMIT && tempHasMore) {
+                const q: Query<DocumentData, DocumentData> = query(
+                    collection(db, 'airports'),
+                    where('search_tags', 'array-contains-any', searchKeywords),
+                    startAfter(tempLastVisible),
+                    limit(LIMIT)
+                );
+                const snapshot = await getDocs(q);
 
-            const newItems: Airport[] = snapshot.docs.map(doc => {
-                const data = doc.data() as Airport;
-                // Re-order here based on multi-term matching score
-                const searchableFields = getSearchableFields(data);
-                const search_tags = buildSearchTags(searchableFields);
-                // Count the number of elements in searchKeywords that are present in search_tags
-                let matchingScore = 0;
-                searchKeywords.forEach(keyword => {
-                    if (search_tags.includes(keyword)) {
-                        matchingScore++;
-                    }
+                if (snapshot.docs.length === 0) {
+                    tempHasMore = false;
+                    break;
+                }
+
+                const newItems: Airport[] = snapshot.docs.map(doc => {
+                    const data = doc.data() as Airport;
+                    const searchableFields = getSearchableFields(data);
+                    const search_tags = buildSearchTags(searchableFields);
+                    let matchingScore = 0;
+                    searchKeywords.forEach(keyword => {
+                        if (search_tags.includes(keyword)) {
+                            matchingScore++;
+                        }
+                    });
+                    data.matchingScore = matchingScore;
+                    return data;
                 });
-                data.matchingScore = matchingScore;
-                return data;
-            });
 
-            let filteredNewItems = newItems;
-            if (allowedTypes && allowedTypes.length > 0) {
-                filteredNewItems = newItems.filter(airport => allowedTypes.includes(airport.type));
+                let filteredNewItems = newItems;
+                if (allowedTypes && allowedTypes.length > 0) {
+                    filteredNewItems = newItems.filter(airport => allowedTypes.includes(airport.type));
+                }
+
+                accumulatedFiltered = [...accumulatedFiltered, ...filteredNewItems];
+                tempLastVisible = snapshot.docs[snapshot.docs.length - 1];
+
+                if (snapshot.docs.length < LIMIT) {
+                    tempHasMore = false;
+                }
             }
 
-            // // Order by matchingScore in descending order
-            // filteredNewItems.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
-
-            const aggregatedItems = [...airports, ...filteredNewItems];
-
-            // Order by airport type first, then by matchingScore in descending order
-            const largeAirports = aggregatedItems.filter(airport => airport.type === 'large_airport');
-            const mediumAirports = aggregatedItems.filter(airport => airport.type === 'medium_airport');
-            const smallAirports = aggregatedItems.filter(airport => airport.type === 'small_airport');
-            const heliports = aggregatedItems.filter(airport => airport.type === 'heliport');
-            const closedAirports = aggregatedItems.filter(airport => airport.type === 'closed');
-            largeAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
-            mediumAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
-            smallAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
-            heliports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
-            closedAirports.sort((a, b) => (b.matchingScore || 0) - (a.matchingScore || 0));
-
-            const orderedItems = [...largeAirports, ...mediumAirports, ...smallAirports, ...heliports, ...closedAirports];
-
-            setAirports(orderedItems);
-            setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
-            if (snapshot.docs.length < LIMIT) setHasMore(false);
+            if (accumulatedFiltered.length > 0) {
+                const aggregatedItems = [...airports, ...accumulatedFiltered];
+                const orderedItems = orderAirports(aggregatedItems);
+                setAirports(orderedItems);
+            }
+            setLastVisible(tempLastVisible);
+            setHasMore(tempHasMore);
         } catch (e) {
             console.error(e);
         } finally {
