@@ -1,3 +1,4 @@
+import RoleSelectionScreen from "@/components/role-selection";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -12,7 +13,7 @@ import "../../global.css";
 
 configureReanimatedLogger({ strict: false });
 function RootLayoutNav() {
-  const { user, role, isLoading } = useAuth();
+  const { user, role, isLoading, isRoleSelectorRequired } = useAuth();
   if (isLoading) {
     return (
       <ThemedView
@@ -26,11 +27,15 @@ function RootLayoutNav() {
     );
   }
 
+  if (isRoleSelectorRequired) {
+    return <RoleSelectionScreen />;
+  }
+
   const isAdmin = role === USER_ROLE.ADMIN;
   const isPilot = role === USER_ROLE.PILOT;
   const isClient = role === USER_ROLE.CLIENT;
   const isOwner = role === USER_ROLE.OWNER;
-
+  console.log(role)
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={user === null}>

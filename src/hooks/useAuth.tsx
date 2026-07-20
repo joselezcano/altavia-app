@@ -1,4 +1,5 @@
 import { auth, db } from "@/config/firebase";
+import { BaseUser, PilotProfile, OwnerProfile, ClientProfile, AdminProfile } from "@/types/user";
 import {
   User,
   signOut as firebaseSignOut,
@@ -14,70 +15,144 @@ export const USER_ROLE = {
   OWNER: "OWNER",
 } as const;
 
-export type Role = keyof typeof USER_ROLE | null;
-
-// export type Role = "ADMIN" | "CLIENT" | "PILOT" | "OWNER" | null;
+export type Role = keyof typeof USER_ROLE;
 
 interface AuthContextType {
   user: User | null;
-  role: Role;
+  role: Role | null; // Selected active role
+  roles: Role[]; // All roles assigned to user
   isLoading: boolean;
-  userData: UserData | null;
+  userData: BaseUser | null; // Common user data
+  profileData: any | null; // Role-specific profile data (PilotProfile, etc.)
+  isRoleSelectorRequired: boolean;
+  selectRole: (role: Role) => Promise<void>;
   signOut: () => Promise<void>;
-}
-
-export interface UserData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  uid: string;
-  role: Role;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   role: null,
+  roles: [],
   isLoading: true,
   userData: null,
+  profileData: null,
+  isRoleSelectorRequired: false,
+  selectRole: async () => {},
   signOut: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<Role>(null);
+  const [role, setRole] = useState<Role | null>(null);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [userData, setUserData] = useState<BaseUser | null>(null);
+  const [profileData, setProfileData] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userData, setUserData] = useState<UserData | null>(null); // Estado para almacenar los datos del usuario
+  const [isRoleSelectorRequired, setIsRoleSelectorRequired] = useState(false);
+
+  // Fetch role-specific profile data
+  const fetchProfileData = async (uid: string, selectedRole: Role) => {
+    let collectionName = "";
+    switch (selectedRole) {
+      case "ADMIN":
+        collectionName = "admin-users";
+        break;
+      case "PILOT":
+        collectionName = "pilots";
+        break;
+      case "OWNER":
+        collectionName = "owners";
+        break;
+      case "CLIENT":
+        collectionName = "clients";
+        break;
+    }
+
+    try {
+      const profileDocRef = doc(db, collectionName, uid);
+      const profileDoc = await getDoc(profileDocRef);
+      if (profileDoc.exists()) {
+        return profileDoc.data();
+      }
+      return null;
+    } catch (error) {
+      console.error(`Error fetching profile data from ${collectionName}:`, error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setIsLoading(true);
       if (firebaseUser) {
-        // Consultar el rol del usuario en Firestore
         try {
           const userDocRef = doc(db, "users", firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
+            const data = userDoc.data() as BaseUser;
             setUser(firebaseUser);
-            setRole(userDoc.data().role as Role);
-            setUserData(userDoc.data() as UserData); // Guardar los datos del usuario en el estado
+            setUserData(data);
+            const userRoles = (data.roles || []) as Role[];
+            setRoles(userRoles);
+
+            if (userRoles.length === 1) {
+              const active = userRoles[0];
+              const profile = await fetchProfileData(firebaseUser.uid, active);
+              setRole(active);
+              setProfileData(profile);
+              setIsRoleSelectorRequired(false);
+            } else if (userRoles.length > 1) {
+              // Multirrole, needs selection
+              setIsRoleSelectorRequired(true);
+            } else {
+              // Default to client if no roles defined
+              const active = "CLIENT";
+              const profile = await fetchProfileData(firebaseUser.uid, active);
+              setRole(active);
+              setProfileData(profile);
+              setIsRoleSelectorRequired(false);
+            }
           } else {
-            setRole(USER_ROLE.CLIENT); // Rol por defecto si no se encuentra
+            // Document doesn't exist in users
+            setUser(null);
+            setRole(null);
+            setRoles([]);
+            setUserData(null);
+            setProfileData(null);
+            setIsRoleSelectorRequired(false);
           }
         } catch (error) {
-          console.error("Error fetching user role:", error);
+          console.error("Error fetching user data:", error);
+          setUser(null);
           setRole(null);
+          setRoles([]);
+          setUserData(null);
+          setProfileData(null);
+          setIsRoleSelectorRequired(false);
         }
       } else {
         setUser(null);
         setRole(null);
+        setRoles([]);
         setUserData(null);
-        setIsLoading(false);
-        return;
+        setProfileData(null);
+        setIsRoleSelectorRequired(false);
       }
       setIsLoading(false);
     });
 
     return unsubscribe;
   }, []);
+
+  const selectRole = async (selectedRole: Role) => {
+    if (!user) return;
+    setIsLoading(true);
+    const profile = await fetchProfileData(user.uid, selectedRole);
+    setRole(selectedRole);
+    setProfileData(profile);
+    setIsRoleSelectorRequired(false);
+    setIsLoading(false);
+  };
 
   const signOut = async () => {
     try {
@@ -89,7 +164,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, userData, isLoading, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        role,
+        roles,
+        userData,
+        profileData,
+        isLoading,
+        isRoleSelectorRequired,
+        selectRole,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,10 +1,13 @@
 import { ThemedView } from "@/components/themed-view";
+import { useAuth } from "@/hooks/useAuth";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PilotLayout() {
     const insets = useSafeAreaInsets();
+    const { profileData } = useAuth();
+    const isEncargado = profileData?.isEncargado === true;
 
     return (
         <ThemedView
@@ -32,6 +35,16 @@ export default function PilotLayout() {
                         title: "Flight Plan",
                         tabBarIcon: ({ color, size }) => (
                             <Ionicons name="paper-plane" size={size} color={color} />
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="manage-fleet"
+                    options={{
+                        title: "Mi Flota",
+                        href: isEncargado ? undefined : null,
+                        tabBarIcon: ({ color, size }) => (
+                            <Ionicons name="airplane" size={size} color={color} />
                         ),
                     }}
                 />

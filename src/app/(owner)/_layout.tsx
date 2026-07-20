@@ -11,7 +11,6 @@ export default function OwnerLayout() {
             style={{
                 flex: 1,
                 paddingTop: insets.top,
-                paddingBottom: insets.bottom,
             }}
         >
             <Tabs
@@ -21,6 +20,8 @@ export default function OwnerLayout() {
                         backgroundColor: "#FFFFFF",
                         borderTopColor: "#E2E8F0",
                         elevation: 0, // Remove shadow on Android for a cleaner look
+                        paddingTop: 4,
+                        height: 70,
                     },
                     tabBarActiveTintColor: "#0f1e3d", // brand-blue
                     tabBarInactiveTintColor: "#94A3B8", // brand-muted
@@ -41,6 +42,15 @@ export default function OwnerLayout() {
                         title: "Aeronaves",
                         tabBarIcon: ({ color, size }) => (
                             <Ionicons name="airplane" size={size} color={color} />
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="pilots"
+                    options={{
+                        title: "Pilotos",
+                        tabBarIcon: ({ color, size }) => (
+                            <Ionicons name="people" size={size} color={color} />
                         ),
                     }}
                 />
