@@ -72,7 +72,7 @@ export default function ListAircraftsScreen() {
             <View className="flex-row items-center gap-2 mt-1">
               <View className="bg-slate-100 px-2 py-0.5 rounded">
                 <ThemedText type="caption" className="text-[10px] font-semibold text-slate-600 uppercase">
-                  OACI: {type}
+                  {type}
                 </ThemedText>
               </View>
             </View>
@@ -97,7 +97,10 @@ export default function ListAircraftsScreen() {
 
           <TouchableOpacity
             onPress={() => {
-              // Future enhancement: view details
+              router.push({
+                pathname: "/aircraft-details",
+                params: { id: item.id },
+              });
             }}
             className="flex-row items-center gap-0.5"
           >

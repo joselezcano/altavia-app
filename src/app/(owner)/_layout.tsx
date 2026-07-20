@@ -51,6 +51,13 @@ export default function OwnerLayout() {
                         tabBarStyle: { display: "none" },
                     }}
                 />
+                <Tabs.Screen
+                    name="aircraft-details"
+                    options={{
+                        href: null,
+                        tabBarStyle: { display: "none" },
+                    }}
+                />
             </Tabs>
         </ThemedView>
     );
