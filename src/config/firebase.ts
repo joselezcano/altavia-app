@@ -2,6 +2,7 @@
 
 import { getApp, getApps, initializeApp } from "firebase/app";
 // NOTA 1: initializeAuth y getAuth vienen del paquete principal
+// @ts-expect-error
 import { getReactNativePersistence, initializeAuth } from "firebase/auth";
 // NOTA 2: getReactNativePersistence DEBE venir de /react-native
 import AsyncStorage from "@react-native-async-storage/async-storage";
