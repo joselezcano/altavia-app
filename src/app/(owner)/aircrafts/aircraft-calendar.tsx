@@ -2,7 +2,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 
 const MONTH_NAMES = [
@@ -149,7 +149,7 @@ export default function AircraftCalendarScreen() {
             <ThemedText className="font-bold text-xl text-white">
               {model || "Aeronave"}
             </ThemedText>
-            <ThemedText type="caption" className="text-slate-300 text-xs mt-0.5">
+            <ThemedText type="caption" className="text-slate-300 text-md mt-1 font-semibold">
               Agenda mensual
             </ThemedText>
           </View>
@@ -234,23 +234,21 @@ export default function AircraftCalendarScreen() {
                               },
                             });
                           }}
-                          className={`w-9 h-9 rounded-full items-center justify-center ${
-                            isSelected
-                              ? "bg-brand-blue"
-                              : isCurrentDay
+                          className={`w-9 h-9 rounded-full items-center justify-center ${isSelected
+                            ? "bg-brand-blue"
+                            : isCurrentDay
                               ? "border border-brand-gold bg-slate-50"
                               : "bg-transparent"
-                          }`}
+                            }`}
                           activeOpacity={0.7}
                         >
                           <ThemedText
-                            className={`text-sm font-semibold ${
-                              isSelected
-                                ? "text-white font-bold"
-                                : isCurrentDay
+                            className={`text-sm font-semibold ${isSelected
+                              ? "text-white font-bold"
+                              : isCurrentDay
                                 ? "text-brand-gold font-bold"
                                 : "text-slate-700"
-                            }`}
+                              }`}
                           >
                             {cell}
                           </ThemedText>
@@ -285,9 +283,8 @@ export default function AircraftCalendarScreen() {
             });
           }}
           disabled={selectedDay === null}
-          className={`py-3.5 rounded-xl items-center justify-center mb-8 flex-row gap-2 ${
-            selectedDay === null ? "bg-slate-300" : "bg-brand-blue"
-          }`}
+          className={`py-3.5 rounded-xl items-center justify-center mb-8 flex-row gap-2 ${selectedDay === null ? "bg-slate-300" : "bg-brand-blue"
+            }`}
           activeOpacity={0.8}
         >
           <Ionicons name="calendar-outline" size={18} color="#FFFFFF" />

@@ -350,7 +350,7 @@ export default function DayScheduleScreen() {
           <ThemedText className="font-bold text-xl text-white">
             {model || "Aeronave"}
           </ThemedText>
-          <ThemedText className="text-slate-300 text-xs mt-1 font-semibold">
+          <ThemedText className="text-slate-300 text-sm mt-1 font-semibold">
             {getFormattedDate()}
           </ThemedText>
         </View>

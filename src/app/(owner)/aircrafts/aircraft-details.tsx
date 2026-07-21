@@ -250,18 +250,15 @@ export default function AircraftDetailsScreen() {
         {/* Title Section Card */}
         <View className="bg-brand-blue rounded-3xl p-5 mb-5 flex-row justify-between items-center">
           <View className="flex-1 mr-4">
-            <ThemedText className="font-bold text-2xl text-white">
-              {basic_specs.model}
-            </ThemedText>
-            <View className="flex-row items-center gap-2 mt-1.5">
-              <View className="bg-white/15 px-2 py-0.5 rounded">
-                <ThemedText
-                  type="caption"
-                  className="text-[10px] font-bold text-white uppercase tracking-wider"
-                >
-                  {basic_specs.type}
-                </ThemedText>
-              </View>
+            <View className="mb-2">
+              <ThemedText className="font-bold text-xl text-white">
+                {basic_specs.model}
+              </ThemedText>
+            </View>
+            <View className="self-start bg-brand-gold px-4 py-1.5 rounded-full">
+              <ThemedText className="text-brand-blue text-xs font-bold uppercase tracking-wider">
+                {basic_specs.registration}
+              </ThemedText>
             </View>
           </View>
           <View className="flex-row items-center gap-3">
@@ -276,17 +273,12 @@ export default function AircraftDetailsScreen() {
                   },
                 });
               }}
-              className="bg-white/10 w-10 h-10 rounded-full items-center justify-center border border-white/10"
+              className="bg-white/10 w-14 h-14 rounded-full items-center justify-center border border-white/10"
               activeOpacity={0.7}
             >
-              <Ionicons name="calendar" size={20} color="#C5A059" />
+              <Ionicons name="calendar" size={24} color="#C5A059" />
             </TouchableOpacity>
 
-            <View className="bg-brand-gold px-4 py-1.5 rounded-full">
-              <ThemedText className="text-brand-blue text-sm font-bold uppercase tracking-wider">
-                {basic_specs.registration}
-              </ThemedText>
-            </View>
           </View>
         </View>
 
@@ -329,7 +321,7 @@ export default function AircraftDetailsScreen() {
             value={
               technical_specs.flight_rules
                 ? FLIGHT_RULES_MAP[technical_specs.flight_rules] ||
-                  technical_specs.flight_rules
+                technical_specs.flight_rules
                 : ""
             }
           />
@@ -338,7 +330,7 @@ export default function AircraftDetailsScreen() {
             value={
               technical_specs.wake_turbulence_category
                 ? WAKE_TURBULENCE_MAP[technical_specs.wake_turbulence_category] ||
-                  technical_specs.wake_turbulence_category
+                technical_specs.wake_turbulence_category
                 : ""
             }
           />
@@ -351,7 +343,7 @@ export default function AircraftDetailsScreen() {
             value={
               technical_specs.transponder
                 ? TRANSPONDER_MAP[technical_specs.transponder] ||
-                  technical_specs.transponder
+                technical_specs.transponder
                 : ""
             }
           />
