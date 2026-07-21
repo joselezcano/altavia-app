@@ -248,7 +248,7 @@ export default function AircraftDetailsScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {/* Title Section Card */}
-        <View className="bg-brand-blue rounded-3xl p-5 mb-5 shadow-md flex-row justify-between items-center">
+        <View className="bg-brand-blue rounded-3xl p-5 mb-5 flex-row justify-between items-center">
           <View className="flex-1 mr-4">
             <ThemedText className="font-bold text-2xl text-white">
               {basic_specs.model}
@@ -264,17 +264,36 @@ export default function AircraftDetailsScreen() {
               </View>
             </View>
           </View>
-          <View className="bg-brand-gold px-4 py-1.5 rounded-full shadow-sm">
-            <ThemedText className="text-brand-blue text-sm font-bold uppercase tracking-wider">
-              {basic_specs.registration}
-            </ThemedText>
+          <View className="flex-row items-center gap-3">
+            <TouchableOpacity
+              onPress={() => {
+                router.push({
+                  pathname: "/aircraft-calendar",
+                  params: {
+                    id,
+                    model: basic_specs.model,
+                    registration: basic_specs.registration,
+                  },
+                });
+              }}
+              className="bg-white/10 w-10 h-10 rounded-full items-center justify-center border border-white/10"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="calendar" size={20} color="#C5A059" />
+            </TouchableOpacity>
+
+            <View className="bg-brand-gold px-4 py-1.5 rounded-full">
+              <ThemedText className="text-brand-blue text-sm font-bold uppercase tracking-wider">
+                {basic_specs.registration}
+              </ThemedText>
+            </View>
           </View>
         </View>
 
         {/* 1. Basic Specs Card */}
         <ThemedView
           variant="card"
-          className="p-5 mb-4 border border-slate-100 shadow-sm"
+          className="p-5 mb-4 border border-slate-100"
         >
           <View className="flex-row items-center gap-2 mb-3">
             <Ionicons name="information-circle" size={20} color="#0f1e3d" />
@@ -297,7 +316,7 @@ export default function AircraftDetailsScreen() {
         {/* 2. Technical Specs Card */}
         <ThemedView
           variant="card"
-          className="p-5 mb-4 border border-slate-100 shadow-sm"
+          className="p-5 mb-4 border border-slate-100"
         >
           <View className="flex-row items-center gap-2 mb-3">
             <Ionicons name="settings" size={20} color="#0f1e3d" />
@@ -346,7 +365,7 @@ export default function AircraftDetailsScreen() {
         {/* 3. Operating/Performance Specs Card */}
         <ThemedView
           variant="card"
-          className="p-5 mb-4 border border-slate-100 shadow-sm"
+          className="p-5 mb-4 border border-slate-100"
         >
           <View className="flex-row items-center gap-2 mb-3">
             <Ionicons name="speedometer" size={20} color="#0f1e3d" />
@@ -387,7 +406,7 @@ export default function AircraftDetailsScreen() {
         {/* 4. Emergency Card */}
         <ThemedView
           variant="card"
-          className="p-5 mb-4 border border-slate-100 shadow-sm"
+          className="p-5 mb-4 border border-slate-100"
         >
           <View className="flex-row items-center gap-2 mb-3">
             <Ionicons name="medical" size={20} color="#0f1e3d" />
@@ -449,7 +468,7 @@ export default function AircraftDetailsScreen() {
         {/* 5. Notes/Observations Card */}
         <ThemedView
           variant="card"
-          className="p-5 mb-6 border border-slate-100 shadow-sm"
+          className="p-5 mb-6 border border-slate-100"
         >
           <View className="flex-row items-center gap-2 mb-3">
             <Ionicons name="document-text" size={20} color="#0f1e3d" />

@@ -11,6 +11,7 @@ export default function OwnerLayout() {
             style={{
                 flex: 1,
                 paddingTop: insets.top,
+                paddingBottom: insets.bottom,
             }}
         >
             <Tabs
@@ -20,8 +21,6 @@ export default function OwnerLayout() {
                         backgroundColor: "#FFFFFF",
                         borderTopColor: "#E2E8F0",
                         elevation: 0, // Remove shadow on Android for a cleaner look
-                        paddingTop: 4,
-                        height: 70,
                     },
                     tabBarActiveTintColor: "#0f1e3d", // brand-blue
                     tabBarInactiveTintColor: "#94A3B8", // brand-muted
@@ -46,15 +45,6 @@ export default function OwnerLayout() {
                     }}
                 />
                 <Tabs.Screen
-                    name="pilots"
-                    options={{
-                        title: "Pilotos",
-                        tabBarIcon: ({ color, size }) => (
-                            <Ionicons name="people" size={size} color={color} />
-                        ),
-                    }}
-                />
-                <Tabs.Screen
                     name="add-aircraft"
                     options={{
                         href: null,
@@ -63,6 +53,20 @@ export default function OwnerLayout() {
                 />
                 <Tabs.Screen
                     name="aircraft-details"
+                    options={{
+                        href: null,
+                        tabBarStyle: { display: "none" },
+                    }}
+                />
+                <Tabs.Screen
+                    name="aircraft-calendar"
+                    options={{
+                        href: null,
+                        tabBarStyle: { display: "none" },
+                    }}
+                />
+                <Tabs.Screen
+                    name="event-recurrence"
                     options={{
                         href: null,
                         tabBarStyle: { display: "none" },
