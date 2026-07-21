@@ -39,6 +39,8 @@ export const AircraftAvailabilitySchema = z.object({
             occurrences: z.number().nonnegative().int(),
         }),
     }),
+    reason: z.enum(['maintenance', 'owner_use', 'holidays', 'not_in_base', 'no_pilot', 'rental', 'legal_restriction', 'other']),
+    notes: z.string().optional(),
 });
 
 export type AircraftAvailability = z.infer<typeof AircraftAvailabilitySchema>;

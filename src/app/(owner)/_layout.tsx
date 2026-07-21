@@ -1,5 +1,5 @@
 import { ThemedView } from "@/components/themed-view";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -41,6 +41,15 @@ export default function OwnerLayout() {
                         title: "Aeronaves",
                         tabBarIcon: ({ color, size }) => (
                             <Ionicons name="airplane" size={size} color={color} />
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="pilots"
+                    options={{
+                        title: "Pilotos",
+                        tabBarIcon: ({ color, size }) => (
+                            <MaterialCommunityIcons name="account-tie-hat" size={size} color={color} />
                         ),
                     }}
                 />

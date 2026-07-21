@@ -1,7 +1,7 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
-import { AircraftAvailabilitySchema } from "@/types/all-roles";
+import { AircraftAvailability, AircraftAvailabilitySchema } from "@/types/all-roles";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -35,6 +35,17 @@ const DAYS_OF_WEEK = [
   { value: "Jue", label: "J", eng: "Thursday" },
   { value: "Vie", label: "V", eng: "Friday" },
   { value: "Sab", label: "S", eng: "Saturday" },
+];
+
+const REASON_OPTIONS: { value: AircraftAvailability["reason"]; label: string; icon: string }[] = [
+  { value: "maintenance", label: "Mantenimiento", icon: "build-outline" },
+  { value: "owner_use", label: "Uso del Propietario", icon: "ribbon-outline" },
+  { value: "holidays", label: "Vacaciones", icon: "sunny-outline" },
+  { value: "not_in_base", label: "Fuera de Base", icon: "location-outline" },
+  { value: "no_pilot", label: "Sin Piloto", icon: "person-remove-outline" },
+  { value: "rental", label: "Alquiler", icon: "key-outline" },
+  { value: "legal_restriction", label: "Restricción Legal", icon: "document-text-outline" },
+  { value: "other", label: "Otro", icon: "bookmark-outline" },
 ];
 
 // Helper Time Spinner render component
@@ -104,6 +115,10 @@ export default function EventRecurrenceScreen() {
   const [endsType, setEndsType] = useState<"never" | "date" | "occurrences">("never");
   const [endsDate, setEndsDate] = useState("");
   const [endsOccurrences, setEndsOccurrences] = useState(10);
+
+  // Reason and Notes States
+  const [reason, setReason] = useState<AircraftAvailability["reason"]>("maintenance");
+  const [notes, setNotes] = useState("");
 
   // Submitting loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -245,6 +260,8 @@ export default function EventRecurrenceScreen() {
           occurrences: endsType === "occurrences" ? Number(endsOccurrences) : 0,
         },
       },
+      reason,
+      notes: notes.trim(),
     };
 
     // Validate with AircraftAvailabilitySchema
@@ -298,7 +315,7 @@ export default function EventRecurrenceScreen() {
             </ThemedText>
           </TouchableOpacity>
           <ThemedText className="font-bold text-brand-blue text-lg">
-            Configurar Repetición
+            Añadir Indisponibilidad
           </ThemedText>
           <View style={{ width: 60 }} />
         </View>
@@ -323,7 +340,7 @@ export default function EventRecurrenceScreen() {
             </View>
             <View className="border-t border-slate-100 pt-3">
               <ThemedText type="caption" className="text-slate-500 font-medium mb-2">
-                Fecha de la disponibilidad (AAAA-MM-DD)
+                Fecha de Indisponibilidad (AAAA-MM-DD)
               </ThemedText>
               <View className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-row items-center gap-2">
                 <Ionicons name="calendar-outline" size={18} color="#0f1e3d" />
@@ -590,6 +607,72 @@ export default function EventRecurrenceScreen() {
             </ThemedView>
           )}
 
+          {/* 5. Unavailability Reason & Notes Card */}
+          <ThemedView variant="card" className="p-5 mb-6 border border-slate-100 bg-white">
+            <View className="flex-row items-center gap-2 mb-4">
+              <Ionicons name="alert-circle" size={20} color="#0f1e3d" />
+              <ThemedText type="subtitle" className="font-bold text-brand-blue">
+                Motivo de Indisponibilidad
+              </ThemedText>
+            </View>
+
+            {/* Radio Buttons Options */}
+            <View className="gap-2 mb-4">
+              {REASON_OPTIONS.map((option) => {
+                const isSelected = reason === option.value;
+                return (
+                  <TouchableOpacity
+                    key={option.value}
+                    onPress={() => setReason(option.value)}
+                    className={`flex-row items-center justify-between p-3 rounded-xl border ${isSelected
+                      ? "bg-slate-50 border-brand-blue"
+                      : "bg-white border-slate-200"
+                      }`}
+                    activeOpacity={0.7}
+                  >
+                    <View className="flex-row items-center gap-2.5">
+                      <Ionicons
+                        name={option.icon as any}
+                        size={18}
+                        color={isSelected ? "#0f1e3d" : "#64748B"}
+                      />
+                      <ThemedText
+                        className={`text-sm ${isSelected ? "font-bold text-brand-blue" : "font-medium text-slate-700"
+                          }`}
+                      >
+                        {option.label}
+                      </ThemedText>
+                    </View>
+                    <Ionicons
+                      name={isSelected ? "radio-button-on" : "radio-button-off"}
+                      size={20}
+                      color={isSelected ? "#0f1e3d" : "#94A3B8"}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Notes Input Area */}
+            <View className="border-t border-slate-100 pt-3">
+              <ThemedText type="caption" className="text-slate-500 font-medium mb-2">
+                Notas adicionales (Opcional)
+              </ThemedText>
+              <View className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
+                <TextInput
+                  value={notes}
+                  onChangeText={setNotes}
+                  placeholder="Ej. Detalle del mantenimiento o nota de uso..."
+                  placeholderTextColor="#94A3B8"
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                  className="text-brand-blue text-sm min-h-[70px]"
+                />
+              </View>
+            </View>
+          </ThemedView>
+
           {/* Action Confirmation Button */}
           <TouchableOpacity
             onPress={handleSave}
@@ -604,7 +687,7 @@ export default function EventRecurrenceScreen() {
               <>
                 <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
                 <ThemedText className="text-white font-bold text-base">
-                  Guardar Configuración
+                  Guardar Indisponibilidad
                 </ThemedText>
               </>
             )}

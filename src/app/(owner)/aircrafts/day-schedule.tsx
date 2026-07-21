@@ -183,39 +183,130 @@ export default function DayScheduleScreen() {
     );
   };
 
-  // Helper to translate frequency into Spanish
-  const getRecurrenceLabel = (avail: AircraftAvailability) => {
+  // Reason color and icon themes map
+  const REASON_THEMES: Record<
+    string,
+    {
+      label: string;
+      bg: string;
+      border: string;
+      accent: string;
+      text: string;
+      badgeBg: string;
+      iconName: keyof typeof Ionicons.glyphMap;
+    }
+  > = {
+    maintenance: {
+      label: "Mantenimiento",
+      bg: "#FFFBEB",
+      border: "#FDE68A",
+      accent: "#D97706",
+      text: "#78350F",
+      badgeBg: "#FEF3C7",
+      iconName: "build",
+    },
+    owner_use: {
+      label: "Uso del Propietario",
+      bg: "#EEF2FF",
+      border: "#C7D2FE",
+      accent: "#4F46E5",
+      text: "#312E81",
+      badgeBg: "#E0E7FF",
+      iconName: "ribbon",
+    },
+    holidays: {
+      label: "Vacaciones",
+      bg: "#ECFDF5",
+      border: "#A7F3D0",
+      accent: "#059669",
+      text: "#064E3B",
+      badgeBg: "#D1FAE5",
+      iconName: "sunny",
+    },
+    not_in_base: {
+      label: "Fuera de Base",
+      bg: "#F0F9FF",
+      border: "#BAE6FD",
+      accent: "#0284C7",
+      text: "#0C4A6E",
+      badgeBg: "#E0F2FE",
+      iconName: "location",
+    },
+    no_pilot: {
+      label: "Sin Piloto",
+      bg: "#FFF1F2",
+      border: "#FECDD3",
+      accent: "#E11D48",
+      text: "#881337",
+      badgeBg: "#FFE4E6",
+      iconName: "person-remove",
+    },
+    rental: {
+      label: "Alquiler",
+      bg: "#F5F3FF",
+      border: "#DDD6FE",
+      accent: "#7C3AED",
+      text: "#4C1D95",
+      badgeBg: "#EDE9FE",
+      iconName: "key",
+    },
+    legal_restriction: {
+      label: "Restricción Legal",
+      bg: "#F8FAFC",
+      border: "#CBD5E1",
+      accent: "#475569",
+      text: "#0F172A",
+      badgeBg: "#E2E8F0",
+      iconName: "document-text",
+    },
+    other: {
+      label: "Otro",
+      bg: "#f7fee7",
+      border: "#bef264",
+      accent: "#4d7c0f",
+      text: "#3f6212",
+      badgeBg: "#d9f99d",
+      iconName: "bookmark",
+    },
+  };
+
+  // Helper to translate frequency into concise indicator next to time
+  const getShortRecurrenceLabel = (avail: AircraftAvailability) => {
     const period = avail.recurrence?.period;
     const interval = avail.recurrence?.interval || 1;
-    if (period === "none" || !period) return "No se repite";
+    if (!period || period === "none") return null;
 
-    let label = "Repite: ";
     if (period === "daily") {
-      label += interval === 1 ? "Todos los días" : `Cada ${interval} días`;
-    } else if (period === "weekly") {
-      label += interval === 1 ? "Todas las semanas" : `Cada ${interval} semanas`;
-      const days = avail.recurrence?.days_of_week || [];
-      if (days.length > 0) {
-        const spanDays = days.map((d) => {
-          switch (d) {
-            case "Sunday": return "Dom";
-            case "Monday": return "Lun";
-            case "Tuesday": return "Mar";
-            case "Wednesday": return "Mié";
-            case "Thursday": return "Jue";
-            case "Friday": return "Vie";
-            case "Saturday": return "Sáb";
-            default: return d;
-          }
-        });
-        label += ` (${spanDays.join(", ")})`;
-      }
-    } else if (period === "monthly") {
-      label += interval === 1 ? "Todos los meses" : `Cada ${interval} meses`;
-    } else if (period === "yearly") {
-      label += interval === 1 ? "Todos los años" : `Cada ${interval} años`;
+      return interval === 1 ? "Diario" : `c/${interval}d`;
     }
-    return label;
+    if (period === "weekly") {
+      const days = avail.recurrence?.days_of_week || [];
+      const spanDays = days
+        .map((d) => {
+          switch (d) {
+            case "Sunday": return "D";
+            case "Monday": return "L";
+            case "Tuesday": return "M";
+            case "Wednesday": return "X";
+            case "Thursday": return "J";
+            case "Friday": return "V";
+            case "Saturday": return "S";
+            default: return "";
+          }
+        })
+        .filter(Boolean)
+        .join("");
+
+      const prefix = interval === 1 ? "Sem" : `c/${interval}sem`;
+      return spanDays ? `${prefix} (${spanDays})` : prefix;
+    }
+    if (period === "monthly") {
+      return interval === 1 ? "Mensual" : `c/${interval}m`;
+    }
+    if (period === "yearly") {
+      return interval === 1 ? "Anual" : `c/${interval}a`;
+    }
+    return null;
   };
 
   return (
@@ -232,7 +323,7 @@ export default function DayScheduleScreen() {
           </ThemedText>
         </TouchableOpacity>
         <ThemedText className="font-bold text-brand-blue text-lg">
-          Agenda del Día
+          Agenda diaria
         </ThemedText>
         <TouchableOpacity
           onPress={() => {
@@ -249,10 +340,7 @@ export default function DayScheduleScreen() {
           className="flex-row items-center p-1 bg-slate-50 border border-slate-200/80 rounded-xl px-2.5 py-1.5"
           activeOpacity={0.7}
         >
-          <Ionicons name="add" size={18} color="#C5A059" />
-          <ThemedText className="font-bold text-brand-gold ml-1 text-xs">
-            Añadir
-          </ThemedText>
+          <Ionicons name="add" size={24} color="#C5A059" />
         </TouchableOpacity>
       </View>
 
@@ -262,7 +350,7 @@ export default function DayScheduleScreen() {
           <ThemedText className="font-bold text-xl text-white">
             {model || "Aeronave"}
           </ThemedText>
-          <ThemedText className="text-slate-300 text-xs mt-1 capitalize font-semibold">
+          <ThemedText className="text-slate-300 text-xs mt-1 font-semibold">
             {getFormattedDate()}
           </ThemedText>
         </View>
@@ -334,7 +422,10 @@ export default function DayScheduleScreen() {
               const topPosition = (startMins / 60) * ROW_HEIGHT;
               const durationMins = endMins - startMins;
               const calculatedHeight = (durationMins / 60) * ROW_HEIGHT;
-              const heightPosition = Math.max(36, calculatedHeight); // Enforce min height for visual styling
+              const heightPosition = Math.max(44, calculatedHeight);
+
+              const theme = REASON_THEMES[avail.reason] || REASON_THEMES.other;
+              const shortRecurrence = getShortRecurrenceLabel(avail);
 
               return (
                 <View
@@ -345,27 +436,63 @@ export default function DayScheduleScreen() {
                     height: heightPosition,
                     left: 4,
                     right: 4,
+                    backgroundColor: theme.bg,
+                    borderColor: theme.border,
+                    borderLeftColor: theme.accent,
+                    borderLeftWidth: 4,
+                    borderWidth: 1,
+                    borderRadius: 16,
+                    paddingHorizontal: 10,
+                    paddingVertical: 8,
                   }}
-                  className="bg-brand-blue/5 border border-brand-blue/20 border-l-4 border-l-brand-blue rounded-2xl p-3 flex-row justify-between items-start shadow-sm"
+                  className="flex-row justify-between items-start shadow-sm"
                 >
-                  <View className="flex-1 justify-center">
-                    <View className="flex-row items-center gap-1.5">
-                      <Ionicons name="time-outline" size={14} color="#0f1e3d" />
-                      <ThemedText className="font-bold text-brand-blue text-sm">
+                  <View className="flex-1 justify-center mr-1">
+                    {/* Top Row: Time Range + Short Repetition Indicator next to it */}
+                    <View className="flex-row items-center flex-wrap gap-1.5">
+                      <Ionicons name="time-outline" size={13} color={theme.accent} />
+                      <ThemedText style={{ color: theme.text }} className="font-bold text-xs">
                         {avail.start_time} - {avail.end_time}
                       </ThemedText>
+
+                      {shortRecurrence && (
+                        <View
+                          style={{ backgroundColor: theme.badgeBg }}
+                          className="ml-1 flex-row items-center px-1.5 py-0.5 rounded-md gap-0.5"
+                        >
+                          <Ionicons name="repeat-sharp" size={12} color={theme.accent} />
+                          <ThemedText style={{ color: theme.text }} className="text-xs font-bold">
+                            {shortRecurrence}
+                          </ThemedText>
+                        </View>
+                      )}
                     </View>
-                    {heightPosition > 50 && (
-                      <ThemedText className="text-[10px] text-brand-muted font-medium mt-1">
-                        {getRecurrenceLabel(avail)}
+
+                    {/* Reason Row */}
+                    <View className="flex-row items-center gap-1 mt-0.5">
+                      <Ionicons name={theme.iconName} size={12} color={theme.accent} />
+                      <ThemedText style={{ color: theme.text }} className="font-semibold text-xs">
+                        {theme.label}
+                      </ThemedText>
+                    </View>
+
+                    {/* Notes (if present and card height permits) */}
+                    {avail.notes && heightPosition > 60 && (
+                      <ThemedText
+                        style={{ color: theme.text }}
+                        numberOfLines={1}
+                        className="text-xs opacity-80 mt-0.5 font-medium"
+                      >
+                        {avail.notes}
                       </ThemedText>
                     )}
                   </View>
+
                   <TouchableOpacity
                     onPress={() => handleDeleteAvailability(avail.id)}
-                    className="p-1 rounded-lg bg-red-50"
+                    className="p-1 rounded-lg bg-white/80 border border-slate-200/60"
                   >
-                    <Ionicons name="trash" size={14} color="#EF4444" />
+                    <Ionicons name="trash" size={13} color="#EF4444" />
                   </TouchableOpacity>
                 </View>
               );
