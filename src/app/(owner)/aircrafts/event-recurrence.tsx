@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Switch,
   TextInput,
   TouchableOpacity,
   View,
@@ -69,14 +70,20 @@ const TimeSpinner = ({
   value,
   onInc,
   onDec,
+  disabled = false,
 }: {
   value: number;
   onInc: () => void;
   onDec: () => void;
+  disabled?: boolean;
 }) => (
-  <View className="items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 flex-row gap-1">
+  <View
+    className={`items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 flex-row gap-1 ${disabled ? "opacity-40" : ""
+      }`}
+  >
     <TouchableOpacity
       onPress={onDec}
+      disabled={disabled}
       className="w-7 h-7 items-center justify-center bg-white border border-slate-100 rounded-lg"
     >
       <Ionicons name="remove" size={16} color="#0f1e3d" />
@@ -86,6 +93,7 @@ const TimeSpinner = ({
     </ThemedText>
     <TouchableOpacity
       onPress={onInc}
+      disabled={disabled}
       className="w-7 h-7 items-center justify-center bg-white border border-slate-100 rounded-lg"
     >
       <Ionicons name="add" size={16} color="#0f1e3d" />
@@ -117,6 +125,7 @@ export default function EventRecurrenceScreen() {
   const [selectedDateInput, setSelectedDateInput] = useState(selectedDate || "");
 
   // Time Range States
+  const [allDay, setAllDay] = useState(false);
   const [startHour, setStartHour] = useState(prefilledStartHour ? Number(prefilledStartHour) : 9);
   const [startMinute, setStartMinute] = useState(0);
   const [endHour, setEndHour] = useState(prefilledEndHour ? Number(prefilledEndHour) : 10);
@@ -141,6 +150,7 @@ export default function EventRecurrenceScreen() {
 
   // Helper incrementers for Time
   const adjustStartHour = (inc: number) => {
+    setAllDay(false);
     setStartHour((prev) => {
       let next = prev + inc;
       if (next > 23) return 0;
@@ -150,6 +160,7 @@ export default function EventRecurrenceScreen() {
   };
 
   const adjustStartMinute = (inc: number) => {
+    setAllDay(false);
     setStartMinute((prev) => {
       let next = prev + inc;
       if (next > 59) return 0;
@@ -159,6 +170,7 @@ export default function EventRecurrenceScreen() {
   };
 
   const adjustEndHour = (inc: number) => {
+    setAllDay(false);
     setEndHour((prev) => {
       let next = prev + inc;
       if (next > 23) return 0;
@@ -168,6 +180,7 @@ export default function EventRecurrenceScreen() {
   };
 
   const adjustEndMinute = (inc: number) => {
+    setAllDay(false);
     setEndMinute((prev) => {
       let next = prev + inc;
       if (next > 59) return 0;
@@ -197,8 +210,8 @@ export default function EventRecurrenceScreen() {
       return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     };
 
-    const startTimeStr = formatTimeStr(startHour, startMinute);
-    const endTimeStr = formatTimeStr(endHour, endMinute);
+    const startTimeStr = allDay ? "00:00" : formatTimeStr(startHour, startMinute);
+    const endTimeStr = allDay ? "24:00" : formatTimeStr(endHour, endMinute);
 
     // Validate selected_date format
     const dateRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -217,11 +230,11 @@ export default function EventRecurrenceScreen() {
     const day = parseInt(dateMatch[3], 10);
 
     // Parse start and end timestamps in local time
-    const startTimestamp = new Date(year, month - 1, day, startHour, startMinute, 0, 0);
-    const endTimestamp = new Date(year, month - 1, day, endHour, endMinute, 0, 0);
+    const startTimestamp = new Date(year, month - 1, day, allDay ? 0 : startHour, allDay ? 0 : startMinute, 0, 0);
+    const endTimestamp = new Date(year, month - 1, day, allDay ? 23 : endHour, allDay ? 59 : endMinute, 59, 999);
 
-    // Enforce end timestamp is after start timestamp
-    if (endTimestamp <= startTimestamp) {
+    // Enforce end timestamp is after start timestamp if not all-day
+    if (!allDay && endTimestamp <= startTimestamp) {
       Alert.alert("Error de validación", "La hora de fin debe ser posterior a la hora de inicio.");
       return;
     }
@@ -281,6 +294,7 @@ export default function EventRecurrenceScreen() {
       end_time: endTimeStr,
       start_timestamp: startTimestamp,
       end_timestamp: endTimestamp,
+      all_day: allDay,
       recurrence: {
         period: period as "none" | "daily" | "weekly" | "monthly" | "yearly",
         interval: Number(interval),
@@ -379,15 +393,38 @@ export default function EventRecurrenceScreen() {
 
           {/* 2. Time Range Selector Card */}
           <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
-            <View className="flex-row items-center gap-2 mb-4">
-              <Ionicons name="time" size={20} color="#0f1e3d" />
-              <ThemedText type="subtitle" className="font-bold text-brand-blue">
-                Rango Horario
-              </ThemedText>
+            <View className="flex-row items-center justify-between mb-4">
+              <View className="flex-row items-center gap-2">
+                <Ionicons name="time" size={20} color="#0f1e3d" />
+                <ThemedText type="subtitle" className="font-bold text-brand-blue">
+                  Rango Horario
+                </ThemedText>
+              </View>
+              {/* All-Day Switch */}
+              <View className="flex-row items-center gap-2">
+                <ThemedText className="text-xs font-semibold text-slate-600">
+                  Todo el día
+                </ThemedText>
+                <Switch
+                  value={allDay}
+                  style={{ transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }] }}
+                  onValueChange={(val) => {
+                    setAllDay(val);
+                    if (val) {
+                      setStartHour(0);
+                      setStartMinute(0);
+                      setEndHour(24);
+                      setEndMinute(0);
+                    }
+                  }}
+                  trackColor={{ false: "#CBD5E1", true: "#0f1e3d" }}
+                  thumbColor={allDay ? "#C5A059" : "#FFFFFF"}
+                />
+              </View>
             </View>
 
             {/* Start Time row */}
-            <View className="flex-row justify-between items-center py-2.5 border-b border-slate-100">
+            <View className={`flex-row justify-between items-center py-2.5 border-b border-slate-100 ${allDay ? "opacity-40" : ""}`}>
               <ThemedText type="caption" className="text-slate-500 font-medium">
                 Hora de Inicio
               </ThemedText>
@@ -396,18 +433,20 @@ export default function EventRecurrenceScreen() {
                   value={startHour}
                   onInc={() => adjustStartHour(1)}
                   onDec={() => adjustStartHour(-1)}
+                  disabled={allDay}
                 />
                 <ThemedText className="font-bold text-brand-blue">:</ThemedText>
                 <TimeSpinner
                   value={startMinute}
                   onInc={() => adjustStartMinute(5)}
                   onDec={() => adjustStartMinute(-5)}
+                  disabled={allDay}
                 />
               </View>
             </View>
 
             {/* End Time row */}
-            <View className="flex-row justify-between items-center py-2.5">
+            <View className={`flex-row justify-between items-center py-2.5 ${allDay ? "opacity-40" : ""}`}>
               <ThemedText type="caption" className="text-slate-500 font-medium">
                 Hora de Fin
               </ThemedText>
@@ -416,12 +455,14 @@ export default function EventRecurrenceScreen() {
                   value={endHour}
                   onInc={() => adjustEndHour(1)}
                   onDec={() => adjustEndHour(-1)}
+                  disabled={allDay}
                 />
                 <ThemedText className="font-bold text-brand-blue">:</ThemedText>
                 <TimeSpinner
                   value={endMinute}
                   onInc={() => adjustEndMinute(5)}
                   onDec={() => adjustEndMinute(-5)}
+                  disabled={allDay}
                 />
               </View>
             </View>

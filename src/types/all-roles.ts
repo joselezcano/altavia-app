@@ -29,6 +29,7 @@ export const AircraftAvailabilitySchema = z.object({
     end_time: z.string().regex(/^\d{2}:\d{2}$/, "Format must be HH:MM"),
     start_timestamp: z.date().optional(),
     end_timestamp: z.date().optional(),
+    all_day: z.boolean().optional(),
     recurrence: z.object({
         period: z.enum(["none", "daily", "weekly", "monthly", "yearly"]),
         interval: z.number().nonnegative().int(),

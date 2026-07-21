@@ -159,6 +159,11 @@ function getUnavailableIntervals(matchingAvailabilities: AircraftAvailability[])
   const rawIntervals: Interval[] = [];
 
   for (const avail of matchingAvailabilities) {
+    if (avail.all_day) {
+      rawIntervals.push({ start: 0, end: 1440 });
+      continue;
+    }
+
     const [sH, sM] = avail.start_time.split(":").map(Number);
     const [eH, eM] = avail.end_time.split(":").map(Number);
 
