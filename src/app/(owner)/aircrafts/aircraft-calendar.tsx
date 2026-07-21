@@ -225,7 +225,7 @@ export default function AircraftCalendarScreen() {
                             const dayStr = String(cell).padStart(2, "0");
                             const dateStr = `${currentYear}-${monthStr}-${dayStr}`;
                             router.push({
-                              pathname: "/day-schedule",
+                              pathname: "/aircrafts/day-schedule",
                               params: {
                                 id,
                                 selectedDate: dateStr,
@@ -275,7 +275,7 @@ export default function AircraftCalendarScreen() {
             const dateStr = `${currentYear}-${monthStr}-${dayStr}`;
 
             router.push({
-              pathname: "/day-schedule",
+              pathname: "/aircrafts/day-schedule",
               params: {
                 id,
                 selectedDate: dateStr,

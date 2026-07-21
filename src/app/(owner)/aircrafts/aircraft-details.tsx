@@ -268,7 +268,7 @@ export default function AircraftDetailsScreen() {
             <TouchableOpacity
               onPress={() => {
                 router.push({
-                  pathname: "/aircraft-calendar",
+                  pathname: "/aircrafts/aircraft-calendar",
                   params: {
                     id,
                     model: basic_specs.model,

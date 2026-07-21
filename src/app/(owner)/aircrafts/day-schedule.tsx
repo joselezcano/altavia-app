@@ -223,7 +223,7 @@ export default function DayScheduleScreen() {
       {/* Header */}
       <View className="flex-row items-center justify-between mb-4 mt-2">
         <TouchableOpacity
-          onPress={() => router.push("/aircraft-calendar")}
+          onPress={() => router.back()}
           className="flex-row items-center p-1"
         >
           <Ionicons name="arrow-back" size={24} color="#0f1e3d" />
@@ -237,7 +237,7 @@ export default function DayScheduleScreen() {
         <TouchableOpacity
           onPress={() => {
             router.push({
-              pathname: "/event-recurrence",
+              pathname: "/aircrafts/event-recurrence",
               params: {
                 aircraftId: id,
                 selectedDate,
@@ -302,7 +302,7 @@ export default function DayScheduleScreen() {
                 key={hour}
                 onLongPress={() => {
                   router.push({
-                    pathname: "/event-recurrence",
+                    pathname: "/aircrafts/event-recurrence",
                     params: {
                       aircraftId: id,
                       selectedDate,

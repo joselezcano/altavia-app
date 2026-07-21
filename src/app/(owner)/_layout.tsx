@@ -36,47 +36,12 @@ export default function OwnerLayout() {
                     }}
                 />
                 <Tabs.Screen
-                    name="list-aircrafts"
+                    name="aircrafts"
                     options={{
                         title: "Aeronaves",
                         tabBarIcon: ({ color, size }) => (
                             <Ionicons name="airplane" size={size} color={color} />
                         ),
-                    }}
-                />
-                <Tabs.Screen
-                    name="add-aircraft"
-                    options={{
-                        href: null,
-                        tabBarStyle: { display: "none" },
-                    }}
-                />
-                <Tabs.Screen
-                    name="aircraft-details"
-                    options={{
-                        href: null,
-                        tabBarStyle: { display: "none" },
-                    }}
-                />
-                <Tabs.Screen
-                    name="aircraft-calendar"
-                    options={{
-                        href: null,
-                        tabBarStyle: { display: "none" },
-                    }}
-                />
-                <Tabs.Screen
-                    name="day-schedule"
-                    options={{
-                        href: null,
-                        tabBarStyle: { display: "none" },
-                    }}
-                />
-                <Tabs.Screen
-                    name="event-recurrence"
-                    options={{
-                        href: null,
-                        tabBarStyle: { display: "none" },
                     }}
                 />
             </Tabs>

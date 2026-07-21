@@ -56,7 +56,7 @@ export default function ListAircraftsScreen() {
   }, [user]);
 
   const handleAddAircraft = () => {
-    router.push("/add-aircraft");
+    router.push("/aircrafts/add-aircraft");
   };
 
   const renderAircraftItem = ({ item }: { item: AircraftSpecsDoc }) => {
@@ -98,7 +98,7 @@ export default function ListAircraftsScreen() {
           <TouchableOpacity
             onPress={() => {
               router.push({
-                pathname: "/aircraft-details",
+                pathname: "/aircrafts/aircraft-details",
                 params: { id: item.id },
               });
             }}
