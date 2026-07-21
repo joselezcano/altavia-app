@@ -1,23 +1,28 @@
 import React from 'react';
-
-interface CustomDatePickerProps {
-  value: Date | undefined;
-  onChange: (date: Date | undefined) => void;
-  placeholder?: string;
-  minimumDate?: Date;
-}
+import { CustomDatePickerProps } from '@/types/components';
 
 export function CustomDatePicker({
   value,
   onChange,
+  placeholder,
   minimumDate,
+  includeTime = true,
 }: CustomDatePickerProps) {
   // Helper to convert Date to local "YYYY-MM-DDTHH:mm" format for <input type="datetime-local">
-  const toLocalDatetimeString = (date: Date | undefined): string => {
+  const toLocalDatetimeString = (date: Date | undefined | null): string => {
     if (!date) return '';
     const tzOffset = date.getTimezoneOffset() * 60000; // in ms
     const localTime = new Date(date.getTime() - tzOffset);
     return localTime.toISOString().slice(0, 16);
+  };
+
+  // Helper to convert Date to local "YYYY-MM-DD" format for <input type="date">
+  const toLocalDateString = (date: Date | undefined | null): string => {
+    if (!date) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,19 +30,33 @@ export function CustomDatePicker({
     if (!val) {
       onChange(undefined);
     } else {
-      onChange(new Date(val));
+      if (includeTime) {
+        onChange(new Date(val));
+      } else {
+        const [year, month, day] = val.split('-').map(Number);
+        onChange(new Date(year, month - 1, day));
+      }
     }
   };
 
-  const minValString = minimumDate ? toLocalDatetimeString(minimumDate) : undefined;
+  const minValString = minimumDate
+    ? includeTime
+      ? toLocalDatetimeString(minimumDate)
+      : toLocalDateString(minimumDate)
+    : undefined;
+
+  const currentValueString = includeTime
+    ? toLocalDatetimeString(value)
+    : toLocalDateString(value);
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
       <input
-        type="datetime-local"
-        value={toLocalDatetimeString(value)}
+        type={includeTime ? "datetime-local" : "date"}
+        value={currentValueString}
         min={minValString}
         onChange={handleInputChange}
+        placeholder={placeholder}
         style={{
           width: '100%',
           backgroundColor: '#F8FAFC', // slate-50

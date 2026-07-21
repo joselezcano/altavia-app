@@ -1,3 +1,4 @@
+import { CustomDatePicker } from "@/components/custom-date-picker";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
@@ -48,6 +49,21 @@ const REASON_OPTIONS: { value: AircraftAvailability["reason"]; label: string; ic
   { value: "other", label: "Otro", icon: "bookmark-outline" },
 ];
 
+const parseDateString = (dateStr: string): Date | null => {
+  if (!dateStr) return null;
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+};
+
+const formatDateString = (date: Date | undefined): string => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 // Helper Time Spinner render component
 const TimeSpinner = ({
   value,
@@ -61,16 +77,16 @@ const TimeSpinner = ({
   <View className="items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 flex-row gap-1">
     <TouchableOpacity
       onPress={onDec}
-      className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
+      className="w-7 h-7 items-center justify-center bg-white border border-slate-100 rounded-lg"
     >
       <Ionicons name="remove" size={16} color="#0f1e3d" />
     </TouchableOpacity>
-    <ThemedText className="text-brand-blue font-bold text-lg text-center w-8">
+    <ThemedText className="text-brand-blue font-bold text-md text-center w-8">
       {String(value).padStart(2, "0")}
     </ThemedText>
     <TouchableOpacity
       onPress={onInc}
-      className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
+      className="w-7 h-7 items-center justify-center bg-white border border-slate-100 rounded-lg"
     >
       <Ionicons name="add" size={16} color="#0f1e3d" />
     </TouchableOpacity>
@@ -187,8 +203,12 @@ export default function EventRecurrenceScreen() {
     // Validate selected_date format
     const dateRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
     const dateMatch = selectedDateInput.match(dateRegex);
+    if (!selectedDateInput) {
+      Alert.alert("Error de validación", "La fecha de indisponibilidad es requerida");
+      return;
+    }
     if (!dateMatch) {
-      Alert.alert("Error de validación", "La fecha de disponibilidad debe tener el formato AAAA-MM-DD");
+      Alert.alert("Error de validación", "La fecha de indisponibilidad debe tener el formato AAAA-MM-DD");
       return;
     }
 
@@ -235,9 +255,20 @@ export default function EventRecurrenceScreen() {
     }
 
     // Validate endsDate format if endsType is date
-    if (endsType === "date") {
+    if (period !== "none" && endsType === "date") {
+      if (!endsDate) {
+        Alert.alert("Error de validación", "La fecha de finalización es requerida.");
+        return;
+      }
       if (!endsDate.match(dateRegex)) {
         Alert.alert("Error de validación", "La fecha de finalización debe tener el formato AAAA-MM-DD");
+        return;
+      }
+      if (endsDate <= selectedDateInput) {
+        Alert.alert(
+          "Error de validación",
+          "La fecha de finalización debe ser posterior a la fecha de indisponibilidad."
+        );
         return;
       }
     }
@@ -325,16 +356,11 @@ export default function EventRecurrenceScreen() {
           <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
             <View className="flex-row justify-between items-center mb-4">
               <View className="flex-1 mr-3">
-                <ThemedText className="font-bold text-brand-blue text-base">
+                <ThemedText type="default" className="font-bold">
                   {model || "Aeronave"}
                 </ThemedText>
-                <ThemedText className="text-brand-gold text-[10px] font-bold mt-0.5 uppercase tracking-wide">
+                <ThemedText type="accent" className="mt-1 font-semibold uppercase tracking-wide">
                   {registration || "Sin Matrícula"}
-                </ThemedText>
-              </View>
-              <View className="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
-                <ThemedText className="text-brand-blue text-xs font-bold">
-                  Configurar Fecha
                 </ThemedText>
               </View>
             </View>
@@ -342,17 +368,12 @@ export default function EventRecurrenceScreen() {
               <ThemedText type="caption" className="text-slate-500 font-medium mb-2">
                 Fecha de Indisponibilidad (AAAA-MM-DD)
               </ThemedText>
-              <View className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-row items-center gap-2">
-                <Ionicons name="calendar-outline" size={18} color="#0f1e3d" />
-                <TextInput
-                  value={selectedDateInput}
-                  onChangeText={setSelectedDateInput}
-                  placeholder="AAAA-MM-DD"
-                  placeholderTextColor="#94A3B8"
-                  className="text-brand-blue font-semibold p-0 text-sm flex-1"
-                  maxLength={10}
-                />
-              </View>
+              <CustomDatePicker
+                value={parseDateString(selectedDateInput)}
+                onChange={(date) => setSelectedDateInput(formatDateString(date))}
+                placeholder="AAAA-MM-DD"
+                includeTime={false}
+              />
             </View>
           </ThemedView>
 
@@ -409,7 +430,7 @@ export default function EventRecurrenceScreen() {
           {/* 3. Repeat Period Selector Card */}
           <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
             <View className="flex-row items-center gap-2 mb-4">
-              <Ionicons name="repeat" size={20} color="#0f1e3d" />
+              <Ionicons name="repeat-sharp" size={20} color="#0f1e3d" />
               <ThemedText type="subtitle" className="font-bold text-brand-blue">
                 Frecuencia y Período
               </ThemedText>
@@ -542,7 +563,7 @@ export default function EventRecurrenceScreen() {
                   activeOpacity={0.7}
                 >
                   <ThemedText type="caption" className="text-slate-600 font-medium">
-                    El (Fecha límite)
+                    En fecha límite (inclusive)
                   </ThemedText>
                   <Ionicons
                     name={endsType === "date" ? "radio-button-on" : "radio-button-off"}
@@ -551,14 +572,12 @@ export default function EventRecurrenceScreen() {
                   />
                 </TouchableOpacity>
                 {endsType === "date" && (
-                  <View className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 mt-1">
-                    <TextInput
-                      value={endsDate}
-                      onChangeText={setEndsDate}
+                  <View className="mt-2">
+                    <CustomDatePicker
+                      value={parseDateString(endsDate)}
+                      onChange={(date) => setEndsDate(formatDateString(date))}
                       placeholder="AAAA-MM-DD"
-                      placeholderTextColor="#94A3B8"
-                      className="text-slate-700 font-semibold p-0 text-sm"
-                      maxLength={10}
+                      includeTime={false}
                     />
                   </View>
                 )}
@@ -656,13 +675,13 @@ export default function EventRecurrenceScreen() {
             {/* Notes Input Area */}
             <View className="border-t border-slate-100 pt-3">
               <ThemedText type="caption" className="text-slate-500 font-medium mb-2">
-                Notas adicionales (Opcional)
+                Notas Adicionales (Opcional)
               </ThemedText>
               <View className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
                 <TextInput
                   value={notes}
                   onChangeText={setNotes}
-                  placeholder="Ej. Detalle del mantenimiento o nota de uso..."
+                  placeholder="Ej. Detalles sobre la indisponibilidad..."
                   placeholderTextColor="#94A3B8"
                   multiline
                   numberOfLines={3}

@@ -1,3 +1,4 @@
+import { CustomDatePickerProps } from '@/types/components';
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -10,18 +11,12 @@ import {
 } from 'react-native';
 import { ThemedText } from './themed-text';
 
-interface CustomDatePickerProps {
-  value: Date | null;
-  onChange: (date: Date | undefined) => void;
-  placeholder?: string;
-  minimumDate?: Date | null;
-}
-
 export function CustomDatePicker({
   value,
   onChange,
   placeholder,
   minimumDate,
+  includeTime = true,
 }: CustomDatePickerProps) {
   // Android state
   const [pickerStage, setPickerStage] = useState<'idle' | 'date' | 'time'>('idle');
@@ -47,6 +42,12 @@ export function CustomDatePicker({
   };
 
   const formatReadable = (date: Date) => {
+    if (!includeTime) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
     return date.toLocaleString([], {
       year: 'numeric',
       month: '2-digit',
@@ -65,13 +66,13 @@ export function CustomDatePicker({
     <View className="w-full">
       <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
         <TouchableOpacity onPress={handleOpen} className="flex-1 flex-row items-center justify-between">
-          <ThemedText className={value ? "text-brand-text font-medium text-xs" : "text-slate-400 font-medium text-xs"}>
-            {value ? formatReadable(value) : (placeholder || "Seleccionar fecha / hora")}
+          <ThemedText className={value ? "text-brand-text font-medium text-sm" : "text-slate-400 font-medium text-xs"}>
+            {value ? formatReadable(value) : (placeholder || (includeTime ? "Seleccionar fecha / hora" : "Seleccionar fecha"))}
           </ThemedText>
           <Ionicons name="calendar-outline" size={18} color="#94A3B8" />
         </TouchableOpacity>
 
-        {value !== undefined && (
+        {value !== undefined && value !== null && (
           <TouchableOpacity onPress={handleClear} className="ml-2 pl-2 border-l border-slate-200">
             <Ionicons name="close-circle" size={18} color="#94A3B8" />
           </TouchableOpacity>
@@ -89,8 +90,13 @@ export function CustomDatePicker({
             if (date) {
               const newDate = new Date(tempDate || new Date());
               newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
-              setTempDate(newDate);
-              setPickerStage('time');
+              if (includeTime) {
+                setTempDate(newDate);
+                setPickerStage('time');
+              } else {
+                onChange(newDate);
+                setPickerStage('idle');
+              }
             } else {
               setPickerStage('idle');
             }
@@ -136,7 +142,9 @@ export function CustomDatePicker({
                 <TouchableOpacity onPress={() => setShowIOSModal(false)}>
                   <ThemedText className="text-slate-500 font-medium">Cancelar</ThemedText>
                 </TouchableOpacity>
-                <ThemedText className="font-bold text-slate-900 text-sm">Seleccionar Fecha / Hora</ThemedText>
+                <ThemedText className="font-bold text-slate-900 text-sm">
+                  {includeTime ? "Seleccionar Fecha / Hora" : "Seleccionar Fecha"}
+                </ThemedText>
                 <TouchableOpacity onPress={handleIOSConfirm}>
                   <ThemedText className="text-brand-blue font-bold">Listo</ThemedText>
                 </TouchableOpacity>
@@ -145,7 +153,7 @@ export function CustomDatePicker({
               <View style={styles.pickerContainer}>
                 <DateTimePicker
                   value={iosTempDate}
-                  mode="datetime"
+                  mode={includeTime ? "datetime" : "date"}
                   minimumDate={minimumDate === null ? undefined : minimumDate}
                   display="inline"
                   style={styles.picker}
