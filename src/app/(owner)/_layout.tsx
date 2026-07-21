@@ -66,6 +66,13 @@ export default function OwnerLayout() {
                     }}
                 />
                 <Tabs.Screen
+                    name="day-schedule"
+                    options={{
+                        href: null,
+                        tabBarStyle: { display: "none" },
+                    }}
+                />
+                <Tabs.Screen
                     name="event-recurrence"
                     options={{
                         href: null,

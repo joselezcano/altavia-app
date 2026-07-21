@@ -1,16 +1,23 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { db } from "@/config/firebase";
+import { AircraftAvailabilitySchema } from "@/types/all-roles";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { addDoc, collection } from "firebase/firestore";
 import { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  TextInput,
   TouchableOpacity,
   View,
-  TextInput,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 const PERIOD_LABELS = [
   { value: "none", label: "No se repite" },
@@ -21,13 +28,13 @@ const PERIOD_LABELS = [
 ];
 
 const DAYS_OF_WEEK = [
-  { value: "Dom", label: "D" },
-  { value: "Lun", label: "L" },
-  { value: "Mar", label: "M" },
-  { value: "Mie", label: "M" },
-  { value: "Jue", label: "J" },
-  { value: "Vie", label: "V" },
-  { value: "Sab", label: "S" },
+  { value: "Dom", label: "D", eng: "Sunday" },
+  { value: "Lun", label: "L", eng: "Monday" },
+  { value: "Mar", label: "M", eng: "Tuesday" },
+  { value: "Mie", label: "M", eng: "Wednesday" },
+  { value: "Jue", label: "J", eng: "Thursday" },
+  { value: "Vie", label: "V", eng: "Friday" },
+  { value: "Sab", label: "S", eng: "Saturday" },
 ];
 
 // Helper Time Spinner render component
@@ -61,16 +68,31 @@ const TimeSpinner = ({
 
 export default function EventRecurrenceScreen() {
   const router = useRouter();
-  const { selectedDate, model, registration } = useLocalSearchParams<{
+  const queryClient = useQueryClient();
+
+  const {
+    aircraftId,
+    selectedDate,
+    model,
+    registration,
+    startHour: prefilledStartHour,
+    endHour: prefilledEndHour,
+  } = useLocalSearchParams<{
+    aircraftId: string;
     selectedDate: string;
     model: string;
     registration: string;
+    startHour?: string;
+    endHour?: string;
   }>();
 
+  // Form selected date input state (Shown First)
+  const [selectedDateInput, setSelectedDateInput] = useState(selectedDate || "");
+
   // Time Range States
-  const [startHour, setStartHour] = useState(9);
+  const [startHour, setStartHour] = useState(prefilledStartHour ? Number(prefilledStartHour) : 9);
   const [startMinute, setStartMinute] = useState(0);
-  const [endHour, setEndHour] = useState(10);
+  const [endHour, setEndHour] = useState(prefilledEndHour ? Number(prefilledEndHour) : 10);
   const [endMinute, setEndMinute] = useState(0);
 
   // Recurrence Period States
@@ -83,21 +105,8 @@ export default function EventRecurrenceScreen() {
   const [endsDate, setEndsDate] = useState("");
   const [endsOccurrences, setEndsOccurrences] = useState(10);
 
-  // Format the selected date nicely
-  const getFormattedDate = () => {
-    if (!selectedDate) return "";
-    try {
-      const dateObj = new Date(selectedDate + "T00:00:00");
-      return dateObj.toLocaleDateString("es-ES", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch {
-      return selectedDate;
-    }
-  };
+  // Submitting loading state
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Helper incrementers for Time
   const adjustStartHour = (inc: number) => {
@@ -146,39 +155,129 @@ export default function EventRecurrenceScreen() {
   };
 
   // Submit Handler
-  const handleSave = () => {
-    const formatTime = (h: number, m: number) => {
+  const handleSave = async () => {
+    if (!aircraftId) {
+      Alert.alert("Error", "Identificador de aeronave ausente.");
+      return;
+    }
+
+    // Format selected times as HH:MM
+    const formatTimeStr = (h: number, m: number) => {
       return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     };
 
-    const recurrenceResultData = {
-      selectedDate,
-      startTime: formatTime(startHour, startMinute),
-      endTime: formatTime(endHour, endMinute),
+    const startTimeStr = formatTimeStr(startHour, startMinute);
+    const endTimeStr = formatTimeStr(endHour, endMinute);
+
+    // Validate selected_date format
+    const dateRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const dateMatch = selectedDateInput.match(dateRegex);
+    if (!dateMatch) {
+      Alert.alert("Error de validación", "La fecha de disponibilidad debe tener el formato AAAA-MM-DD");
+      return;
+    }
+
+    const year = parseInt(dateMatch[1], 10);
+    const month = parseInt(dateMatch[2], 10);
+    const day = parseInt(dateMatch[3], 10);
+
+    // Parse start and end timestamps in local time
+    const startTimestamp = new Date(year, month - 1, day, startHour, startMinute, 0, 0);
+    const endTimestamp = new Date(year, month - 1, day, endHour, endMinute, 0, 0);
+
+    // Enforce end timestamp is after start timestamp
+    if (endTimestamp <= startTimestamp) {
+      Alert.alert("Error de validación", "La hora de fin debe ser posterior a la hora de inicio.");
+      return;
+    }
+
+    // Map selected UI day abbreviations to schema English weekday names
+    const mapToEnglish = (day: string) => {
+      switch (day) {
+        case "Dom": return "Sunday";
+        case "Lun": return "Monday";
+        case "Mar": return "Tuesday";
+        case "Mie": return "Wednesday";
+        case "Jue": return "Thursday";
+        case "Vie": return "Friday";
+        case "Sab": return "Saturday";
+        default: return "Monday";
+      }
+    };
+    const mappedDaysOfWeek = selectedDays.map(mapToEnglish) as (
+      | "Sunday"
+      | "Monday"
+      | "Tuesday"
+      | "Wednesday"
+      | "Thursday"
+      | "Friday"
+      | "Saturday"
+    )[];
+
+    if (period === "weekly" && mappedDaysOfWeek.length === 0) {
+      Alert.alert("Error de validación", "Debe seleccionar al menos un día para la repetición semanal.");
+      return;
+    }
+
+    // Validate endsDate format if endsType is date
+    if (endsType === "date") {
+      if (!endsDate.match(dateRegex)) {
+        Alert.alert("Error de validación", "La fecha de finalización debe tener el formato AAAA-MM-DD");
+        return;
+      }
+    }
+
+    // Prepare availability object
+    const availabilityData = {
+      aircraftId,
+      selected_date: selectedDateInput,
+      start_time: startTimeStr,
+      end_time: endTimeStr,
+      start_timestamp: startTimestamp,
+      end_timestamp: endTimestamp,
       recurrence: {
-        period,
-        interval,
-        ...(period === "weekly" ? { daysOfWeek: selectedDays } : {}),
+        period: period as "none" | "daily" | "weekly" | "monthly" | "yearly",
+        interval: Number(interval),
+        days_of_week: mappedDaysOfWeek,
         ends: {
-          type: endsType,
-          ...(endsType === "date" ? { date: endsDate } : {}),
-          ...(endsType === "occurrences" ? { occurrences: endsOccurrences } : {}),
+          type: endsType as "never" | "date" | "occurrences",
+          date: endsType === "date" ? endsDate : null,
+          occurrences: endsType === "occurrences" ? Number(endsOccurrences) : 0,
         },
       },
     };
 
-    // Print JSON output in console
-    console.log("Saving recurrence schedule JSON:", JSON.stringify(recurrenceResultData, null, 2));
+    // Validate with AircraftAvailabilitySchema
+    const parseResult = AircraftAvailabilitySchema.safeParse(availabilityData);
+    if (!parseResult.success) {
+      const errorMsg = parseResult.error.issues[0]?.message || "Datos del formulario inválidos.";
+      Alert.alert("Error de validación", `${parseResult.error.issues[0]?.path.join(".")}: ${errorMsg}`);
+      return;
+    }
 
-    // Navigate back to the calendar, sending results via router search params
-    router.navigate({
-      pathname: "/aircraft-calendar",
-      params: {
-        model,
-        registration,
-        recurrenceResult: JSON.stringify(recurrenceResultData),
-      },
-    });
+    setIsSubmitting(true);
+
+    try {
+      // Save data object to Firestore collection 'aircraft-availability'
+      await addDoc(collection(db, "aircraft-availability"), parseResult.data);
+
+      // Invalidate queries so daily timeline updates automatically
+      queryClient.invalidateQueries({ queryKey: ["aircraft-availability", aircraftId] });
+
+      Toast.show({
+        type: "success",
+        text1: "Disponibilidad registrada",
+        text2: period === "none" ? "Se guardó la disponibilidad del día." : "Se guardó el evento recurrente.",
+      });
+
+      // Navigate back to the day schedule timeline screen
+      router.back();
+    } catch (error: any) {
+      console.error("Error creating aircraft availability:", error);
+      Alert.alert("Error", error.message || "No se pudo registrar la disponibilidad.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -205,35 +304,43 @@ export default function EventRecurrenceScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-          {/* Selected Date Information Card */}
-          <View className="bg-brand-blue rounded-3xl p-5 mb-5">
-            <View className="flex-row justify-between items-start">
+          {/* 1. Selected Date Form Input Card (Shown First) */}
+          <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
+            <View className="flex-row justify-between items-center mb-4">
               <View className="flex-1 mr-3">
-                <ThemedText className="font-bold text-white text-base">
+                <ThemedText className="font-bold text-brand-blue text-base">
                   {model || "Aeronave"}
                 </ThemedText>
-                <ThemedText className="text-brand-gold text-[11px] font-bold mt-0.5 uppercase tracking-wide">
+                <ThemedText className="text-brand-gold text-[10px] font-bold mt-0.5 uppercase tracking-wide">
                   {registration || "Sin Matrícula"}
                 </ThemedText>
               </View>
-              <View className="bg-white/10 px-3 py-1 rounded-lg">
-                <ThemedText className="text-white text-xs font-semibold">
-                  Agenda Recurrente
+              <View className="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+                <ThemedText className="text-brand-blue text-xs font-bold">
+                  Configurar Fecha
                 </ThemedText>
               </View>
             </View>
-            <View className="mt-4 pt-3 border-t border-white/10">
-              <ThemedText type="caption" className="text-slate-300 text-xs font-semibold uppercase">
-                Fecha Seleccionada
+            <View className="border-t border-slate-100 pt-3">
+              <ThemedText type="caption" className="text-slate-500 font-medium mb-2">
+                Fecha de la disponibilidad (AAAA-MM-DD)
               </ThemedText>
-              <ThemedText className="text-white font-bold text-lg mt-0.5 capitalize">
-                {getFormattedDate()}
-              </ThemedText>
+              <View className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-row items-center gap-2">
+                <Ionicons name="calendar-outline" size={18} color="#0f1e3d" />
+                <TextInput
+                  value={selectedDateInput}
+                  onChangeText={setSelectedDateInput}
+                  placeholder="AAAA-MM-DD"
+                  placeholderTextColor="#94A3B8"
+                  className="text-brand-blue font-semibold p-0 text-sm flex-1"
+                  maxLength={10}
+                />
+              </View>
             </View>
-          </View>
+          </ThemedView>
 
-          {/* 1. Time Range Selector Card */}
-          <ThemedView variant="card" className="p-5 mb-4 border border-slate-100">
+          {/* 2. Time Range Selector Card */}
+          <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
             <View className="flex-row items-center gap-2 mb-4">
               <Ionicons name="time" size={20} color="#0f1e3d" />
               <ThemedText type="subtitle" className="font-bold text-brand-blue">
@@ -282,8 +389,8 @@ export default function EventRecurrenceScreen() {
             </View>
           </ThemedView>
 
-          {/* 2. Repeat Period Selector Card */}
-          <ThemedView variant="card" className="p-5 mb-4 border border-slate-100">
+          {/* 3. Repeat Period Selector Card */}
+          <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
             <View className="flex-row items-center gap-2 mb-4">
               <Ionicons name="repeat" size={20} color="#0f1e3d" />
               <ThemedText type="subtitle" className="font-bold text-brand-blue">
@@ -299,17 +406,15 @@ export default function EventRecurrenceScreen() {
                   <TouchableOpacity
                     key={item.value}
                     onPress={() => setPeriod(item.value)}
-                    className={`px-4 py-2 rounded-xl border ${
-                      isActive
-                        ? "bg-brand-blue border-brand-blue"
-                        : "bg-slate-50 border-slate-200"
-                    }`}
+                    className={`px-4 py-2 rounded-xl border ${isActive
+                      ? "bg-brand-blue border-brand-blue"
+                      : "bg-slate-50 border-slate-200"
+                      }`}
                     activeOpacity={0.7}
                   >
                     <ThemedText
-                      className={`text-xs font-semibold ${
-                        isActive ? "text-white font-bold" : "text-slate-600"
-                      }`}
+                      className={`text-xs font-semibold ${isActive ? "text-white font-bold" : "text-slate-600"
+                        }`}
                     >
                       {item.label}
                     </ThemedText>
@@ -318,7 +423,7 @@ export default function EventRecurrenceScreen() {
               })}
             </View>
 
-            {/* Interval input (Google Calendar style: Repeat every X weeks/months...) */}
+            {/* Interval input */}
             {period !== "none" && (
               <View className="flex-row justify-between items-center py-3 border-t border-slate-100">
                 <ThemedText type="caption" className="text-slate-500 font-medium">
@@ -344,16 +449,16 @@ export default function EventRecurrenceScreen() {
                     {period === "daily"
                       ? "días"
                       : period === "weekly"
-                      ? "semanas"
-                      : period === "monthly"
-                      ? "meses"
-                      : "años"}
+                        ? "semanas"
+                        : period === "monthly"
+                          ? "meses"
+                          : "años"}
                   </ThemedText>
                 </View>
               </View>
             )}
 
-            {/* Weekly repeats (Select specific days of the week) */}
+            {/* Weekly repeats */}
             {period === "weekly" && (
               <View className="mt-3 pt-3 border-t border-slate-100">
                 <ThemedText type="caption" className="text-slate-500 font-medium mb-3">
@@ -366,17 +471,15 @@ export default function EventRecurrenceScreen() {
                       <TouchableOpacity
                         key={day.value}
                         onPress={() => toggleDay(day.value)}
-                        className={`w-9 h-9 rounded-full items-center justify-center border ${
-                          isSelected
-                            ? "bg-brand-gold border-brand-gold"
-                            : "bg-slate-50 border-slate-200"
-                        }`}
+                        className={`w-9 h-9 rounded-full items-center justify-center border ${isSelected
+                          ? "bg-brand-gold border-brand-gold"
+                          : "bg-slate-50 border-slate-200"
+                          }`}
                         activeOpacity={0.7}
                       >
                         <ThemedText
-                          className={`text-xs font-bold ${
-                            isSelected ? "text-brand-blue" : "text-slate-600"
-                          }`}
+                          className={`text-xs font-bold ${isSelected ? "text-brand-blue" : "text-slate-600"
+                            }`}
                         >
                           {day.label}
                         </ThemedText>
@@ -388,9 +491,9 @@ export default function EventRecurrenceScreen() {
             )}
           </ThemedView>
 
-          {/* 3. Ends Selector Card (Google Calendar style: Ends condition) */}
+          {/* 4. Ends Selector Card */}
           {period !== "none" && (
-            <ThemedView variant="card" className="p-5 mb-6 border border-slate-100">
+            <ThemedView variant="card" className="p-5 mb-6 border border-slate-100 bg-white">
               <View className="flex-row items-center gap-2 mb-4">
                 <Ionicons name="flag" size={20} color="#0f1e3d" />
                 <ThemedText type="subtitle" className="font-bold text-brand-blue">
@@ -490,13 +593,21 @@ export default function EventRecurrenceScreen() {
           {/* Action Confirmation Button */}
           <TouchableOpacity
             onPress={handleSave}
-            className="bg-brand-blue py-3.5 rounded-xl items-center justify-center mb-8 flex-row gap-2"
+            disabled={isSubmitting}
+            className={`py-3.5 rounded-xl items-center justify-center mb-8 flex-row gap-2 ${isSubmitting ? "bg-slate-300" : "bg-brand-blue"
+              }`}
             activeOpacity={0.8}
           >
-            <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-            <ThemedText className="text-white font-bold text-base">
-              Guardar Configuración
-            </ThemedText>
+            {isSubmitting ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                <ThemedText className="text-white font-bold text-base">
+                  Guardar Configuración
+                </ThemedText>
+              </>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </ThemedView>

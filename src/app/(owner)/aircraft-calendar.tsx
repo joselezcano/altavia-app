@@ -24,7 +24,8 @@ const WEEKDAYS = ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"];
 
 export default function AircraftCalendarScreen() {
   const router = useRouter();
-  const { model, registration, recurrenceResult } = useLocalSearchParams<{
+  const { id, model, registration, recurrenceResult } = useLocalSearchParams<{
+    id: string;
     model: string;
     registration: string;
     recurrenceResult?: string;
@@ -218,7 +219,21 @@ export default function AircraftCalendarScreen() {
                     >
                       {cell !== null ? (
                         <TouchableOpacity
-                          onPress={() => setSelectedDay(cell)}
+                          onPress={() => {
+                            setSelectedDay(cell);
+                            const monthStr = String(currentMonth + 1).padStart(2, "0");
+                            const dayStr = String(cell).padStart(2, "0");
+                            const dateStr = `${currentYear}-${monthStr}-${dayStr}`;
+                            router.push({
+                              pathname: "/day-schedule",
+                              params: {
+                                id,
+                                selectedDate: dateStr,
+                                model,
+                                registration,
+                              },
+                            });
+                          }}
                           className={`w-9 h-9 rounded-full items-center justify-center ${
                             isSelected
                               ? "bg-brand-blue"
@@ -260,8 +275,9 @@ export default function AircraftCalendarScreen() {
             const dateStr = `${currentYear}-${monthStr}-${dayStr}`;
 
             router.push({
-              pathname: "/event-recurrence",
+              pathname: "/day-schedule",
               params: {
+                id,
                 selectedDate: dateStr,
                 model,
                 registration,
@@ -274,9 +290,9 @@ export default function AircraftCalendarScreen() {
           }`}
           activeOpacity={0.8}
         >
-          <Ionicons name="time" size={18} color="#FFFFFF" />
+          <Ionicons name="calendar-outline" size={18} color="#FFFFFF" />
           <ThemedText className="text-white font-bold">
-            Configurar Horario y Repetición
+            Ver Agenda del Día
           </ThemedText>
         </TouchableOpacity>
       </ScrollView>
