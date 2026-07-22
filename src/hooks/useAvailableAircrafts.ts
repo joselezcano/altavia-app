@@ -138,24 +138,28 @@ function checkFlightOverlap(
         const [sH, sM] = (avail.start_time || "00:00").split(":").map(Number);
         let [eH, eM] = (avail.end_time || "23:59").split(":").map(Number);
 
-        const availStart = new Date(
-          year,
-          curDate.getMonth(),
-          curDate.getDate(),
-          avail.all_day ? 0 : sH,
-          avail.all_day ? 0 : sM,
-          0,
-          0
-        );
-        const availEnd = new Date(
-          year,
-          curDate.getMonth(),
-          curDate.getDate(),
-          avail.all_day ? 23 : eH === 24 ? 23 : eH,
-          avail.all_day ? 59 : eH === 24 ? 59 : eM,
-          59,
-          999
-        );
+        const availStart = avail.start_timestamp
+          ? avail.start_timestamp
+          : new Date(
+            year,
+            curDate.getMonth(),
+            curDate.getDate(),
+            avail.all_day ? 0 : sH,
+            avail.all_day ? 0 : sM,
+            0,
+            0
+          );
+        const availEnd = avail.end_timestamp
+          ? avail.end_timestamp
+          : new Date(
+            year,
+            curDate.getMonth(),
+            curDate.getDate(),
+            avail.all_day ? 23 : eH === 24 ? 23 : eH,
+            avail.all_day ? 59 : eH === 24 ? 59 : eM,
+            59,
+            999
+          );
 
         if (flightStart.getTime() < availEnd.getTime() && flightEnd.getTime() > availStart.getTime()) {
           return true;
@@ -175,15 +179,15 @@ export function useAvailableAircrafts(searchForm: FlightSearchForm | null) {
     queryFn: async () => {
       if (
         !searchForm ||
-        !searchForm.trip.origin_airport ||
-        !searchForm.trip.destination_airport ||
-        !searchForm.schedule.outbound_flight_datetime_utc
+        !searchForm.trip?.origin_airport ||
+        !searchForm.trip?.destination_airport ||
+        !searchForm.schedule?.outbound_flight_datetime_utc
       ) {
         return [];
       }
 
       const originIdent = searchForm.trip.origin_airport_ident;
-      const requestedPax = searchForm.capacity.passangers;
+      const requestedPax = searchForm.capacity?.passangers || 1;
 
       // First step: Get all AircraftSpecs
       const specsSnapshot = await getDocs(collection(db, "AircraftSpecs"));
@@ -191,6 +195,7 @@ export function useAvailableAircrafts(searchForm: FlightSearchForm | null) {
 
       specsSnapshot.forEach((docSnap) => {
         const data = docSnap.data() as AircraftSpecs;
+        // TODO: Check if pax count includes pilots in all forms.
         // Filter 1: Aircraft base airport same as origin airport and pax_count >= capacity requested
         if (
           data.base_airport?.ident === originIdent &&
@@ -203,7 +208,7 @@ export function useAvailableAircrafts(searchForm: FlightSearchForm | null) {
           });
         }
       });
-      console.log(candidateAircrafts);
+
       if (candidateAircrafts.length === 0) {
         return [];
       }
@@ -227,17 +232,11 @@ export function useAvailableAircrafts(searchForm: FlightSearchForm | null) {
 
         availSnap.forEach((docSnap) => {
           const data = docSnap.data();
-          const start_timestamp = data.start_timestamp
-            ? data.start_timestamp.toDate
-              ? data.start_timestamp.toDate()
-              : new Date(data.start_timestamp)
-            : undefined;
 
-          const end_timestamp = data.end_timestamp
-            ? data.end_timestamp.toDate
-              ? data.end_timestamp.toDate()
-              : new Date(data.end_timestamp)
-            : undefined;
+          // We do not need to recalculate start and end timestamps.
+          const start_timestamp = data.start_timestamp.toDate();
+
+          const end_timestamp = data.end_timestamp.toDate();
 
           const docObj: AircraftAvailabilityDoc = {
             id: docSnap.id,
@@ -269,6 +268,7 @@ export function useAvailableAircrafts(searchForm: FlightSearchForm | null) {
       }
 
       for (const aircraft of candidateAircrafts) {
+        // TODO: cruise_speed_knots must be mandatory in AircraftSpecs
         const cruiseSpeedKnots = aircraft.operating_specs?.cruise_speed_knots || 120;
         const durationHours = distanceNm / cruiseSpeedKnots;
         const durationMs = durationHours * 3600 * 1000;
@@ -303,8 +303,8 @@ export function useAvailableAircrafts(searchForm: FlightSearchForm | null) {
     },
     enabled:
       !!searchForm &&
-      !!searchForm.trip.origin_airport &&
-      !!searchForm.trip.destination_airport &&
-      !!searchForm.schedule.outbound_flight_datetime_utc,
+      !!searchForm.trip?.origin_airport &&
+      !!searchForm.trip?.destination_airport &&
+      !!searchForm.schedule?.outbound_flight_datetime_utc,
   });
 }

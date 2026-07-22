@@ -68,6 +68,14 @@ export default function ClientLayout() {
             tabBarStyle: { display: "none" },
           }}
         />
+        {/* Pantalla de resultados de búsqueda */}
+        <Tabs.Screen
+          name="search-results"
+          options={{
+            href: null,
+            tabBarStyle: { display: "none" },
+          }}
+        />
       </Tabs>
     </ThemedView>
   );

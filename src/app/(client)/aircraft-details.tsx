@@ -10,6 +10,9 @@ export default function AircraftDetailsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     aircraftJson?: string;
+    searchData?: string;
+    flightDurationHours?: string;
+    distanceNm?: string;
     model?: string;
     registration?: string;
     pax_count?: string;
@@ -35,7 +38,9 @@ export default function AircraftDetailsScreen() {
   const type = aircraft?.basic_specs?.type || params.type || "N/A";
   const cruiseSpeed = aircraft?.operating_specs?.cruise_speed_knots ?? (params.cruise_speed_knots ? Number(params.cruise_speed_knots) : "N/A");
   const serviceCeiling = aircraft?.operating_specs?.service_ceiling_feet ?? (params.service_ceiling_feet ? Number(params.service_ceiling_feet) : "N/A");
-  const baseAirportName = aircraft?.base_airport?.name || params.base_airport_name || aircraft?.base_airport?.ident || params.base_airport_ident || "N/A";
+  const flightDurationHours = params.flightDurationHours ? Number(params.flightDurationHours) : undefined;
+  const distanceNm = params.distanceNm ? Number(params.distanceNm) : undefined;
+  const distanceKm = distanceNm ? distanceNm * 1.852 : undefined;
 
   const handleReserve = () => {
     Toast.show({
@@ -50,14 +55,25 @@ export default function AircraftDetailsScreen() {
       {/* Header with Back Button */}
       <View className="flex-row items-center justify-between mb-6 mt-2">
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            if (params.searchData) {
+              router.push({
+                pathname: "/(client)/search-results",
+                params: {
+                  searchData: params.searchData,
+                },
+              });
+            } else {
+              router.back();
+            }
+          }}
           className="w-10 h-10 rounded-full bg-slate-100 items-center justify-center border border-slate-200"
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={20} color="#0f1e3d" />
         </TouchableOpacity>
         <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg">
-          Detalle de la Aeronave
+          Datos de la Aeronave
         </ThemedText>
         <View className="w-10" />
       </View>
@@ -86,28 +102,39 @@ export default function AircraftDetailsScreen() {
           {/* Specs breakdown grid */}
           <View className="gap-3">
             <View className="flex-row justify-between items-center">
-              <ThemedText className="text-slate-500 text-sm font-medium">Tipo OACI:</ThemedText>
+              <ThemedText className="text-slate-500 text-sm font-medium">Capacidad de Pasajeros:</ThemedText>
+              <ThemedText className="font-bold text-brand-blue">{paxCount}</ThemedText>
+            </View>
+
+            <View className="flex-row justify-between items-center">
+              <ThemedText className="text-slate-500 text-sm font-medium">Tiempo de vuelo:</ThemedText>
+              <ThemedText className="font-bold text-brand-blue">
+                {flightDurationHours && flightDurationHours < 1
+                  ? `${Math.round(flightDurationHours * 60)} minutos`
+                  : `${flightDurationHours?.toFixed(1)} horas`}
+              </ThemedText>
+            </View>
+
+            <View className="flex-row justify-between items-center">
+              <ThemedText className="text-slate-500 text-sm font-medium">Distancia:</ThemedText>
+              <ThemedText className="font-bold text-brand-blue">{distanceKm?.toFixed(0)} km</ThemedText>
+            </View>
+
+            <View className="h-px bg-slate-100 my-4" />
+
+            <View className="flex-row justify-between items-center">
+              <ThemedText className="text-slate-500 text-sm font-medium">Tipo de Aeronave:</ThemedText>
               <ThemedText className="font-bold text-brand-blue">{type}</ThemedText>
             </View>
 
             <View className="flex-row justify-between items-center">
-              <ThemedText className="text-slate-500 text-sm font-medium">Capacidad Pasajeros:</ThemedText>
-              <ThemedText className="font-bold text-brand-blue">{paxCount} pax</ThemedText>
-            </View>
-
-            <View className="flex-row justify-between items-center">
               <ThemedText className="text-slate-500 text-sm font-medium">Velocidad de Crucero:</ThemedText>
-              <ThemedText className="font-bold text-brand-blue">{cruiseSpeed} kts</ThemedText>
+              <ThemedText className="font-bold text-brand-blue">{cruiseSpeed} nudos</ThemedText>
             </View>
 
             <View className="flex-row justify-between items-center">
               <ThemedText className="text-slate-500 text-sm font-medium">Techo de Servicio:</ThemedText>
-              <ThemedText className="font-bold text-brand-blue">{serviceCeiling} ft</ThemedText>
-            </View>
-
-            <View className="flex-row justify-between items-center">
-              <ThemedText className="text-slate-500 text-sm font-medium">Base Operativa:</ThemedText>
-              <ThemedText className="font-bold text-brand-blue">{baseAirportName}</ThemedText>
+              <ThemedText className="font-bold text-brand-blue">{serviceCeiling} pies</ThemedText>
             </View>
           </View>
         </View>
