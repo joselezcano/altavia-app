@@ -9,6 +9,7 @@ export default function AircraftsLayout() {
       <Stack.Screen name="aircraft-calendar" />
       <Stack.Screen name="day-schedule" />
       <Stack.Screen name="event-recurrence" />
+      <Stack.Screen name="edit-event-recurrence" />
     </Stack>
   );
 }

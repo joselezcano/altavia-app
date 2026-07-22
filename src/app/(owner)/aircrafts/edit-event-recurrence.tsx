@@ -1,0 +1,859 @@
+import { CustomDatePicker } from "@/components/custom-date-picker";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { db } from "@/config/firebase";
+import { useAircraftAvailabilityItem } from "@/hooks/useAircraftAvailability";
+import { AircraftAvailability, AircraftAvailabilitySchema } from "@/types/all-roles";
+import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Switch,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Toast from "react-native-toast-message";
+
+const PERIOD_LABELS = [
+  { value: "none", label: "No se repite" },
+  { value: "daily", label: "Diario" },
+  { value: "weekly", label: "Semanal" },
+  { value: "monthly", label: "Mensual" },
+  { value: "yearly", label: "Anual" },
+];
+
+const DAYS_OF_WEEK = [
+  { value: "Dom", label: "D", eng: "Sunday" },
+  { value: "Lun", label: "L", eng: "Monday" },
+  { value: "Mar", label: "M", eng: "Tuesday" },
+  { value: "Mie", label: "M", eng: "Wednesday" },
+  { value: "Jue", label: "J", eng: "Thursday" },
+  { value: "Vie", label: "V", eng: "Friday" },
+  { value: "Sab", label: "S", eng: "Saturday" },
+];
+
+const REASON_OPTIONS: { value: AircraftAvailability["reason"]; label: string; icon: string }[] = [
+  { value: "maintenance", label: "Mantenimiento", icon: "build-outline" },
+  { value: "owner_use", label: "Uso del Propietario", icon: "ribbon-outline" },
+  { value: "holidays", label: "Vacaciones", icon: "sunny-outline" },
+  { value: "not_in_base", label: "Fuera de Base", icon: "location-outline" },
+  { value: "no_pilot", label: "Sin Piloto", icon: "person-remove-outline" },
+  { value: "rental", label: "Alquiler", icon: "key-outline" },
+  { value: "legal_restriction", label: "Restricción Legal", icon: "document-text-outline" },
+  { value: "other", label: "Otro", icon: "bookmark-outline" },
+];
+
+const parseDateString = (dateStr: string): Date | null => {
+  if (!dateStr) return null;
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+};
+
+const formatDateString = (date: Date | undefined): string => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const mapEnglishToUI = (engDay: string): string => {
+  switch (engDay) {
+    case "Sunday": return "Dom";
+    case "Monday": return "Lun";
+    case "Tuesday": return "Mar";
+    case "Wednesday": return "Mie";
+    case "Thursday": return "Jue";
+    case "Friday": return "Vie";
+    case "Saturday": return "Sab";
+    default: return "Lun";
+  }
+};
+
+const mapUIToEnglish = (uiDay: string): "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" => {
+  switch (uiDay) {
+    case "Dom": return "Sunday";
+    case "Lun": return "Monday";
+    case "Mar": return "Tuesday";
+    case "Mie": return "Wednesday";
+    case "Jue": return "Thursday";
+    case "Vie": return "Friday";
+    case "Sab": return "Saturday";
+    default: return "Monday";
+  }
+};
+
+// Helper Time Spinner render component
+const TimeSpinner = ({
+  value,
+  onInc,
+  onDec,
+  disabled = false,
+}: {
+  value: number;
+  onInc: () => void;
+  onDec: () => void;
+  disabled?: boolean;
+}) => (
+  <View
+    className={`items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 flex-row gap-1 ${disabled ? "opacity-40" : ""
+      }`}
+  >
+    <TouchableOpacity
+      onPress={onDec}
+      disabled={disabled}
+      className="w-7 h-7 items-center justify-center bg-white border border-slate-100 rounded-lg"
+    >
+      <Ionicons name="remove" size={16} color="#0f1e3d" />
+    </TouchableOpacity>
+    <ThemedText className="text-brand-blue font-bold text-md text-center w-8">
+      {String(value).padStart(2, "0")}
+    </ThemedText>
+    <TouchableOpacity
+      onPress={onInc}
+      disabled={disabled}
+      className="w-7 h-7 items-center justify-center bg-white border border-slate-100 rounded-lg"
+    >
+      <Ionicons name="add" size={16} color="#0f1e3d" />
+    </TouchableOpacity>
+  </View>
+);
+
+export default function EditEventRecurrenceScreen() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const {
+    eventId,
+    aircraftId,
+    selectedDate,
+    model,
+    registration,
+  } = useLocalSearchParams<{
+    eventId: string;
+    aircraftId: string;
+    selectedDate: string;
+    model: string;
+    registration: string;
+  }>();
+
+  // Fetch current event data from Firestore
+  const { data: eventData, isLoading: isLoadingEvent } = useAircraftAvailabilityItem(eventId);
+
+  // Track initialization so user edits aren't overwritten by re-renders
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Form States
+  const [selectedDateInput, setSelectedDateInput] = useState(selectedDate || "");
+  const [allDay, setAllDay] = useState(false);
+  const [startHour, setStartHour] = useState(9);
+  const [startMinute, setStartMinute] = useState(0);
+  const [endHour, setEndHour] = useState(10);
+  const [endMinute, setEndMinute] = useState(0);
+  const [period, setPeriod] = useState<string>("none");
+  const [interval, setInterval] = useState(1);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [endsType, setEndsType] = useState<"never" | "date" | "occurrences">("never");
+  const [endsDate, setEndsDate] = useState("");
+  const [endsOccurrences, setEndsOccurrences] = useState(10);
+  const [reason, setReason] = useState<AircraftAvailability["reason"]>("maintenance");
+  const [notes, setNotes] = useState("");
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Pre-fill form values when eventData is loaded
+  useEffect(() => {
+    if (eventData && !isInitialized) {
+      setSelectedDateInput(eventData.selected_date || selectedDate || "");
+      setAllDay(!!eventData.all_day);
+
+      if (eventData.start_time) {
+        const [sh, sm] = eventData.start_time.split(":").map(Number);
+        setStartHour(isNaN(sh) ? 9 : sh);
+        setStartMinute(isNaN(sm) ? 0 : sm);
+      }
+
+      if (eventData.end_time) {
+        const [eh, em] = eventData.end_time.split(":").map(Number);
+        setEndHour(isNaN(eh) ? 10 : eh);
+        setEndMinute(isNaN(em) ? 0 : em);
+      }
+
+      if (eventData.recurrence) {
+        setPeriod(eventData.recurrence.period || "none");
+        setInterval(eventData.recurrence.interval || 1);
+        if (eventData.recurrence.days_of_week) {
+          setSelectedDays(eventData.recurrence.days_of_week.map(mapEnglishToUI));
+        }
+        if (eventData.recurrence.ends) {
+          setEndsType(eventData.recurrence.ends.type || "never");
+          setEndsDate(eventData.recurrence.ends.date || "");
+          setEndsOccurrences(eventData.recurrence.ends.occurrences || 10);
+        }
+      }
+
+      if (eventData.reason) {
+        setReason(eventData.reason);
+      }
+
+      setNotes(eventData.notes || "");
+      setIsInitialized(true);
+    }
+  }, [eventData, isInitialized, selectedDate]);
+
+  // Helper incrementers for Time
+  const adjustStartHour = (inc: number) => {
+    setAllDay(false);
+    setStartHour((prev) => {
+      let next = prev + inc;
+      if (next > 23) return 0;
+      if (next < 0) return 23;
+      return next;
+    });
+  };
+
+  const adjustStartMinute = (inc: number) => {
+    setAllDay(false);
+    setStartMinute((prev) => {
+      let next = prev + inc;
+      if (next > 59) return 0;
+      if (next < 0) return 59;
+      return next;
+    });
+  };
+
+  const adjustEndHour = (inc: number) => {
+    setAllDay(false);
+    setEndHour((prev) => {
+      let next = prev + inc;
+      if (next > 23) return 0;
+      if (next < 0) return 23;
+      return next;
+    });
+  };
+
+  const adjustEndMinute = (inc: number) => {
+    setAllDay(false);
+    setEndMinute((prev) => {
+      let next = prev + inc;
+      if (next > 59) return 0;
+      if (next < 0) return 59;
+      return next;
+    });
+  };
+
+  const toggleDay = (dayValue: string) => {
+    setSelectedDays((prev) =>
+      prev.includes(dayValue)
+        ? prev.filter((d) => d !== dayValue)
+        : [...prev, dayValue]
+    );
+  };
+
+  // Update Handler
+  const handleSave = async () => {
+    if (!eventId) {
+      Alert.alert("Error", "Identificador del evento ausente.");
+      return;
+    }
+    if (!aircraftId) {
+      Alert.alert("Error", "Identificador de aeronave ausente.");
+      return;
+    }
+
+    const formatTimeStr = (h: number, m: number) => {
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    };
+
+    const startTimeStr = allDay ? "00:00" : formatTimeStr(startHour, startMinute);
+    const endTimeStr = allDay ? "24:00" : formatTimeStr(endHour, endMinute);
+
+    const dateRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const dateMatch = selectedDateInput.match(dateRegex);
+    if (!selectedDateInput) {
+      Alert.alert("Error de validación", "La fecha de indisponibilidad es requerida");
+      return;
+    }
+    if (!dateMatch) {
+      Alert.alert("Error de validación", "La fecha de indisponibilidad debe tener el formato AAAA-MM-DD");
+      return;
+    }
+
+    const year = parseInt(dateMatch[1], 10);
+    const month = parseInt(dateMatch[2], 10);
+    const day = parseInt(dateMatch[3], 10);
+
+    const startTimestamp = new Date(year, month - 1, day, allDay ? 0 : startHour, allDay ? 0 : startMinute, 0, 0);
+    const endTimestamp = new Date(year, month - 1, day, allDay ? 23 : endHour, allDay ? 59 : endMinute, 59, 999);
+
+    if (!allDay && endTimestamp <= startTimestamp) {
+      Alert.alert("Error de validación", "La hora de fin debe ser posterior a la hora de inicio.");
+      return;
+    }
+
+    const mappedDaysOfWeek = selectedDays.map(mapUIToEnglish);
+
+    if (period === "weekly" && mappedDaysOfWeek.length === 0) {
+      Alert.alert("Error de validación", "Debe seleccionar al menos un día para la repetición semanal.");
+      return;
+    }
+
+    if (period !== "none" && endsType === "date") {
+      if (!endsDate) {
+        Alert.alert("Error de validación", "La fecha de finalización es requerida.");
+        return;
+      }
+      if (!endsDate.match(dateRegex)) {
+        Alert.alert("Error de validación", "La fecha de finalización debe tener el formato AAAA-MM-DD");
+        return;
+      }
+      if (endsDate <= selectedDateInput) {
+        Alert.alert(
+          "Error de validación",
+          "La fecha de finalización debe ser posterior a la fecha de indisponibilidad."
+        );
+        return;
+      }
+    }
+
+    const availabilityData = {
+      aircraftId,
+      selected_date: selectedDateInput,
+      start_time: startTimeStr,
+      end_time: endTimeStr,
+      start_timestamp: startTimestamp,
+      end_timestamp: endTimestamp,
+      all_day: allDay,
+      recurrence: {
+        period: period as "none" | "daily" | "weekly" | "monthly" | "yearly",
+        interval: Number(interval),
+        days_of_week: mappedDaysOfWeek,
+        ends: {
+          type: endsType as "never" | "date" | "occurrences",
+          date: endsType === "date" ? endsDate : null,
+          occurrences: endsType === "occurrences" ? Number(endsOccurrences) : 0,
+        },
+      },
+      reason,
+      notes: notes.trim(),
+    };
+
+    const parseResult = AircraftAvailabilitySchema.safeParse(availabilityData);
+    if (!parseResult.success) {
+      const errorMsg = parseResult.error.issues[0]?.message || "Datos del formulario inválidos.";
+      Alert.alert("Error de validación", `${parseResult.error.issues[0]?.path.join(".")}: ${errorMsg}`);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const docRef = doc(db, "aircraft-availability", eventId);
+      await updateDoc(docRef, parseResult.data);
+
+      queryClient.invalidateQueries({ queryKey: ["aircraft-availability", aircraftId] });
+      queryClient.invalidateQueries({ queryKey: ["aircraft-availability-item", eventId] });
+
+      Toast.show({
+        type: "success",
+        text1: "Indisponibilidad actualizada",
+        text2: "Los cambios se guardaron correctamente.",
+      });
+
+      router.back();
+    } catch (error: any) {
+      console.error("Error updating aircraft availability:", error);
+      Alert.alert("Error", error.message || "No se pudo actualizar la indisponibilidad.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete Handler
+  const handleDelete = () => {
+    if (!eventId) return;
+
+    Alert.alert(
+      "Eliminar indisponibilidad",
+      "¿Estás seguro de que deseas eliminar esta indisponibilidad? Esta acción no se puede deshacer.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              await deleteDoc(doc(db, "aircraft-availability", eventId));
+              queryClient.invalidateQueries({ queryKey: ["aircraft-availability", aircraftId] });
+              queryClient.invalidateQueries({ queryKey: ["aircraft-availability-item", eventId] });
+              Toast.show({
+                type: "success",
+                text1: "Indisponibilidad eliminada",
+              });
+              router.back();
+            } catch (err: any) {
+              Alert.alert("Error", "No se pudo eliminar la indisponibilidad: " + err.message);
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 bg-brand-light"
+    >
+      <ThemedView className="flex-1 px-4 pt-2">
+        {/* Header */}
+        <View className="flex-row items-center justify-between mb-4 mt-2">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-row items-center p-1"
+          >
+            <Ionicons name="arrow-back" size={24} color="#0f1e3d" />
+            <ThemedText className="font-semibold text-brand-blue ml-1">
+              Volver
+            </ThemedText>
+          </TouchableOpacity>
+          <ThemedText className="font-bold text-brand-blue text-lg">
+            Editar Indisponibilidad
+          </ThemedText>
+          <View style={{ width: 60 }} />
+        </View>
+
+        {isLoadingEvent && !isInitialized ? (
+          <View className="flex-1 items-center justify-center py-12">
+            <ActivityIndicator size="large" color="#0f1e3d" />
+            <ThemedText className="mt-3 text-slate-500 font-medium text-sm">
+              Cargando información del evento...
+            </ThemedText>
+          </View>
+        ) : (
+          <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+            {/* 1. Selected Date Form Input Card */}
+            <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
+              <View className="flex-row justify-between items-center mb-4">
+                <View className="flex-1 mr-3">
+                  <ThemedText type="default" className="font-bold">
+                    {model || "Aeronave"}
+                  </ThemedText>
+                  <ThemedText type="accent" className="mt-1 font-semibold uppercase tracking-wide">
+                    {registration || "Sin Matrícula"}
+                  </ThemedText>
+                </View>
+              </View>
+              <View className="border-t border-slate-100 pt-3">
+                <ThemedText type="caption" className="text-slate-500 font-medium mb-2">
+                  Fecha de Indisponibilidad (AAAA-MM-DD)
+                </ThemedText>
+                <CustomDatePicker
+                  value={parseDateString(selectedDateInput)}
+                  onChange={(date) => setSelectedDateInput(formatDateString(date))}
+                  placeholder="AAAA-MM-DD"
+                  includeTime={false}
+                />
+              </View>
+            </ThemedView>
+
+            {/* 2. Time Range Selector Card */}
+            <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
+              <View className="flex-row items-center justify-between mb-4">
+                <View className="flex-row items-center gap-2">
+                  <Ionicons name="time" size={20} color="#0f1e3d" />
+                  <ThemedText type="subtitle" className="font-bold text-brand-blue">
+                    Rango Horario
+                  </ThemedText>
+                </View>
+                {/* All-Day Switch */}
+                <View className="flex-row items-center gap-2">
+                  <ThemedText className="text-xs font-semibold text-slate-600">
+                    Todo el día
+                  </ThemedText>
+                  <Switch
+                    value={allDay}
+                    style={{ transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }] }}
+                    onValueChange={(val) => {
+                      setAllDay(val);
+                      if (val) {
+                        setStartHour(0);
+                        setStartMinute(0);
+                        setEndHour(24);
+                        setEndMinute(0);
+                      }
+                    }}
+                    trackColor={{ false: "#CBD5E1", true: "#0f1e3d" }}
+                    thumbColor={allDay ? "#C5A059" : "#FFFFFF"}
+                  />
+                </View>
+              </View>
+
+              {/* Start Time row */}
+              <View className={`flex-row justify-between items-center py-2.5 border-b border-slate-100 ${allDay ? "opacity-40" : ""}`}>
+                <ThemedText type="caption" className="text-slate-500 font-medium">
+                  Hora de Inicio
+                </ThemedText>
+                <View className="flex-row items-center gap-2">
+                  <TimeSpinner
+                    value={startHour}
+                    onInc={() => adjustStartHour(1)}
+                    onDec={() => adjustStartHour(-1)}
+                    disabled={allDay}
+                  />
+                  <ThemedText className="font-bold text-brand-blue">:</ThemedText>
+                  <TimeSpinner
+                    value={startMinute}
+                    onInc={() => adjustStartMinute(5)}
+                    onDec={() => adjustStartMinute(-5)}
+                    disabled={allDay}
+                  />
+                </View>
+              </View>
+
+              {/* End Time row */}
+              <View className={`flex-row justify-between items-center py-2.5 ${allDay ? "opacity-40" : ""}`}>
+                <ThemedText type="caption" className="text-slate-500 font-medium">
+                  Hora de Fin
+                </ThemedText>
+                <View className="flex-row items-center gap-2">
+                  <TimeSpinner
+                    value={endHour}
+                    onInc={() => adjustEndHour(1)}
+                    onDec={() => adjustEndHour(-1)}
+                    disabled={allDay}
+                  />
+                  <ThemedText className="font-bold text-brand-blue">:</ThemedText>
+                  <TimeSpinner
+                    value={endMinute}
+                    onInc={() => adjustEndMinute(5)}
+                    onDec={() => adjustEndMinute(-5)}
+                    disabled={allDay}
+                  />
+                </View>
+              </View>
+            </ThemedView>
+
+            {/* 3. Repeat Period Selector Card */}
+            <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
+              <View className="flex-row items-center gap-2 mb-4">
+                <Ionicons name="repeat-sharp" size={20} color="#0f1e3d" />
+                <ThemedText type="subtitle" className="font-bold text-brand-blue">
+                  Frecuencia y Período
+                </ThemedText>
+              </View>
+
+              {/* Chips period list */}
+              <View className="flex-row flex-wrap gap-2 mb-4">
+                {PERIOD_LABELS.map((item) => {
+                  const isActive = period === item.value;
+                  return (
+                    <TouchableOpacity
+                      key={item.value}
+                      onPress={() => setPeriod(item.value)}
+                      className={`px-4 py-2 rounded-xl border ${isActive
+                        ? "bg-brand-blue border-brand-blue"
+                        : "bg-slate-50 border-slate-200"
+                        }`}
+                      activeOpacity={0.7}
+                    >
+                      <ThemedText
+                        className={`text-xs font-semibold ${isActive ? "text-white font-bold" : "text-slate-600"
+                          }`}
+                      >
+                        {item.label}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Interval input */}
+              {period !== "none" && (
+                <View className="flex-row justify-between items-center py-3 border-t border-slate-100">
+                  <ThemedText type="caption" className="text-slate-500 font-medium">
+                    Repetir cada
+                  </ThemedText>
+                  <View className="flex-row items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                    <TouchableOpacity
+                      onPress={() => setInterval((prev) => Math.max(1, prev - 1))}
+                      className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
+                    >
+                      <Ionicons name="remove" size={16} color="#0f1e3d" />
+                    </TouchableOpacity>
+                    <ThemedText className="text-brand-blue font-bold text-base text-center w-8">
+                      {interval}
+                    </ThemedText>
+                    <TouchableOpacity
+                      onPress={() => setInterval((prev) => prev + 1)}
+                      className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
+                    >
+                      <Ionicons name="add" size={16} color="#0f1e3d" />
+                    </TouchableOpacity>
+                    <ThemedText className="text-xs text-brand-muted font-medium ml-1">
+                      {period === "daily"
+                        ? "días"
+                        : period === "weekly"
+                          ? "semanas"
+                          : period === "monthly"
+                            ? "meses"
+                            : "años"}
+                    </ThemedText>
+                  </View>
+                </View>
+              )}
+
+              {/* Weekly repeats */}
+              {period === "weekly" && (
+                <View className="mt-3 pt-3 border-t border-slate-100">
+                  <ThemedText type="caption" className="text-slate-500 font-medium mb-3">
+                    Repetir en los siguientes días
+                  </ThemedText>
+                  <View className="flex-row justify-between">
+                    {DAYS_OF_WEEK.map((day) => {
+                      const isSelected = selectedDays.includes(day.value);
+                      return (
+                        <TouchableOpacity
+                          key={day.value}
+                          onPress={() => toggleDay(day.value)}
+                          className={`w-9 h-9 rounded-full items-center justify-center border ${isSelected
+                            ? "bg-brand-gold border-brand-gold"
+                            : "bg-slate-50 border-slate-200"
+                            }`}
+                          activeOpacity={0.7}
+                        >
+                          <ThemedText
+                            className={`text-xs font-bold ${isSelected ? "text-brand-blue" : "text-slate-600"
+                              }`}
+                          >
+                            {day.label}
+                          </ThemedText>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+            </ThemedView>
+
+            {/* 4. Ends Selector Card */}
+            {period !== "none" && (
+              <ThemedView variant="card" className="p-5 mb-6 border border-slate-100 bg-white">
+                <View className="flex-row items-center gap-2 mb-4">
+                  <Ionicons name="flag" size={20} color="#0f1e3d" />
+                  <ThemedText type="subtitle" className="font-bold text-brand-blue">
+                    Finalización del Evento
+                  </ThemedText>
+                </View>
+
+                {/* Option 1: Never */}
+                <TouchableOpacity
+                  onPress={() => setEndsType("never")}
+                  className="flex-row items-center justify-between py-2 border-b border-slate-100"
+                  activeOpacity={0.7}
+                >
+                  <ThemedText type="caption" className="text-slate-600 font-medium">
+                    Nunca termina
+                  </ThemedText>
+                  <Ionicons
+                    name={endsType === "never" ? "radio-button-on" : "radio-button-off"}
+                    size={20}
+                    color={endsType === "never" ? "#0f1e3d" : "#94A3B8"}
+                  />
+                </TouchableOpacity>
+
+                {/* Option 2: Date */}
+                <View className="py-2.5 border-b border-slate-100">
+                  <TouchableOpacity
+                    onPress={() => setEndsType("date")}
+                    className="flex-row items-center justify-between mb-2"
+                    activeOpacity={0.7}
+                  >
+                    <ThemedText type="caption" className="text-slate-600 font-medium">
+                      En fecha límite (inclusive)
+                    </ThemedText>
+                    <Ionicons
+                      name={endsType === "date" ? "radio-button-on" : "radio-button-off"}
+                      size={20}
+                      color={endsType === "date" ? "#0f1e3d" : "#94A3B8"}
+                    />
+                  </TouchableOpacity>
+                  {endsType === "date" && (
+                    <View className="mt-2">
+                      <CustomDatePicker
+                        value={parseDateString(endsDate)}
+                        onChange={(date) => setEndsDate(formatDateString(date))}
+                        placeholder="AAAA-MM-DD"
+                        includeTime={false}
+                      />
+                    </View>
+                  )}
+                </View>
+
+                {/* Option 3: Occurrences */}
+                <View className="py-2.5 flex-row justify-between items-center">
+                  <TouchableOpacity
+                    onPress={() => setEndsType("occurrences")}
+                    className="flex-row items-center gap-2"
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={endsType === "occurrences" ? "radio-button-on" : "radio-button-off"}
+                      size={20}
+                      color={endsType === "occurrences" ? "#0f1e3d" : "#94A3B8"}
+                    />
+                    <ThemedText type="caption" className="text-slate-600 font-medium">
+                      Después de
+                    </ThemedText>
+                  </TouchableOpacity>
+
+                  {endsType === "occurrences" && (
+                    <View className="flex-row items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                      <TouchableOpacity
+                        onPress={() => setEndsOccurrences((prev) => Math.max(1, prev - 1))}
+                        className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
+                      >
+                        <Ionicons name="remove" size={16} color="#0f1e3d" />
+                      </TouchableOpacity>
+                      <ThemedText className="text-brand-blue font-bold text-base text-center w-8">
+                        {endsOccurrences}
+                      </ThemedText>
+                      <TouchableOpacity
+                        onPress={() => setEndsOccurrences((prev) => prev + 1)}
+                        className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
+                      >
+                        <Ionicons name="add" size={16} color="#0f1e3d" />
+                      </TouchableOpacity>
+                      <ThemedText className="text-xs text-brand-muted font-medium ml-1">
+                        ocurrencias
+                      </ThemedText>
+                    </View>
+                  )}
+                </View>
+              </ThemedView>
+            )}
+
+            {/* 5. Unavailability Reason & Notes Card */}
+            <ThemedView variant="card" className="p-5 mb-6 border border-slate-100 bg-white">
+              <View className="flex-row items-center gap-2 mb-4">
+                <Ionicons name="alert-circle" size={20} color="#0f1e3d" />
+                <ThemedText type="subtitle" className="font-bold text-brand-blue">
+                  Motivo de Indisponibilidad
+                </ThemedText>
+              </View>
+
+              {/* Radio Buttons Options */}
+              <View className="gap-2 mb-4">
+                {REASON_OPTIONS.map((option) => {
+                  const isSelected = reason === option.value;
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      onPress={() => setReason(option.value)}
+                      className={`flex-row items-center justify-between p-3 rounded-xl border ${isSelected
+                        ? "bg-slate-50 border-brand-blue"
+                        : "bg-white border-slate-200"
+                        }`}
+                      activeOpacity={0.7}
+                    >
+                      <View className="flex-row items-center gap-2.5">
+                        <Ionicons
+                          name={option.icon as any}
+                          size={18}
+                          color={isSelected ? "#0f1e3d" : "#64748B"}
+                        />
+                        <ThemedText
+                          className={`text-sm ${isSelected ? "font-bold text-brand-blue" : "font-medium text-slate-700"
+                            }`}
+                        >
+                          {option.label}
+                        </ThemedText>
+                      </View>
+                      <Ionicons
+                        name={isSelected ? "radio-button-on" : "radio-button-off"}
+                        size={20}
+                        color={isSelected ? "#0f1e3d" : "#94A3B8"}
+                      />
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Notes Input Area */}
+              <View className="border-t border-slate-100 pt-3">
+                <ThemedText type="caption" className="text-slate-500 font-medium mb-2">
+                  Notas Adicionales (Opcional)
+                </ThemedText>
+                <View className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
+                  <TextInput
+                    value={notes}
+                    onChangeText={setNotes}
+                    placeholder="Ej. Detalles sobre la indisponibilidad..."
+                    placeholderTextColor="#94A3B8"
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                    className="text-brand-blue text-sm min-h-[70px]"
+                  />
+                </View>
+              </View>
+            </ThemedView>
+
+            {/* Action Confirmation Button */}
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={isSubmitting || isDeleting}
+              className={`py-3.5 rounded-xl items-center justify-center mb-5 flex-row gap-2 ${isSubmitting ? "bg-slate-300" : "bg-brand-blue"
+                }`}
+              activeOpacity={0.8}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                  <ThemedText className="text-white font-bold text-base">
+                    Guardar Cambios
+                  </ThemedText>
+                </>
+              )}
+            </TouchableOpacity>
+
+            {/* Delete Event Button */}
+            <TouchableOpacity
+              onPress={handleDelete}
+              disabled={isSubmitting || isDeleting}
+              className={`py-3.5 rounded-xl items-center justify-center mb-8 flex-row gap-2 bg-red-50 border border-red-200 ${isDeleting ? "opacity-50" : ""
+                }`}
+              activeOpacity={0.8}
+            >
+              {isDeleting ? (
+                <ActivityIndicator color="#EF4444" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                  <ThemedText className="text-red-600 font-bold text-base">
+                    Eliminar Indisponibilidad
+                  </ThemedText>
+                </>
+              )}
+            </TouchableOpacity>
+          </ScrollView>
+        )}
+      </ThemedView>
+    </KeyboardAvoidingView>
+  );
+}

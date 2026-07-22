@@ -45,3 +45,7 @@ export const AircraftAvailabilitySchema = z.object({
 });
 
 export type AircraftAvailability = z.infer<typeof AircraftAvailabilitySchema>;
+
+export interface AircraftAvailabilityDoc extends AircraftAvailability {
+  id: string;
+}

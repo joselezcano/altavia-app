@@ -1,15 +1,12 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { db } from "@/config/firebase";
 import { useAircraftAvailability } from "@/hooks/useAircraftAvailability";
 import { AircraftAvailability } from "@/types/all-roles";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { deleteDoc, doc } from "firebase/firestore";
 import { useMemo } from "react";
-import { Alert, ScrollView, TouchableOpacity, View } from "react-native";
-import Toast from "react-native-toast-message";
+import { ScrollView, TouchableOpacity, View } from "react-native";
 
 const ROW_HEIGHT = 64; // Height in pixels of each hour row in the timeline
 
@@ -155,33 +152,6 @@ export default function DayScheduleScreen() {
     if (!selectedDate) return [];
     return availabilities.filter((avail) => isAvailabilityOnDate(avail, selectedDate));
   }, [availabilities, selectedDate]);
-
-  // Handler to delete an availability
-  const handleDeleteAvailability = (availId: string) => {
-    Alert.alert(
-      "Eliminar disponibilidad",
-      "¿Estás seguro de que deseas eliminar esta disponibilidad? Esto la quitará del calendario y de la base de datos.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteDoc(doc(db, "aircraft-availability", availId));
-              queryClient.invalidateQueries({ queryKey: ["aircraft-availability", id] });
-              Toast.show({
-                type: "success",
-                text1: "Disponibilidad eliminada",
-              });
-            } catch (err: any) {
-              Alert.alert("Error", "No se pudo eliminar la disponibilidad: " + err.message);
-            }
-          },
-        },
-      ]
-    );
-  };
 
   // Reason color and icon themes map
   const REASON_THEMES: Record<
@@ -447,7 +417,22 @@ export default function DayScheduleScreen() {
                   }}
                   className="flex-row justify-between items-start shadow-sm"
                 >
-                  <View className="flex-1 justify-center mr-1">
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      router.push({
+                        pathname: "/aircrafts/edit-event-recurrence",
+                        params: {
+                          eventId: avail.id,
+                          aircraftId: id,
+                          selectedDate,
+                          model,
+                          registration,
+                        },
+                      });
+                    }}
+                    className="flex-1 justify-center mr-1"
+                  >
                     {/* Top Row: Time Range + Short Repetition Indicator next to it */}
                     <View className="flex-row items-center flex-wrap gap-1.5">
                       <Ionicons name="time-outline" size={13} color={theme.accent} />
@@ -486,14 +471,27 @@ export default function DayScheduleScreen() {
                         {avail.notes}
                       </ThemedText>
                     )}
-                  </View>
-
-                  <TouchableOpacity
-                    onPress={() => handleDeleteAvailability(avail.id)}
-                    className="p-1 rounded-lg bg-white/80 border border-slate-200/60"
-                  >
-                    <Ionicons name="trash" size={13} color="#EF4444" />
                   </TouchableOpacity>
+
+                  <View className="flex-row items-center gap-1">
+                    <TouchableOpacity
+                      onPress={() => {
+                        router.push({
+                          pathname: "/aircrafts/edit-event-recurrence",
+                          params: {
+                            eventId: avail.id,
+                            aircraftId: id,
+                            selectedDate,
+                            model,
+                            registration,
+                          },
+                        });
+                      }}
+                      className="p-1 rounded-lg bg-white/80 border border-slate-200/60"
+                    >
+                      <Ionicons name="pencil" size={13} color="#0f1e3d" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               );
             })}
