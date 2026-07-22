@@ -60,6 +60,14 @@ export default function ClientLayout() {
             tabBarStyle: { display: "none" }, // Oculta la barra inferior mientras lee los TyC
           }}
         />
+        {/* Pantalla de detalles de aeronave */}
+        <Tabs.Screen
+          name="aircraft-details"
+          options={{
+            href: null,
+            tabBarStyle: { display: "none" },
+          }}
+        />
       </Tabs>
     </ThemedView>
   );
