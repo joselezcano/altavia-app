@@ -84,6 +84,12 @@ export default function AirportPicker({ value, onChange, error, allowedTypes }: 
     const [airportTimezone, setAirportTimezone] = useState(value?.timezone?.replaceAll("_", " "));
     const [secondaryAirportInfo, setSecondaryAirportInfo] = useState(value?.municipality ? value?.name : "");
 
+    useEffect(() => {
+        setSearchResult(formatSearchResult(value));
+        setAirportTimezone(value?.timezone?.replaceAll("_", " "));
+        setSecondaryAirportInfo(value?.municipality ? value?.name : "");
+    }, [value]);
+
     const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData, DocumentData> | null>(null);
     const [loading, setLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);

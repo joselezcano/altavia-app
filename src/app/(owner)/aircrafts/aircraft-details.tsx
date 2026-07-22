@@ -1,13 +1,11 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { db } from "@/config/firebase";
-import { AircraftSpecs } from "@/types/owner";
-import { Ionicons } from "@expo/vector-icons";
+import { useAircraftDetails } from "@/hooks/useAircraftDetails";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, onSnapshot } from "firebase/firestore";
-import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   TouchableOpacity,
   View,
@@ -145,35 +143,8 @@ const BadgesList = ({
 export default function AircraftDetailsScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [aircraft, setAircraft] = useState<AircraftSpecs | null>(null);
-  const [isLoading, setIsLoading] = useState(!!id);
-  const [error, setError] = useState<string | null>(
-    id ? null : "No se especificó un identificador de aeronave."
-  );
 
-  useEffect(() => {
-    if (!id) return;
-
-    const docRef = doc(db, "AircraftSpecs", id);
-    const unsubscribe = onSnapshot(
-      docRef,
-      (docSnap) => {
-        if (docSnap.exists()) {
-          setAircraft(docSnap.data() as AircraftSpecs);
-        } else {
-          setError("La aeronave no existe o ha sido eliminada.");
-        }
-        setIsLoading(false);
-      },
-      (err) => {
-        console.error("Error fetching aircraft specs:", err);
-        setError("Error al recuperar los datos de la aeronave.");
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [id]);
+  const { data: aircraft, isLoading, error } = useAircraftDetails(id);
 
   // Helper functions for displaying empty values for optional fields cleanly
   const formatValue = (val: string | number | undefined | null) => {
@@ -211,7 +182,7 @@ export default function AircraftDetailsScreen() {
           Ocurrió un error
         </ThemedText>
         <ThemedText type="caption" className="text-center text-slate-500 mb-6">
-          {error || "No se pudieron obtener los detalles de la aeronave."}
+          {error ? error.message : "No se pudieron obtener los detalles de la aeronave."}
         </ThemedText>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -248,8 +219,8 @@ export default function AircraftDetailsScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {/* Title Section Card */}
-        <View className="bg-brand-blue rounded-3xl p-5 mb-5 flex-row justify-between items-center">
-          <View className="flex-1 mr-4">
+        <View className="bg-brand-blue rounded-3xl p-5 mb-4 flex-row justify-between items-center">
+          <View className="flex-1">
             <View className="mb-2">
               <ThemedText className="font-bold text-xl text-white">
                 {basic_specs.model}
@@ -261,25 +232,75 @@ export default function AircraftDetailsScreen() {
               </ThemedText>
             </View>
           </View>
-          <View className="flex-row items-center gap-3">
-            <TouchableOpacity
-              onPress={() => {
-                router.push({
-                  pathname: "/aircrafts/aircraft-calendar",
-                  params: {
-                    id,
-                    model: basic_specs.model,
-                    registration: basic_specs.registration,
-                  },
-                });
-              }}
-              className="bg-white/10 w-14 h-14 rounded-full items-center justify-center border border-white/10"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="calendar" size={24} color="#C5A059" />
-            </TouchableOpacity>
+        </View>
 
-          </View>
+        {/* Tool Bar */}
+        <View className="flex-row gap-3 mb-5">
+          {/* 1. Calendario */}
+          <TouchableOpacity
+            onPress={() => {
+              router.push({
+                pathname: "/aircrafts/aircraft-calendar",
+                params: {
+                  id,
+                  model: basic_specs.model,
+                  registration: basic_specs.registration,
+                },
+              });
+            }}
+            className="flex-1 bg-white p-3.5 rounded-2xl border border-slate-100 items-center justify-center shadow-sm"
+            activeOpacity={0.7}
+          >
+            <View className="w-11 h-11 rounded-xl bg-slate-100 items-center justify-center mb-2">
+              <Ionicons name="calendar" size={22} color="#0f1e3d" />
+            </View>
+            <ThemedText className="text-xs font-semibold text-slate-700 text-center">
+              Calendario
+            </ThemedText>
+          </TouchableOpacity>
+
+          {/* 2. Ubicación Base */}
+          <TouchableOpacity
+            onPress={() => {
+              router.push({
+                pathname: "/aircrafts/base-airport",
+                params: {
+                  id,
+                  model: basic_specs.model,
+                  registration: basic_specs.registration,
+                },
+              });
+            }}
+            className="flex-1 bg-white p-3.5 rounded-2xl border border-slate-100 items-center justify-center shadow-sm"
+            activeOpacity={0.7}
+          >
+            <View className="w-11 h-11 rounded-xl bg-slate-100 items-center justify-center mb-2">
+              <Ionicons name="location" size={22} color="#0f1e3d" />
+            </View>
+            <ThemedText className="text-xs font-semibold text-slate-700 text-center">
+              Ubicación Base
+            </ThemedText>
+          </TouchableOpacity>
+
+          {/* 3. Pilotos */}
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert(
+                "Asociar Pilotos",
+                "Esta función permitirá establecer qué pilotos están autorizados para volar esta aeronave. Estará disponible próximamente."
+              );
+            }}
+            className="flex-1 bg-white p-3.5 rounded-2xl border border-slate-100 items-center justify-center shadow-sm"
+            activeOpacity={0.7}
+          >
+            <View className="w-11 h-11 rounded-xl bg-slate-100 items-center justify-center mb-2">
+              {/* <Ionicons name="people" size={22} color="#0f1e3d" /> */}
+              <MaterialCommunityIcons name="account-tie-hat" size={22} color="#0f1e3d" />
+            </View>
+            <ThemedText className="text-xs font-semibold text-slate-700 text-center">
+              Pilotos
+            </ThemedText>
+          </TouchableOpacity>
         </View>
 
         {/* 1. Basic Specs Card */}
@@ -298,6 +319,17 @@ export default function AircraftDetailsScreen() {
           <DetailRow
             label="Matrícula"
             value={formatValue(basic_specs.registration)}
+          />
+          <DetailRow
+            label="Aeropuerto Base / Origen"
+            value={
+              aircraft.base_airport
+                ? `${aircraft.base_airport.name} (${aircraft.base_airport.iata_code ||
+                aircraft.base_airport.icao_code ||
+                aircraft.base_airport.ident
+                })`
+                : "Sin especificar"
+            }
           />
           <DetailRow
             label="Capacidad POB (Pax + Tripulación)"

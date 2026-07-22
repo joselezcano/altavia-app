@@ -69,13 +69,6 @@ export default function ListAircraftsScreen() {
             <ThemedText className="font-bold text-lg text-brand-blue">
               {model}
             </ThemedText>
-            <View className="flex-row items-center gap-2 mt-1">
-              <View className="bg-slate-100 px-2 py-0.5 rounded">
-                <ThemedText type="caption" className="text-[10px] font-semibold text-slate-600 uppercase">
-                  {type}
-                </ThemedText>
-              </View>
-            </View>
           </View>
           <View className="bg-brand-gold/15 px-3 py-1 rounded-full border border-brand-gold/20">
             <ThemedText className="text-brand-gold text-xs font-bold uppercase tracking-wider">

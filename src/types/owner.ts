@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AirportSchema } from "./all-roles";
 
 
 /*
@@ -267,6 +268,9 @@ export const AircraftSpecsSchema = z.object({
         // Capacidad de balsas salvavidas
         dinghies_capacity: DinghiesCapacitySchema,
     }),
+
+    // Aeropuerto base / de origen de la aeronave
+    base_airport: AirportSchema.optional(),
 
     // Observaciones
     notes: z.string().optional(),
