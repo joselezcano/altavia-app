@@ -238,6 +238,15 @@ export default function DayScheduleScreen() {
       badgeBg: "#d9f99d",
       iconName: "bookmark",
     },
+    flight: {
+      label: "Vuelo Reservado",
+      bg: "#EFF6FF",
+      border: "#BFDBFE",
+      accent: "#2563EB",
+      text: "#1E40AF",
+      badgeBg: "#DBEAFE",
+      iconName: "airplane",
+    },
   };
 
   // Helper to translate frequency into concise indicator next to time
