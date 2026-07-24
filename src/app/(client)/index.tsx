@@ -304,10 +304,9 @@ export default function ClientDashboard() {
               </View>
 
               {/* Trip type toggle: Roundtrip */}
-              <View className="flex-row items-center justify-between pt-2 border-t border-slate-100 mt-1">
+              <View className="flex-row items-center justify-between pt-2 border-t border-slate-100 pt-5 mt-2">
                 <View>
-                  <ThemedText className="font-bold text-slate-800 text-sm">Vuelo Ida y Vuelta</ThemedText>
-                  <ThemedText className="text-xs text-slate-500">Activa si deseas consultar itinerario de retorno</ThemedText>
+                  <ThemedText className="font-bold text-slate-800 text-sm">Vuelo de Ida y Vuelta</ThemedText>
                 </View>
                 <Controller
                   control={control}

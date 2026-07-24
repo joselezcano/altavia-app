@@ -22,8 +22,16 @@ export default function ClientFlightsScreen() {
     refetch,
   } = useClientReservations(user?.uid);
 
-  const getStatusBadge = (clientStatus: string, internalStatus: string) => {
-    if (clientStatus === "confirmed" && internalStatus === "confirmed") {
+  const getStatusBadge = (internalStatus: string) => {
+    if (internalStatus === "canceled") {
+      return {
+        label: "Cancelado",
+        bg: "bg-rose-100",
+        border: "border-rose-200",
+        text: "text-rose-800",
+        icon: "close-circle",
+      };
+    } else {
       return {
         label: "Confirmado",
         bg: "bg-emerald-100",
@@ -32,31 +40,6 @@ export default function ClientFlightsScreen() {
         icon: "checkmark-circle",
       };
     }
-    if (clientStatus === "canceled" || internalStatus === "canceled") {
-      return {
-        label: "Cancelado",
-        bg: "bg-rose-100",
-        border: "border-rose-200",
-        text: "text-rose-800",
-        icon: "close-circle",
-      };
-    }
-    if (clientStatus === "unpaid") {
-      return {
-        label: "Sin Pagar - Pendiente",
-        bg: "bg-amber-100",
-        border: "border-amber-200",
-        text: "text-amber-800",
-        icon: "alert-circle",
-      };
-    }
-    return {
-      label: "En Proceso",
-      bg: "bg-blue-100",
-      border: "border-blue-200",
-      text: "text-blue-800",
-      icon: "time-sharp",
-    };
   };
 
   return (
@@ -118,10 +101,14 @@ export default function ClientFlightsScreen() {
         ) : (
           <View className="gap-4 mb-10">
             {reservations.map((item) => {
-              const status = getStatusBadge(item.client_status, item.internal_status);
+              const status = getStatusBadge(item.internal_status);
               const model = item.aircraftSpecs?.basic_specs?.model || "Aeronave";
               const registration = item.aircraftSpecs?.basic_specs?.registration || "N/A";
               const distanceKm = item.distance_nm ? (item.distance_nm * 1.852).toFixed(0) : undefined;
+              const hasBothIata = Boolean(
+                item.originAirport?.iata_code?.trim() && item.destinationAirport?.iata_code?.trim()
+              );
+              const aircraftPaxCapacity = item.aircraftSpecs?.basic_specs?.pax_count;
 
               return (
                 <View
@@ -131,20 +118,17 @@ export default function ClientFlightsScreen() {
                   {/* Card Header: Aircraft info & status badge */}
                   <View className="flex-row items-start justify-between mb-3">
                     <View className="flex-1 mr-2">
-                      <View className="flex-row items-center gap-2">
-                        <Ionicons name="airplane" size={18} color="#0f1e3d" />
-                        <ThemedText type="subtitle" className="text-brand-blue font-bold text-base">
-                          {model}
-                        </ThemedText>
-                      </View>
-                      <ThemedText className="text-xs text-slate-500 font-medium mt-0.5">
-                        Matrícula: {registration}
+                      <ThemedText type="subtitle" className="text-brand-blue font-bold text-sm">
+                        {model}
+                      </ThemedText>
+                      <ThemedText className="text-xs text-slate-500 font-bold mt-0.5">
+                        {registration}
                       </ThemedText>
                     </View>
 
                     <View className={`${status.bg} border ${status.border} px-2.5 py-1 rounded-full flex-row items-center gap-1`}>
                       <Ionicons name={status.icon as any} size={12} className={status.text} color={status.text.includes("emerald") ? "#059669" : status.text.includes("amber") ? "#92400e" : status.text.includes("rose") ? "#9f1239" : "#1e40af"} />
-                      <ThemedText className={`text-[11px] font-bold ${status.text}`}>
+                      <ThemedText className={`text-xs font-bold ${status.text}`}>
                         {status.label}
                       </ThemedText>
                     </View>
@@ -152,55 +136,88 @@ export default function ClientFlightsScreen() {
 
                   {/* Route Card */}
                   <View className="bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-3">
-                    <View className="flex-row justify-between items-center mb-3">
-                      <View className="flex-1">
-                        <ThemedText className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
-                          Origen
-                        </ThemedText>
-                        <ThemedText className="text-lg font-bold text-brand-blue">
-                          {item.trip.origin_airport_ident}
-                        </ThemedText>
-                      </View>
-
-                      <View className="items-center px-2">
-                        <MaterialCommunityIcons name="airplane-takeoff" size={20} color="#C5A059" />
-                        <View className="w-12 h-0.5 bg-slate-300 my-1" />
-                        {item.schedule.roundtrip && (
-                          <ThemedText className="text-[10px] font-bold text-brand-gold">
-                            Ida y Vuelta
+                    {hasBothIata ? (
+                      <View className="flex-row justify-between items-center mb-3">
+                        <View className="flex-1">
+                          <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
+                            Origen
                           </ThemedText>
-                        )}
-                      </View>
+                          <ThemedText className="text-lg font-bold text-brand-blue">
+                            {item.originAirport!.iata_code}
+                          </ThemedText>
+                        </View>
 
-                      <View className="flex-1 items-end">
-                        <ThemedText className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
-                          Destino
-                        </ThemedText>
-                        <ThemedText className="text-lg font-bold text-brand-blue">
-                          {item.trip.destination_airport_ident}
-                        </ThemedText>
+                        <View className="items-center px-2">
+                          <MaterialCommunityIcons name="airplane-takeoff" size={18} color="#C5A059" />
+                          <View className="w-12 h-0.5 bg-slate-300 my-1" />
+                          {item.schedule.roundtrip && (
+                            <ThemedText className="text-xs font-medium text-brand-gold">
+                              Ida y Vuelta
+                            </ThemedText>
+                          )}
+                        </View>
+
+                        <View className="flex-1 items-end">
+                          <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
+                            Destino
+                          </ThemedText>
+                          <ThemedText className="text-lg font-bold text-brand-blue">
+                            {item.destinationAirport!.iata_code}
+                          </ThemedText>
+                        </View>
                       </View>
-                    </View>
+                    ) : (
+                      <View className="gap-3 mb-3">
+                        {/* Origen Row */}
+                        <View className="flex-row items-center gap-2">
+                          <View className="w-2.5 h-2.5 rounded-full bg-brand-gold" />
+                          <View className="flex-1">
+                            <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
+                              Origen
+                            </ThemedText>
+                            <ThemedText className="text-sm font-medium text-brand-blue" numberOfLines={2}>
+                              {item.originAirport?.name || item.trip.origin_airport_ident}
+                            </ThemedText>
+                          </View>
+                        </View>
+
+                        {/* Connector line & icon */}
+                        <View className="flex-row items-center gap-2 pl-0.5 my-0.5">
+                          <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
+                          <View className="flex-row items-center gap-1.5 ml-3">
+                            <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#C5A059" />
+                            {item.schedule.roundtrip && (
+                              <ThemedText className="text-xs font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                Ida y Vuelta
+                              </ThemedText>
+                            )}
+                          </View>
+                        </View>
+
+                        {/* Destino Row */}
+                        <View className="flex-row items-center gap-2">
+                          <View className="w-2.5 h-2.5 rounded-full bg-brand-blue" />
+                          <View className="flex-1">
+                            <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
+                              Destino
+                            </ThemedText>
+                            <ThemedText className="text-sm font-medium text-brand-blue" numberOfLines={2}>
+                              {item.destinationAirport?.name || item.trip.destination_airport_ident}
+                            </ThemedText>
+                          </View>
+                        </View>
+                      </View>
+                    )}
 
                     <View className="h-px bg-slate-200/60 my-2" />
 
                     {/* Schedule dates list */}
                     <View className="gap-1.5">
                       <View className="flex-row justify-between items-center">
-                        <ThemedText className="text-xs text-slate-500 font-medium">Salida (Ida):</ThemedText>
+                        <ThemedText className="text-xs text-slate-500 font-medium">Horario de Ida:</ThemedText>
                         <ThemedText className="text-xs font-bold text-slate-800">
                           {item.schedule.outbound_flight_departure_time.toLocaleString("es-ES", {
-                            dateStyle: "short",
-                            timeStyle: "short",
-                          })} hs
-                        </ThemedText>
-                      </View>
-
-                      <View className="flex-row justify-between items-center">
-                        <ThemedText className="text-xs text-slate-500 font-medium">Llegada estimada (Ida):</ThemedText>
-                        <ThemedText className="text-xs font-bold text-slate-800">
-                          {item.schedule.outbound_flight_arrival_time.toLocaleString("es-ES", {
-                            dateStyle: "short",
+                            dateStyle: "medium",
                             timeStyle: "short",
                           })} hs
                         </ThemedText>
@@ -210,10 +227,10 @@ export default function ClientFlightsScreen() {
                         <>
                           <View className="h-px bg-slate-200/40 my-1" />
                           <View className="flex-row justify-between items-center">
-                            <ThemedText className="text-xs text-slate-500 font-medium">Salida (Vuelta):</ThemedText>
+                            <ThemedText className="text-xs text-slate-500 font-medium">Horario de Vuelta:</ThemedText>
                             <ThemedText className="text-xs font-bold text-slate-800">
                               {item.schedule.return_flight_departure_time.toLocaleString("es-ES", {
-                                dateStyle: "short",
+                                dateStyle: "medium",
                                 timeStyle: "short",
                               })} hs
                             </ThemedText>
@@ -232,15 +249,34 @@ export default function ClientFlightsScreen() {
                       </ThemedText>
                     </View>
 
-                    {distanceKm && (
+                    <View className="flex-row items-center gap-1.5">
+                      <MaterialCommunityIcons name="seat-passenger" size={16} color="#0f1e3d" />
+                      <ThemedText className="text-xs font-semibold text-slate-700">
+                        {aircraftPaxCapacity !== undefined ? `${aircraftPaxCapacity} asientos` : "N/A"}
+                      </ThemedText>
+                    </View>
+
+                    {distanceKm ? (
                       <View className="flex-row items-center gap-1.5">
                         <Ionicons name="navigate-outline" size={16} color="#0f1e3d" />
                         <ThemedText className="text-xs font-semibold text-slate-700">
-                          {distanceKm} km ({item.distance_nm} NM)
+                          {distanceKm} km
                         </ThemedText>
                       </View>
+                    ) : (
+                      <View />
                     )}
                   </View>
+
+                  {/* Detalles Button */}
+                  <TouchableOpacity
+                    onPress={() => router.push({ pathname: "/(client)/flight-details", params: { reservationId: item.id } })}
+                    className="mt-3 bg-slate-50 py-2.5 px-4 rounded-xl flex-row items-center justify-center gap-1.5 border border-slate-200"
+                    activeOpacity={0.8}
+                  >
+                    <ThemedText className="text-xs font-bold text-brand-blue">Detalles</ThemedText>
+                    <Ionicons name="chevron-forward" size={14} color="#0f1e3d" />
+                  </TouchableOpacity>
                 </View>
               );
             })}

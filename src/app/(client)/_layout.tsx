@@ -43,15 +43,6 @@ export default function ClientLayout() {
             ),
           }}
         />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: "Perfil",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person" size={size} color={color} />
-            ),
-          }}
-        />
         {/* Ocultamos la pantalla de TyC del menú de pestañas */}
         <Tabs.Screen
           name="terms"
@@ -71,6 +62,14 @@ export default function ClientLayout() {
         {/* Pantalla de resultados de búsqueda */}
         <Tabs.Screen
           name="search-results"
+          options={{
+            href: null,
+            tabBarStyle: { display: "none" },
+          }}
+        />
+        {/* Pantalla de detalles de vuelo */}
+        <Tabs.Screen
+          name="flight-details"
           options={{
             href: null,
             tabBarStyle: { display: "none" },

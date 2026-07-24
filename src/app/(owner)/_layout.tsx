@@ -53,6 +53,15 @@ export default function OwnerLayout() {
                         ),
                     }}
                 />
+                <Tabs.Screen
+                    name="test"
+                    options={{
+                        title: "Test",
+                        tabBarIcon: ({ color, size }) => (
+                            <Ionicons name="code-slash" size={size} color={color} />
+                        ),
+                    }}
+                />
             </Tabs>
         </ThemedView>
     );

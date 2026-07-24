@@ -1,12 +1,8 @@
 import { db } from "@/config/firebase";
-import { AircraftReservationDoc } from "@/types/all-roles";
+import { Airport, ClientReservationItem } from "@/types/all-roles";
 import { AircraftSpecs } from "@/types/owner";
 import { useQuery } from "@tanstack/react-query";
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
-
-export interface ClientReservationItem extends AircraftReservationDoc {
-  aircraftSpecs?: AircraftSpecs;
-}
+import { collection, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
 
 export function useClientReservations(clientId: string | undefined) {
   return useQuery<ClientReservationItem[]>({
@@ -21,6 +17,59 @@ export function useClientReservations(clientId: string | undefined) {
 
       const snapshot = await getDocs(q);
       const items: ClientReservationItem[] = [];
+
+      const specsCache = new Map<string, AircraftSpecs | null>();
+      const airportCache = new Map<string, Airport | null>();
+
+      const fetchAircraftSpecs = async (aircraftId?: string): Promise<AircraftSpecs | undefined> => {
+        if (!aircraftId) return undefined;
+        if (specsCache.has(aircraftId)) {
+          return specsCache.get(aircraftId) || undefined;
+        }
+        try {
+          const specDocRef = doc(db, "AircraftSpecs", aircraftId);
+          const specSnap = await getDoc(specDocRef);
+          if (specSnap.exists()) {
+            const data = specSnap.data() as AircraftSpecs;
+            specsCache.set(aircraftId, data);
+            return data;
+          }
+        } catch (e) {
+          console.error("Error al obtener datos de la aeronave:", e);
+        }
+        specsCache.set(aircraftId, null);
+        return undefined;
+      };
+
+      const fetchAirport = async (ident?: string): Promise<Airport | undefined> => {
+        if (!ident) return undefined;
+        if (airportCache.has(ident)) {
+          return airportCache.get(ident) || undefined;
+        }
+        try {
+          // Attempt direct doc fetch first
+          const airportDocRef = doc(db, "airports", ident);
+          const airportSnap = await getDoc(airportDocRef);
+          if (airportSnap.exists()) {
+            const data = airportSnap.data() as Airport;
+            airportCache.set(ident, data);
+            return data;
+          }
+
+          // Fallback to query by ident field
+          const airportQ = query(collection(db, "airports"), where("ident", "==", ident), limit(1));
+          const querySnap = await getDocs(airportQ);
+          if (!querySnap.empty) {
+            const data = querySnap.docs[0].data() as Airport;
+            airportCache.set(ident, data);
+            return data;
+          }
+        } catch (e) {
+          console.error(`Error al obtener datos del aeropuerto ${ident}:`, e);
+        }
+        airportCache.set(ident, null);
+        return undefined;
+      };
 
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
@@ -56,18 +105,9 @@ export function useClientReservations(clientId: string | undefined) {
           ? new Date(data.created_at)
           : undefined;
 
-        let aircraftSpecs: AircraftSpecs | undefined = undefined;
-        if (data.aircraftId) {
-          try {
-            const specDocRef = doc(db, "AircraftSpecs", data.aircraftId);
-            const specSnap = await getDoc(specDocRef);
-            if (specSnap.exists()) {
-              aircraftSpecs = specSnap.data() as AircraftSpecs;
-            }
-          } catch (e) {
-            console.error("Error al obtener datos de la aeronave:", e);
-          }
-        }
+        const aircraftSpecs = await fetchAircraftSpecs(data.aircraftId);
+        const originAirport = await fetchAirport(data.trip?.origin_airport_ident);
+        const destinationAirport = await fetchAirport(data.trip?.destination_airport_ident);
 
         items.push({
           id: docSnap.id,
@@ -92,6 +132,8 @@ export function useClientReservations(clientId: string | undefined) {
           pilot_ids: data.pilot_ids || [],
           created_at,
           aircraftSpecs,
+          originAirport,
+          destinationAirport,
         });
       }
 
@@ -107,3 +149,4 @@ export function useClientReservations(clientId: string | undefined) {
     enabled: !!clientId,
   });
 }
+

@@ -101,6 +101,14 @@ export interface AircraftReservationDoc extends AircraftReservation {
     id: string;
 }
 
+import type { AircraftSpecs } from './owner';
+
+export interface ClientReservationItem extends AircraftReservationDoc {
+    aircraftSpecs?: AircraftSpecs;
+    originAirport?: Airport;
+    destinationAirport?: Airport;
+}
+
 
 import { Timestamp } from '@firebase/firestore';
 
