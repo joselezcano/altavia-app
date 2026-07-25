@@ -78,32 +78,32 @@ export function useClientReservations(clientId: string | undefined) {
         const outbound_flight_departure_time = data.schedule?.outbound_flight_departure_time?.toDate
           ? data.schedule.outbound_flight_departure_time.toDate()
           : data.schedule?.outbound_flight_departure_time
-          ? new Date(data.schedule.outbound_flight_departure_time)
-          : new Date();
+            ? new Date(data.schedule.outbound_flight_departure_time)
+            : new Date();
 
         const outbound_flight_arrival_time = data.schedule?.outbound_flight_arrival_time?.toDate
           ? data.schedule.outbound_flight_arrival_time.toDate()
           : data.schedule?.outbound_flight_arrival_time
-          ? new Date(data.schedule.outbound_flight_arrival_time)
-          : new Date();
+            ? new Date(data.schedule.outbound_flight_arrival_time)
+            : new Date();
 
         const return_flight_departure_time = data.schedule?.return_flight_departure_time?.toDate
           ? data.schedule.return_flight_departure_time.toDate()
           : data.schedule?.return_flight_departure_time
-          ? new Date(data.schedule.return_flight_departure_time)
-          : null;
+            ? new Date(data.schedule.return_flight_departure_time)
+            : null;
 
         const return_flight_arrival_time = data.schedule?.return_flight_arrival_time?.toDate
           ? data.schedule.return_flight_arrival_time.toDate()
           : data.schedule?.return_flight_arrival_time
-          ? new Date(data.schedule.return_flight_arrival_time)
-          : null;
+            ? new Date(data.schedule.return_flight_arrival_time)
+            : null;
 
         const created_at = data.created_at?.toDate
           ? data.created_at.toDate()
           : data.created_at
-          ? new Date(data.created_at)
-          : undefined;
+            ? new Date(data.created_at)
+            : undefined;
 
         const aircraftSpecs = await fetchAircraftSpecs(data.aircraftId);
         const originAirport = await fetchAirport(data.trip?.origin_airport_ident);
@@ -112,6 +112,7 @@ export function useClientReservations(clientId: string | undefined) {
         items.push({
           id: docSnap.id,
           aircraftId: data.aircraftId,
+          fa_flight_id: data.fa_flight_id,
           clientId: data.clientId,
           price: data.price ?? 0,
           distance_nm: data.distance_nm ?? 0,

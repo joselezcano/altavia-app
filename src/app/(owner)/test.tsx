@@ -54,6 +54,19 @@ export default function Test() {
         }
     };
 
+    const handleSearchFlightByAircraftRegistration = async () => {
+        setLoading(true);
+        try {
+            const registration = 'ZP-BMR';
+            const flightsByRegistration = await searchFlightsByAircraftRegistration(registration);
+            loadFlightsByRegistration(db, flightsByRegistration);
+        } catch (error) {
+            console.error("Error: ", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <View className="flex-1 items-center justify-center bg-white dark:bg-gray-950">
             <Text className="text-gray-900 dark:text-white">Flight Current Position</Text>
@@ -88,6 +101,14 @@ export default function Test() {
                 disabled={loading}
             >
                 <ThemedText className="text-white font-bold">{loading ? "Loading..." : "Load flight map"}</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={handleSearchFlightByAircraftRegistration}
+                className="bg-brand-gold px-6 py-4 rounded-xl shadow-md mt-4"
+                activeOpacity={0.8}
+                disabled={loading}
+            >
+                <ThemedText className="text-white font-bold">{loading ? "Loading..." : "Load flight info"}</ThemedText>
             </TouchableOpacity>
         </View >
     );
@@ -144,6 +165,21 @@ const loadAirportFlights = (db: Firestore, airportFlights: FlightSearchResult) =
 }
 
 
+const loadFlightsByRegistration = (db: Firestore, flightsByRegistration: FlightByRegistration) => {
+    const batch = writeBatch(db);
+
+    flightsByRegistration.flights.forEach(flight => {
+        // Generate a reference with a random ID
+        const documentRef = doc(collection(db, 'aeroapi-flights-by-registration'));
+        batch.set(documentRef, flight);
+    });
+
+    batch.commit().then(() => {
+        console.log('Flights by registration successfully loaded in a batch. #Flights: ', flightsByRegistration.flights.length);
+    });
+}
+
+
 import { fetch } from 'expo/fetch';
 
 // AeroAPI async data fetching function using HTTP GET
@@ -164,7 +200,7 @@ async function getAeroAPI<T>(url: URL): Promise<T> {
 }
 
 
-import { FlightCurrentPosition, flightCurrentPositionSchema, FlightMap, flightMapSchema, FlightMapWithID, FlightSearchResult, flightSearchResultSchema } from "@/types/aeroapi";
+import { FlightByRegistration, flightByRegistrationSchema, FlightCurrentPosition, flightCurrentPositionSchema, FlightMap, flightMapSchema, FlightMapWithID, FlightSearchResult, flightSearchResultSchema } from "@/types/aeroapi";
 
 async function getFlightCurrentPosition(fa_flight_id: string) {
     const aeroApiUrl = process.env.EXPO_PUBLIC_AEROAPI_URL ?? '';
@@ -206,6 +242,21 @@ async function searchFlightsByAircraftIdent(ident: string) {
         const response = await getAeroAPI<FlightSearchResult>(url);
         // Validate the response. Throws an error if the JSON structure is incorrect.
         const validatedData: FlightSearchResult = flightSearchResultSchema.parse(response);
+        return validatedData;
+    } else {
+        throw new Error('Could not parse AeroAPI URL');
+    }
+}
+
+async function searchFlightsByAircraftRegistration(registration: string) {
+    const aeroApiUrl = process.env.EXPO_PUBLIC_AEROAPI_URL ?? '';
+    const pathname = `/aeroapi/flights/${registration}`;
+    if (URL.canParse(pathname, aeroApiUrl)) {
+        const url = new URL(pathname, aeroApiUrl);
+        url.searchParams.set("max_pages", "1");
+        const response = await getAeroAPI<FlightByRegistration>(url);
+        // Validate the response. Throws an error if the JSON structure is incorrect.
+        const validatedData: FlightByRegistration = flightByRegistrationSchema.parse(response);
         return validatedData;
     } else {
         throw new Error('Could not parse AeroAPI URL');

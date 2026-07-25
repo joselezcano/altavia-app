@@ -1,9 +1,11 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { UserModal } from "@/components/UserModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useClientReservations } from "@/hooks/useClientReservations";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -13,14 +15,15 @@ import {
 } from "react-native";
 
 export default function ClientFlightsScreen() {
+  const { user, role } = useAuth();
   const router = useRouter();
-  const { user } = useAuth();
   const {
     data: reservations = [],
     isLoading,
     isRefetching,
     refetch,
   } = useClientReservations(user?.uid);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const getStatusBadge = (internalStatus: string) => {
     if (internalStatus === "canceled") {
@@ -42,6 +45,8 @@ export default function ClientFlightsScreen() {
     }
   };
 
+  const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
+
   return (
     <ThemedView className="flex-1 bg-brand-light px-4 pt-2">
       {/* Top Header */}
@@ -55,12 +60,13 @@ export default function ClientFlightsScreen() {
           </ThemedText>
         </View>
         <TouchableOpacity
-          onPress={() => router.push("/(client)")}
-          className="bg-brand-blue px-3.5 py-2 rounded-xl flex-row items-center gap-1.5 shadow-sm"
+          onPress={() => setModalVisible(true)}
+          className="w-11 h-11 rounded-full bg-brand-blue items-center justify-center shadow-sm"
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={18} color="#FFFFFF" />
-          <ThemedText className="text-sm font-bold text-white">Nuevo Vuelo</ThemedText>
+          <ThemedText className="text-white font-bold text-base">
+            {userInitial}
+          </ThemedText>
         </TouchableOpacity>
       </View>
 
@@ -75,7 +81,7 @@ export default function ClientFlightsScreen() {
           <View className="bg-brand-white rounded-2xl p-8 shadow-sm border border-slate-100 items-center justify-center my-6">
             <ActivityIndicator size="large" color="#0f1e3d" />
             <ThemedText className="text-slate-500 font-medium mt-3 text-center text-sm">
-              Cargando tus reservaciones de vuelo...
+              Cargando tus reservas...
             </ThemedText>
           </View>
         ) : reservations.length === 0 ? (
@@ -87,7 +93,7 @@ export default function ClientFlightsScreen() {
               No tienes vuelos reservados
             </ThemedText>
             <ThemedText className="text-slate-500 text-xs text-center mt-1 mb-6 px-4">
-              Realiza una búsqueda desde la pestaña principal para reservar tu próxima aeronave.
+              Realiza una búsqueda desde la pestaña Reservar para programar tu próximo viaje.
             </ThemedText>
             <TouchableOpacity
               onPress={() => router.push("/(client)")}
@@ -271,11 +277,28 @@ export default function ClientFlightsScreen() {
                   {/* Detalles Button */}
                   <TouchableOpacity
                     onPress={() => router.push({ pathname: "/(client)/flight-details", params: { reservationId: item.id } })}
-                    className="mt-3 bg-slate-50 py-2.5 px-4 rounded-xl flex-row items-center justify-center gap-1.5 border border-slate-200"
+                    className="mt-4 shadow-sm bg-brand-blue py-3 px-4 rounded-xl flex-row items-center justify-center gap-1.5"
                     activeOpacity={0.8}
                   >
-                    <ThemedText className="text-xs font-bold text-brand-blue">Detalles</ThemedText>
-                    <Ionicons name="chevron-forward" size={14} color="#0f1e3d" />
+                    <Ionicons name="information-circle-outline" size={16} color="#FFFFFF" />
+                    <ThemedText className="text-xs font-bold text-white">Detalles</ThemedText>
+                    <Ionicons name="chevron-forward" size={14} color="#FFFFFF" />
+                  </TouchableOpacity>
+
+                  {/* Tracking de Vuelo Button */}
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(client)/flight-tracker",
+                        params: { fa_flight_id: item.fa_flight_id ?? "" },
+                      })
+                    }
+                    className="mt-4 shadow-sm bg-brand-blue py-3 px-4 rounded-xl flex-row items-center justify-center gap-1.5"
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="location-outline" size={16} color="#FFFFFF" />
+                    <ThemedText className="text-xs font-bold text-white">Tracking de Vuelo</ThemedText>
+                    <Ionicons name="chevron-forward" size={14} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               );
@@ -283,6 +306,9 @@ export default function ClientFlightsScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Profile Bottom Sheet Modal */}
+      <UserModal modalVisible={modalVisible} setModalVisible={setModalVisible} user={user} role={role} userInitial={userInitial} />
     </ThemedView>
   );
 }

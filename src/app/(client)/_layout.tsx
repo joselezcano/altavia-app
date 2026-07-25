@@ -75,6 +75,14 @@ export default function ClientLayout() {
             tabBarStyle: { display: "none" },
           }}
         />
+        {/* Pantalla de seguimiento de vuelo */}
+        <Tabs.Screen
+          name="flight-tracker"
+          options={{
+            href: null,
+            tabBarStyle: { display: "none" },
+          }}
+        />
       </Tabs>
     </ThemedView>
   );

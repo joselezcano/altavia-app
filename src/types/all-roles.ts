@@ -53,6 +53,7 @@ export interface AircraftAvailabilityDoc extends AircraftAvailability {
 
 export const AircraftReservationSchema = z.object({
     aircraftId: z.string(),
+    fa_flight_id: z.string().nullable(),
     clientId: z.string().optional(),
     price: z.number().nonnegative(),
     distance_nm: z.number().positive(),

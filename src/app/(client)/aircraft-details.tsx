@@ -194,6 +194,7 @@ export default function AircraftDetailsScreen() {
       // Create AircraftReservation instance
       const reservationData: AircraftReservation = {
         aircraftId: aircraft.id,
+        fa_flight_id: null,
         clientId: user?.uid || "",
         price: 0,
         distance_nm: distanceNm,
