@@ -3,8 +3,9 @@ import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerPilots } from "@/hooks/useOwnerPilots";
+import { useOwnerReservations } from "@/hooks/useOwnerReservations";
 import { PilotProfile } from "@/types/pilot";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
@@ -17,44 +18,54 @@ import {
   View,
 } from "react-native";
 
-
-// TODO: Falta chequear en una transacción si el piloto sigue siendo encargado antes de hacer modificaciones a la aeronave (calendario, base, pilotos, etc)
-export default function AssignPilotsScreen() {
+export default function AssignFlightPilotsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { id, model, registration } =
-    useLocalSearchParams<{ id?: string; model?: string; registration?: string }>();
+  const { reservationId, aircraftModel, aircraftRegistration, origin, destination } =
+    useLocalSearchParams<{
+      reservationId?: string;
+      aircraftModel?: string;
+      aircraftRegistration?: string;
+      origin?: string;
+      destination?: string;
+    }>();
 
-  const aircraftId = Array.isArray(id) ? id[0] : id;
-  const aircraftModel = Array.isArray(model) ? model[0] : model;
-  const aircraftRegistration = Array.isArray(registration)
-    ? registration[0]
-    : registration;
+  const targetReservationId = Array.isArray(reservationId) ? reservationId[0] : reservationId;
+  const modelStr = Array.isArray(aircraftModel) ? aircraftModel[0] : aircraftModel;
+  const registrationStr = Array.isArray(aircraftRegistration)
+    ? aircraftRegistration[0]
+    : aircraftRegistration;
+  const originStr = Array.isArray(origin) ? origin[0] : origin;
+  const destinationStr = Array.isArray(destination) ? destination[0] : destination;
 
-  const { data: pilots = [], isLoading } = useOwnerPilots(user?.uid);
+  const { data: pilots = [], isLoading: isLoadingPilots } = useOwnerPilots(user?.uid);
+  const { data: reservations = [], isLoading: isLoadingReservations } = useOwnerReservations(user?.uid);
+
+  const reservation = reservations.find((r) => r.id === targetReservationId);
+  const assignedPilotIds = reservation?.pilot_ids || [];
+
   const [updatingPilotId, setUpdatingPilotId] = useState<string | null>(null);
 
   const togglePilotAssignment = async (pilot: PilotProfile) => {
     const pilotUid = pilot.user?.uid;
-    if (!pilotUid || !aircraftId) return;
+    if (!pilotUid || !targetReservationId) return;
 
-    const isAssigned = pilot.pilot_aircrafts?.includes(aircraftId);
+    const isAssigned = assignedPilotIds.includes(pilotUid);
     setUpdatingPilotId(pilotUid);
 
     try {
-      const pilotRef = doc(db, "pilots", pilotUid);
-      await updateDoc(pilotRef, {
-        pilot_aircrafts: isAssigned
-          ? arrayRemove(aircraftId)
-          : arrayUnion(aircraftId),
+      const reservationRef = doc(db, "aircraft-reservation", targetReservationId);
+      await updateDoc(reservationRef, {
+        pilot_ids: isAssigned
+          ? arrayRemove(pilotUid)
+          : arrayUnion(pilotUid),
       });
 
-      queryClient.invalidateQueries({ queryKey: ["owner-pilots", user?.uid] });
-      queryClient.invalidateQueries({ queryKey: ["pilot-details", pilotUid] });
+      await queryClient.invalidateQueries({ queryKey: ["owner-reservations", user?.uid] });
     } catch (error) {
-      console.error("Error al actualizar asignación de piloto:", error);
-      Alert.alert("Error", "No se pudo actualizar la asignación del piloto.");
+      console.error("Error al actualizar tripulación del vuelo:", error);
+      Alert.alert("Error", "No se pudo actualizar la tripulación del vuelo.");
     } finally {
       setUpdatingPilotId(null);
     }
@@ -66,9 +77,7 @@ export default function AssignPilotsScreen() {
       `${item.user?.firstName || ""} ${item.user?.lastName || ""}`.trim() ||
       item.user?.email ||
       "Piloto Registrado";
-    const isAssigned = aircraftId
-      ? item.pilot_aircrafts?.includes(aircraftId)
-      : false;
+    const isAssigned = pilotUid ? assignedPilotIds.includes(pilotUid) : false;
     const isUpdating = updatingPilotId === pilotUid;
 
     return (
@@ -155,6 +164,12 @@ export default function AssignPilotsScreen() {
     );
   };
 
+  const isLoading = isLoadingPilots || isLoadingReservations;
+  const displayModel = modelStr || reservation?.aircraftSpecs?.basic_specs?.model || "Aeronave";
+  const displayRegistration = registrationStr || reservation?.aircraftSpecs?.basic_specs?.registration || "";
+  const displayOrigin = originStr || reservation?.originAirport?.iata_code || reservation?.originAirport?.name || reservation?.trip.origin_airport_ident || "";
+  const displayDestination = destinationStr || reservation?.destinationAirport?.iata_code || reservation?.destinationAirport?.name || reservation?.trip.destination_airport_ident || "";
+
   return (
     <ThemedView className="flex-1 px-4 pt-2">
       {/* Header */}
@@ -169,31 +184,49 @@ export default function AssignPilotsScreen() {
           </ThemedText>
         </TouchableOpacity>
         <ThemedText className="font-bold text-brand-blue text-lg">
-          Asignar Pilotos
+          Tripulación del Vuelo
         </ThemedText>
         <View style={{ width: 60 }} />
       </View>
 
-      {/* Target Aircraft Card */}
-      {aircraftModel || aircraftRegistration ? (
-        <View className="bg-brand-blue rounded-2xl p-4 mb-4 flex-row justify-between items-center">
-          <View>
+      {/* Target Flight Card */}
+      <View className="bg-brand-blue rounded-2xl p-4 mb-4">
+        <View className="flex-row justify-between items-center">
+          <View className="flex-1 mr-2">
             <ThemedText type="caption" className="text-slate-300 font-medium">
-              Aeronave seleccionada:
+              Vuelo seleccionado:
             </ThemedText>
             <ThemedText className="font-bold text-lg text-white mt-0.5">
-              {aircraftModel || "Aeronave"}
+              {displayModel}
             </ThemedText>
           </View>
-          {aircraftRegistration ? (
+          {displayRegistration ? (
             <View className="bg-brand-gold px-3 py-1 rounded-full">
               <ThemedText className="text-brand-blue text-xs font-bold uppercase tracking-wider">
-                {aircraftRegistration}
+                {displayRegistration}
               </ThemedText>
             </View>
           ) : null}
         </View>
-      ) : null}
+
+        {displayOrigin && displayDestination ? (
+          <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-white/10">
+            <ThemedText className="text-xs font-bold text-slate-200">
+              {displayOrigin}
+            </ThemedText>
+            <MaterialCommunityIcons name="airplane" size={14} color="#C5A059" />
+            <ThemedText className="text-xs font-bold text-slate-200">
+              {displayDestination}
+            </ThemedText>
+            <View className="flex-1" />
+            <View className="bg-white/15 px-2 py-0.5 rounded-md">
+              <ThemedText className="text-[10px] font-bold text-white">
+                {assignedPilotIds.length} tripulante(s)
+              </ThemedText>
+            </View>
+          </View>
+        ) : null}
+      </View>
 
       {/* Pilots List */}
       {isLoading ? (
@@ -212,8 +245,7 @@ export default function AssignPilotsScreen() {
             No hay pilotos registrados
           </ThemedText>
           <ThemedText type="caption" className="text-center text-slate-500">
-            No tienes pilotos vinculados a tu flota actualmente para asignar a
-            esta aeronave.
+            No tienes pilotos vinculados a tu flota actualmente para asignar a este vuelo.
           </ThemedText>
         </View>
       ) : (

@@ -6,6 +6,13 @@ import { useState } from "react";
 import { Text, TouchableOpacity, View } from 'react-native';
 
 
+// Used to load airports
+import airports_sa from "@/assets/data/airports_sa.json";
+import { Airport } from "@/types/all-roles";
+import { buildSearchTags, getSearchableFields } from "@/utils/search-airport";
+import { getAirportTimezone } from "@/utils/timezone";
+
+
 export default function Test() {
     const [loading, setLoading] = useState(false);
 
@@ -67,6 +74,49 @@ export default function Test() {
         }
     };
 
+    const loadAirports = async () => {
+        const airports = airports_sa as Airport[];
+        const chunk = 500;
+        console.log('Airports to load: ', airports.length);
+
+        const testSearchTags = true;
+
+        if (testSearchTags) {
+            const airportsPY = airports.filter((airport) => airport.country === 'Paraguay');
+            for (let i = 0; i < airportsPY.length; i += chunk) {
+                let loadedAirports = 0;
+                for (let j = 0; j < chunk; j++) {
+                    if (i + j < airportsPY.length) {
+                        airportsPY[i + j].timezone = getAirportTimezone(airportsPY[i + j]);
+                        const searchableFields = getSearchableFields(airportsPY[i + j]);
+                        airportsPY[i + j].search_tags = buildSearchTags(searchableFields);
+                        console.log(airportsPY[i + j].timezone, airportsPY[i + j].search_tags);
+                        loadedAirports++;
+                    }
+                }
+            }
+        } else {
+            for (let i = 0; i < airports.length; i += chunk) {
+                let loadedAirports = 0;
+                const batch = writeBatch(db);
+                for (let j = 0; j < chunk; j++) {
+                    if (i + j < airports.length) {
+                        const documentRef = doc(collection(db, 'airports'));
+                        airports[i + j].timezone = getAirportTimezone(airports[i + j]);
+                        const searchableFields = getSearchableFields(airports[i + j]);
+                        airports[i + j].search_tags = buildSearchTags(searchableFields);
+                        batch.set(documentRef, airports[i + j]);
+                        loadedAirports++;
+                    }
+                }
+                // Write stream exhausted maximum allowed queued writes. Max 30 batches
+                batch.commit().then(() => {
+                    console.log(`Loaded airports in this chunk (from ${i + 1} to ${Math.min(i + chunk, airports.length)}): ${loadedAirports}`);
+                });
+            }
+        }
+    }
+
     return (
         <View className="flex-1 items-center justify-center bg-white dark:bg-gray-950">
             <Text className="text-gray-900 dark:text-white">Flight Current Position</Text>
@@ -109,6 +159,14 @@ export default function Test() {
                 disabled={loading}
             >
                 <ThemedText className="text-white font-bold">{loading ? "Loading..." : "Load flight info"}</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={loadAirports}
+                className="bg-brand-gold px-6 py-4 rounded-xl shadow-md mt-4"
+                activeOpacity={0.8}
+                disabled={loading}
+            >
+                <ThemedText className="text-white font-bold">{loading ? "Loading..." : "Load airports"}</ThemedText>
             </TouchableOpacity>
         </View >
     );

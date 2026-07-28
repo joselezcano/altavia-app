@@ -27,7 +27,7 @@ export default function OwnerLayout() {
                 }}
             >
                 <Tabs.Screen
-                    name="index"
+                    name="flights"
                     options={{
                         title: "Vuelos",
                         tabBarIcon: ({ color, size }) => (
@@ -60,13 +60,6 @@ export default function OwnerLayout() {
                         tabBarIcon: ({ color, size }) => (
                             <Ionicons name="code-slash" size={size} color={color} />
                         ),
-                    }}
-                />
-                <Tabs.Screen
-                    name="pilot-details"
-                    options={{
-                        href: null,
-                        tabBarStyle: { display: "none" },
                     }}
                 />
             </Tabs>
