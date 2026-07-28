@@ -114,7 +114,7 @@ export interface ClientReservationItem extends AircraftReservationDoc {
 import { Timestamp } from '@firebase/firestore';
 
 // Date type
-const dateSchema = z.union([z.coerce.date(), z.instanceof(Timestamp)]);
+export const dateSchema = z.union([z.coerce.date(), z.instanceof(Timestamp)]);
 
 export const AircraftReservationStatusLogSchema = z.object({
     reservation_id: z.string(),

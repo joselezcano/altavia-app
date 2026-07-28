@@ -1,5 +1,5 @@
 import { auth, db } from "@/config/firebase";
-import { BaseUser, PilotProfile, OwnerProfile, ClientProfile, AdminProfile } from "@/types/user";
+import { BaseUser } from "@/types/user";
 import {
   User,
   signOut as firebaseSignOut,
@@ -37,8 +37,8 @@ const AuthContext = createContext<AuthContextType>({
   userData: null,
   profileData: null,
   isRoleSelectorRequired: false,
-  selectRole: async () => {},
-  signOut: async () => {},
+  selectRole: async () => { },
+  signOut: async () => { },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {

@@ -5,8 +5,6 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 
 export interface AircraftSpecsDoc extends AircraftSpecs {
   id: string;
-  assignedPilotId?: string | null;
-  assignedPilotName?: string | null;
 }
 
 export function useOwnerAircrafts(ownerUid: string | undefined) {
@@ -22,15 +20,10 @@ export function useOwnerAircrafts(ownerUid: string | undefined) {
       const snapshot = await getDocs(q);
       const list: AircraftSpecsDoc[] = [];
 
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        list.push({
-          id: doc.id,
-          ...(data as AircraftSpecs),
-          assignedPilotId: data.assignedPilotId || null,
-          assignedPilotName: data.assignedPilotName || null,
-        });
-      });
+      snapshot.forEach((doc) => list.push({
+        id: doc.id,
+        ...(doc.data() as AircraftSpecs)
+      }));
 
       return list;
     },

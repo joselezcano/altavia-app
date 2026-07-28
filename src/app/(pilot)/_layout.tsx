@@ -42,7 +42,7 @@ export default function PilotLayout() {
                     name="manage-fleet"
                     options={{
                         title: "Mi Flota",
-                        href: isEncargado ? undefined : null,
+                        // href: isEncargado ? undefined : null,
                         tabBarIcon: ({ color, size }) => (
                             <Ionicons name="airplane" size={size} color={color} />
                         ),

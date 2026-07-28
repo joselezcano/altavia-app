@@ -1,70 +1,90 @@
 import { db } from "@/config/firebase";
-import { BaseUser, PilotProfile } from "@/types/user";
+import { PilotProfile } from "@/types/pilot";
+import { BaseUser } from "@/types/user";
 import { useQuery } from "@tanstack/react-query";
-import { collection, getDocs, query, where, documentId } from "firebase/firestore";
+import { collection, documentId, getDocs, query, Timestamp, where } from "firebase/firestore";
 
-export interface FullPilotData extends PilotProfile, Omit<BaseUser, "uid" | "roles"> {}
 
 export function useOwnerPilots(ownerUid: string | undefined) {
-  return useQuery<FullPilotData[]>({
+  return useQuery<PilotProfile[]>({
     queryKey: ["owner-pilots", ownerUid],
     queryFn: async () => {
       if (!ownerUid) return [];
 
-      // 1. Fetch from 'pilots' collection where ownerId matches
+      // 1. Fetch from 'pilots' collection where owner_ids contains ownerUid
       const pilotsQuery = query(
         collection(db, "pilots"),
-        where("ownerId", "==", ownerUid)
+        where("owner_ids", "array-contains", ownerUid)
       );
-      const pilotsSnapshot = await getDocs(pilotsQuery);
-      
-      const pilotProfiles: PilotProfile[] = [];
-      const pilotUids: string[] = [];
-      
-      pilotsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        pilotProfiles.push({
-          uid: doc.id,
-          ownerId: data.ownerId,
-          isEncargado: data.isEncargado || false,
-          managed_aircrafts: data.managed_aircrafts || [],
-        });
-        pilotUids.push(doc.id);
-      });
 
+      const snap = await getDocs(pilotsQuery);
+
+      const pilotDocsMap = new Map<string, PilotProfile>();
+      snap.forEach((doc) => pilotDocsMap.set(doc.id, doc.data() as PilotProfile));
+
+      const pilotUids = Array.from(pilotDocsMap.keys());
       if (pilotUids.length === 0) return [];
 
-      // 2. Fetch corresponding base user info from 'users' collection
-      // DocumentId IN query has a limit of 30, which is fine for this B2B scope.
+      // 2. Fetch corresponding base user info from 'users' collection for missing basic info
       const usersQuery = query(
         collection(db, "users"),
         where(documentId(), "in", pilotUids)
       );
       const usersSnapshot = await getDocs(usersQuery);
-      
+
       const usersMap: Record<string, BaseUser> = {};
       usersSnapshot.forEach((doc) => {
         usersMap[doc.id] = doc.data() as BaseUser;
       });
 
-      // 3. Merge profiles with base user info
-      return pilotProfiles.map((profile) => {
-        const baseInfo = usersMap[profile.uid] || {
-          firstName: "Piloto",
-          lastName: "Registrado",
-          email: "",
-          roles: ["PILOT"],
-          uid: profile.uid,
+      // 3. Map doc data to PilotProfile schema
+      const result: PilotProfile[] = [];
+
+      pilotDocsMap.forEach((data, docId) => {
+
+        const ownerIds: string[] = Array.isArray(data.owner_ids) ? data.owner_ids : [ownerUid];
+
+        const profile: PilotProfile = {
+          user: {
+            uid: usersMap[docId].uid || "",
+            email: usersMap[docId].email || "",
+            firstName: usersMap[docId].firstName || "",
+            lastName: usersMap[docId].lastName || "",
+          },
+          basic: {
+            id_first_name: data.basic.id_first_name || "",
+            id_last_name: data.basic.id_last_name || "",
+            id_type: data.basic.id_type || "",
+            id_number: data.basic.id_number || "",
+            id_country: data.basic.id_country || "",
+            id_nationality: data.basic.id_nationality || "",
+            id_date_of_birth: (data.basic.id_date_of_birth as Timestamp).toDate() || new Date(),
+            telephone: data.basic.telephone || "",
+          },
+          aeronautical: {
+            pilot_licence: data.aeronautical.pilot_licence || "",
+            licence_type: data.aeronautical.licence_type || "Piloto privado",
+            licence_permits: data.aeronautical.licence_permits || "",
+            licence_issuer: data.aeronautical.licence_issuer || "",
+          },
+          other_information: {
+            aeronautical_medical_certificate: data.other_information.aeronautical_medical_certificate || "Clase 1",
+            languages: Array.isArray(data.other_information.languages) ? data.other_information.languages : ["es"],
+            flight_hours: data.other_information.flight_hours ?? undefined,
+          },
+          owner_ids: ownerIds,
+          isEncargado: Boolean(data.isEncargado),
+          managed_aircrafts: Array.isArray(data.managed_aircrafts) ? data.managed_aircrafts : [],
+          accepted_terms_version: data.accepted_terms_version || "",
+          updated_at: (data.updated_at as Timestamp).toDate() || new Date(),
         };
 
-        return {
-          ...profile,
-          firstName: baseInfo.firstName,
-          lastName: baseInfo.lastName,
-          email: baseInfo.email,
-        };
+        result.push(profile);
       });
+
+      return result;
     },
     enabled: !!ownerUid,
   });
 }
+

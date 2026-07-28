@@ -20,8 +20,6 @@ export function useAircraftDetails(id: string | undefined) {
       return {
         id: docSnap.id,
         ...(data as AircraftSpecs),
-        assignedPilotId: data.assignedPilotId || null,
-        assignedPilotName: data.assignedPilotName || null,
       } as AircraftSpecsDoc;
     },
     enabled: !!id,

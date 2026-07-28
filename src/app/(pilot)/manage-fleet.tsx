@@ -2,8 +2,9 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
-import { useManagedAircrafts, AircraftSpecsDoc } from "@/hooks/useManagedAircrafts";
-import { useOwnerPilots, FullPilotData } from "@/hooks/useOwnerPilots";
+import { AircraftSpecsDoc, useManagedAircrafts } from "@/hooks/useManagedAircrafts";
+import { useOwnerPilots } from "@/hooks/useOwnerPilots";
+import { PilotProfile } from "@/types/pilot";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { doc, updateDoc } from "firebase/firestore";
@@ -37,22 +38,26 @@ export default function ManageFleetScreen() {
   const { data: pilots = [] } = useOwnerPilots(ownerId);
 
   // Asignar piloto a aeronave
-  const handleAssignPilot = async (pilot: FullPilotData | null) => {
+  const handleAssignPilot = async (pilot: PilotProfile | null) => {
     if (!selectedAircraft) return;
 
     try {
+      const pilotName = pilot
+        ? `${pilot.basic?.id_first_name || ""} ${pilot.basic?.id_last_name || ""}`.trim() || pilot.user?.email
+        : null;
+
       await updateDoc(doc(db, "AircraftSpecs", selectedAircraft.id), {
-        assignedPilotId: pilot ? pilot.uid : null,
-        assignedPilotName: pilot ? `${pilot.firstName} ${pilot.lastName}` : null,
+        assignedPilotId: pilot ? pilot.user?.uid : null,
+        assignedPilotName: pilotName,
       });
 
       Alert.alert(
         "Éxito",
         pilot
-          ? `Piloto ${pilot.firstName} asignado correctamente.`
+          ? `Piloto ${pilot.basic?.id_first_name || "asignado"} correctamente.`
           : "Piloto desasignado de la aeronave."
       );
-      
+
       // Invalidate query to refresh
       queryClient.invalidateQueries({ queryKey: ["managed-aircrafts", managedAircraftsList] });
       setModalVisible(false);
@@ -197,7 +202,7 @@ export default function ManageFleetScreen() {
 
             <FlatList
               data={pilots}
-              keyExtractor={(item) => item.uid}
+              keyExtractor={(item) => item.user?.uid || item.basic.id_number}
               ListHeaderComponent={
                 selectedAircraft?.assignedPilotId ? (
                   <TouchableOpacity
@@ -210,30 +215,29 @@ export default function ManageFleetScreen() {
                 ) : null
               }
               renderItem={({ item }) => {
-                const isSelected = selectedAircraft?.assignedPilotId === item.uid;
+                const isSelected = selectedAircraft?.assignedPilotId === item.user?.uid;
+                const pilotName = `${item.basic?.id_first_name || ""} ${item.basic?.id_last_name || ""}`.trim() || "Piloto Registrado";
                 return (
                   <TouchableOpacity
                     onPress={() => handleAssignPilot(item)}
-                    className={`flex-row justify-between items-center p-4 mb-2 rounded-xl border ${
-                      isSelected
-                        ? "bg-brand-blue/5 border-brand-blue"
-                        : "bg-slate-50 border-slate-200"
-                    }`}
+                    className={`flex-row justify-between items-center p-4 mb-2 rounded-xl border ${isSelected
+                      ? "bg-brand-blue/5 border-brand-blue"
+                      : "bg-slate-50 border-slate-200"
+                      }`}
                   >
                     <View>
                       <ThemedText className="font-bold text-slate-800">
-                        {item.firstName} {item.lastName}
+                        {pilotName}
                       </ThemedText>
                       <ThemedText type="caption" className="text-slate-500 mt-0.5">
-                        {item.email}
+                        {item.user?.email}
                       </ThemedText>
                     </View>
                     <View
-                      className={`w-6 h-6 rounded-full border items-center justify-center ${
-                        isSelected
-                          ? "bg-brand-blue border-brand-blue"
-                          : "border-slate-300 bg-white"
-                      }`}
+                      className={`w-6 h-6 rounded-full border items-center justify-center ${isSelected
+                        ? "bg-brand-blue border-brand-blue"
+                        : "border-slate-300 bg-white"
+                        }`}
                     >
                       {isSelected && (
                         <Ionicons name="checkmark" size={14} color="white" />

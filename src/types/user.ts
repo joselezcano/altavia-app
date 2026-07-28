@@ -4,24 +4,14 @@ import { z } from "zod";
 export const BaseUserSchema = z.object({
   uid: z.string(),
   email: z.string().email("Correo electrónico inválido"),
-  firstName: z.string().min(1, "El nombre es obligatorio"),
-  lastName: z.string().min(1, "El apellido es obligatorio"),
+  firstName: z.string().min(1, "El nombre es obligatorio"), // podría no ser igual al documento de identidad
+  lastName: z.string().min(1, "El apellido es obligatorio"), // podría no ser igual al documento de identidad
   roles: z.array(z.enum(["ADMIN", "CLIENT", "PILOT", "OWNER"])),
   createdAt: z.any().optional(),
   updatedAt: z.any().optional(),
 });
 
 export type BaseUser = z.infer<typeof BaseUserSchema>;
-
-// Pilot Profile Schema (Stored in 'pilots' collection)
-export const PilotProfileSchema = z.object({
-  uid: z.string(),
-  ownerId: z.string().nullable().optional(),
-  isEncargado: z.boolean().default(false),
-  managed_aircrafts: z.array(z.string()).default([]),
-});
-
-export type PilotProfile = z.infer<typeof PilotProfileSchema>;
 
 // Owner Profile Schema (Stored in 'owners' collection)
 export const OwnerProfileSchema = z.object({

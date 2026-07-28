@@ -286,10 +286,10 @@ export default function ClientDashboard() {
                   name="capacity.passangers"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={isNaN(value) ? "" : String(value)}
+                      value={value !== undefined ? String(value) : ""}
                       onChangeText={(val) => {
                         const parsed = parseInt(val, 10);
-                        onChange(isNaN(parsed) ? 1 : parsed);
+                        onChange(isNaN(parsed) ? 0 : parsed);
                       }}
                       placeholder="1"
                       keyboardType="numeric"

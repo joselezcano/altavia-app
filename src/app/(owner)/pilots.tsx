@@ -3,17 +3,22 @@ import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerAircrafts } from "@/hooks/useOwnerAircrafts";
-import { useOwnerPilots, FullPilotData } from "@/hooks/useOwnerPilots";
+import { useOwnerPilots } from "@/hooks/useOwnerPilots";
+import { PilotProfile } from "@/types/pilot";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  arrayRemove,
+  arrayUnion,
   collection,
   doc,
+  getDoc,
   getDocs,
+  limit,
   query,
+  serverTimestamp,
   updateDoc,
-  where,
-  setDoc,
+  where
 } from "firebase/firestore";
 import { useState } from "react";
 import {
@@ -33,12 +38,12 @@ export default function PilotsScreen() {
   const [emailInput, setEmailInput] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
-  // TanStack Queries (replacing useEffect/onSnapshot)
+  // TanStack Queries
   const { data: pilots = [], isLoading: isLoadingPilots } = useOwnerPilots(user?.uid);
   const { data: aircrafts = [] } = useOwnerAircrafts(user?.uid);
 
   // Modal para asignar aeronaves
-  const [selectedPilot, setSelectedPilot] = useState<FullPilotData | null>(null);
+  const [selectedPilot, setSelectedPilot] = useState<PilotProfile | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
   // Vincular un piloto mediante correo electrónico
@@ -52,56 +57,57 @@ export default function PilotsScreen() {
     setIsAdding(true);
     try {
       // 1. Buscar en colección 'users' para verificar que sea un piloto registrado
-      const q = query(
+      const q1 = query(
         collection(db, "users"),
         where("roles", "array-contains", "PILOT"),
-        where("email", "==", emailInput.trim().toLowerCase())
+        where("email", "==", emailInput.trim().toLowerCase()),
+        limit(1)
       );
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await getDocs(q1);
 
       if (querySnapshot.empty) {
         Alert.alert(
           "No encontrado",
           "No se encontró ningún piloto registrado con ese correo electrónico."
         );
-        setIsAdding(false);
-        return;
-      }
-
-      const pilotDoc = querySnapshot.docs[0];
-
-      // 2. Comprobar si ya existe un perfil en la colección 'pilots'
-      const pilotProfileRef = doc(db, "pilots", pilotDoc.id);
-      const pilotProfilesQuery = query(
-        collection(db, "pilots"),
-        where("ownerId", "==", user.uid)
-      );
-      const currentPilots = await getDocs(pilotProfilesQuery);
-      let alreadyLinked = false;
-      currentPilots.forEach((doc) => {
-        if (doc.id === pilotDoc.id) {
-          alreadyLinked = true;
-        }
-      });
-
-      if (alreadyLinked) {
-        Alert.alert("Aviso", "Este piloto ya está vinculado a tu flota.");
         setEmailInput("");
         setIsAdding(false);
         return;
       }
 
-      // 3. Crear/actualizar el perfil específico en la colección 'pilots'
-      await setDoc(pilotProfileRef, {
-        uid: pilotDoc.id,
-        ownerId: user.uid,
-        isEncargado: false,
-        managed_aircrafts: [],
-      });
+      const pilotUserDoc = querySnapshot.docs[0];
+      const pilotUid = pilotUserDoc.id;
 
-      Alert.alert("Éxito", "Piloto vinculado correctamente a tu flota.");
-      setEmailInput("");
-      
+      // 2. Comprobar perfil existente en 'pilots'
+      const pilotProfileRef = doc(db, "pilots", pilotUid);
+      const pilotProfileSnap = await getDoc(pilotProfileRef);
+
+      if (pilotProfileSnap.exists()) {
+        const existingData = pilotProfileSnap.data() as PilotProfile;
+        const currentOwnerIds: string[] = Array.isArray(existingData.owner_ids)
+          ? existingData.owner_ids
+          : [];
+
+        if (currentOwnerIds.includes(user.uid)) {
+          Alert.alert("Aviso", "Este piloto ya está vinculado a tu flota.");
+          setEmailInput("");
+          setIsAdding(false);
+          return;
+        }
+
+        // Vincular agregando el ID del owner a owner_ids
+        await updateDoc(pilotProfileRef, {
+          owner_ids: arrayUnion(user.uid),
+          updated_at: serverTimestamp(),
+        });
+
+        Alert.alert("Éxito", "Piloto vinculado correctamente a tu flota.");
+        setEmailInput("");
+      } else {
+        Alert.alert("Información", "La persona aún no ha creado su perfil de piloto.");
+        setEmailInput("");
+      }
+
       // Invalidar query para recargar
       queryClient.invalidateQueries({ queryKey: ["owner-pilots", user.uid] });
     } catch (error) {
@@ -113,7 +119,7 @@ export default function PilotsScreen() {
   };
 
   // Desvincular piloto
-  const handleUnlinkPilot = (pilotId: string) => {
+  const handleUnlinkPilot = (pilotUid: string | undefined) => {
     Alert.alert(
       "Confirmar desvinculación",
       "¿Estás seguro de que deseas desvincular a este piloto de tu flota?",
@@ -123,15 +129,18 @@ export default function PilotsScreen() {
           text: "Desvincular",
           style: "destructive",
           onPress: async () => {
+            if (!user) return;
+            if (!pilotUid) return;
             try {
-              // Desvincular seteando ownerId a null en la colección 'pilots'
-              await updateDoc(doc(db, "pilots", pilotId), {
-                ownerId: null,
+              // Desvincular removiendo el ID del owner del array owner_ids y los aircrafts de tal owner
+              // TODO: No verifica que la flota se quede sin encargado
+              await updateDoc(doc(db, "pilots", pilotUid), {
+                owner_ids: arrayRemove(user.uid),
                 isEncargado: false,
-                managed_aircrafts: [],
+                managed_aircrafts: arrayRemove(...aircrafts.map(a => a.id)),
               });
               Alert.alert("Éxito", "Piloto desvinculado.");
-              queryClient.invalidateQueries({ queryKey: ["owner-pilots", user?.uid] });
+              queryClient.invalidateQueries({ queryKey: ["owner-pilots", user.uid] });
             } catch (error) {
               console.error(error);
               Alert.alert("Error", "No se pudo desvincular al piloto.");
@@ -143,10 +152,13 @@ export default function PilotsScreen() {
   };
 
   // Alternar rol ENCARGADO
-  const toggleEncargado = async (pilot: FullPilotData) => {
+  // TODO: No verifica que no haya otro encargado ya asignado, o que la flota se quede sin encargado
+  // TODO: Como actualizar la UI del piloto/encargado en tiempo real cuando se cambia isEncargado?
+  const toggleEncargado = async (pilot: PilotProfile) => {
     try {
-      await updateDoc(doc(db, "pilots", pilot.uid), {
+      await updateDoc(doc(db, "pilots", pilot.user?.uid || ""), {
         isEncargado: !pilot.isEncargado,
+        managed_aircrafts: arrayRemove(...aircrafts.map(a => a.id)),
       });
       queryClient.invalidateQueries({ queryKey: ["owner-pilots", user?.uid] });
     } catch (error) {
@@ -168,16 +180,16 @@ export default function PilotsScreen() {
     }
 
     try {
-      await updateDoc(doc(db, "pilots", selectedPilot.uid), {
+      await updateDoc(doc(db, "pilots", selectedPilot.user?.uid || ""), {
         managed_aircrafts: updatedSpecs,
       });
-      
+
       // Actualizar estado local del piloto seleccionado para reflejar en UI del modal
       setSelectedPilot({
         ...selectedPilot,
         managed_aircrafts: updatedSpecs,
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ["owner-pilots", user?.uid] });
     } catch (error) {
       console.error("Error al asignar aeronave:", error);
@@ -185,36 +197,73 @@ export default function PilotsScreen() {
     }
   };
 
-  const renderPilotItem = ({ item }: { item: FullPilotData }) => {
+  const renderPilotItem = ({ item }: { item: PilotProfile }) => {
+    const fullName = `${item.user?.firstName || ""} ${item.user?.lastName || ""}`.trim() || "Piloto Registrado";
+    const licenceType = item.aeronautical.licence_type;
+    const licenceNum = item.aeronautical.pilot_licence;
+    const cma = item.other_information.aeronautical_medical_certificate;
+    const hours = item.other_information.flight_hours;
+
     return (
       <View className="bg-brand-white border border-slate-100 rounded-2xl p-5 mb-4 shadow-sm">
         <View className="flex-row justify-between items-start mb-3">
-          <View className="flex-1">
+          <View className="flex-1 pr-2">
             <ThemedText className="font-bold text-lg text-brand-blue">
-              {item.firstName} {item.lastName}
+              {fullName}
             </ThemedText>
             <ThemedText type="caption" className="text-slate-500 mt-0.5">
-              {item.email}
+              {item.user?.email}
             </ThemedText>
           </View>
 
           <TouchableOpacity
-            onPress={() => handleUnlinkPilot(item.uid)}
+            onPress={() => handleUnlinkPilot(item.user?.uid)}
             className="p-1"
           >
-            <Ionicons name="trash-outline" size={20} color="#EF4444" />
+            <Ionicons name="person-remove" size={20} color="#EF4444" />
           </TouchableOpacity>
+        </View>
+
+        {/* Aeronautical & Medical Details Badges */}
+        <View className="flex-row flex-wrap gap-2 mb-3">
+          {licenceType ? (
+            <View className="bg-slate-100 px-2.5 py-1 rounded-md">
+              <ThemedText type="caption" className="text-xs font-semibold text-slate-700">
+                {licenceType}
+              </ThemedText>
+            </View>
+          ) : null}
+          {licenceNum ? (
+            <View className="bg-slate-100 px-2.5 py-1 rounded-md">
+              <ThemedText type="caption" className="text-xs font-semibold text-slate-700">
+                Licencia: {licenceNum}
+              </ThemedText>
+            </View>
+          ) : null}
+          {cma ? (
+            <View className="bg-slate-100 px-2.5 py-1 rounded-md">
+              <ThemedText type="caption" className="text-xs font-semibold text-slate-600">
+                CMA: {cma}
+              </ThemedText>
+            </View>
+          ) : null}
+          {hours !== undefined ? (
+            <View className="bg-slate-100 px-2.5 py-1 rounded-md">
+              <ThemedText type="caption" className="text-xs font-semibold text-slate-600">
+                {hours} hs de vuelo
+              </ThemedText>
+            </View>
+          ) : null}
         </View>
 
         <View className="flex-row items-center justify-between border-t border-slate-100 pt-3 mt-1">
           {/* Toggle de Encargado */}
           <TouchableOpacity
             onPress={() => toggleEncargado(item)}
-            className={`flex-row items-center px-3 py-1.5 rounded-full border ${
-              item.isEncargado
-                ? "bg-brand-gold/15 border-brand-gold/30"
-                : "bg-slate-50 border-slate-200"
-            }`}
+            className={`flex-row items-center px-3 py-1.5 rounded-full border ${item.isEncargado
+              ? "bg-brand-gold/15 border-brand-gold/30"
+              : "bg-slate-50 border-slate-200"
+              }`}
           >
             <Ionicons
               name={item.isEncargado ? "star" : "star-outline"}
@@ -223,29 +272,26 @@ export default function PilotsScreen() {
               style={{ marginRight: 4 }}
             />
             <ThemedText
-              className={`text-xs font-bold ${
-                item.isEncargado ? "text-brand-gold" : "text-slate-500"
-              }`}
+              className={`text-xs font-bold ${item.isEncargado ? "text-brand-gold" : "text-slate-500"
+                }`}
             >
               {item.isEncargado ? "ENCARGADO" : "Hacer Encargado"}
             </ThemedText>
           </TouchableOpacity>
 
           {/* Botón Asignar Aviones */}
-          {item.isEncargado && (
-            <TouchableOpacity
-              onPress={() => {
-                setSelectedPilot(item);
-                setModalVisible(true);
-              }}
-              className="flex-row items-center bg-brand-blue px-3 py-1.5 rounded-lg"
-            >
-              <Ionicons name="airplane-outline" size={14} color="white" style={{ marginRight: 4 }} />
-              <ThemedText className="text-white text-xs font-bold">
-                Asignar Aviones ({item.managed_aircrafts?.length || 0})
-              </ThemedText>
-            </TouchableOpacity>
-          )}
+          {item.isEncargado && <TouchableOpacity
+            onPress={() => {
+              setSelectedPilot(item);
+              setModalVisible(true);
+            }}
+            className="flex-row items-center bg-brand-blue px-3 py-1.5 rounded-lg"
+          >
+            <Ionicons name="airplane-outline" size={14} color="white" style={{ marginRight: 4 }} />
+            <ThemedText className="text-white text-xs font-bold">
+              Asignar Aviones ({item.managed_aircrafts?.length || 0})
+            </ThemedText>
+          </TouchableOpacity>}
         </View>
       </View>
     );
@@ -290,7 +336,7 @@ export default function PilotsScreen() {
             {isAdding ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
-              <Ionicons name="link" size={20} color="#FFFFFF" />
+              <Ionicons name="person-add" size={20} color="#FFFFFF" />
             )}
           </TouchableOpacity>
         </View>
@@ -318,7 +364,7 @@ export default function PilotsScreen() {
         <FlatList
           data={pilots}
           renderItem={renderPilotItem}
-          keyExtractor={(item) => item.uid}
+          keyExtractor={(item) => item.user?.uid || item.basic.id_number}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 24 }}
         />
@@ -336,10 +382,10 @@ export default function PilotsScreen() {
             <View className="flex-row justify-between items-center mb-4 border-b border-slate-100 pb-3">
               <View>
                 <ThemedText type="subtitle" className="text-brand-blue font-bold">
-                  Asignar Aeronaves
+                  Asignar Aviones
                 </ThemedText>
                 <ThemedText type="caption" className="text-slate-500">
-                  Para: {selectedPilot?.firstName} {selectedPilot?.lastName}
+                  A: {selectedPilot?.basic?.id_first_name} {selectedPilot?.basic?.id_last_name}
                 </ThemedText>
               </View>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -361,26 +407,24 @@ export default function PilotsScreen() {
                     <TouchableOpacity
                       key={aircraft.id}
                       onPress={() => toggleAircraftAssignment(aircraft.id)}
-                      className={`flex-row justify-between items-center p-4 mb-2 rounded-xl border ${
-                        isAssigned
-                          ? "bg-brand-blue/5 border-brand-blue"
-                          : "bg-slate-50 border-slate-200"
-                      }`}
+                      className={`flex-row justify-between items-center p-4 mb-2 rounded-xl border ${isAssigned
+                        ? "bg-brand-blue/5 border-brand-blue"
+                        : "bg-slate-50 border-slate-200"
+                        }`}
                     >
                       <View>
                         <ThemedText className="font-bold text-slate-800">
                           {aircraft.basic_specs.model}
                         </ThemedText>
                         <ThemedText type="caption" className="text-slate-500 uppercase mt-0.5">
-                          {aircraft.basic_specs.registration} • {aircraft.basic_specs.type}
+                          {aircraft.basic_specs.registration}
                         </ThemedText>
                       </View>
                       <View
-                        className={`w-6 h-6 rounded-full border items-center justify-center ${
-                          isAssigned
-                            ? "bg-brand-blue border-brand-blue"
-                            : "border-slate-300 bg-white"
-                        }`}
+                        className={`w-6 h-6 rounded-full border items-center justify-center ${isAssigned
+                          ? "bg-brand-blue border-brand-blue"
+                          : "border-slate-300 bg-white"
+                          }`}
                       >
                         {isAssigned && (
                           <Ionicons name="checkmark" size={14} color="white" />
@@ -404,3 +448,4 @@ export default function PilotsScreen() {
     </ThemedView>
   );
 }
+
