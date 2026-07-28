@@ -285,16 +285,19 @@ export default function AircraftDetailsScreen() {
           {/* 3. Pilotos */}
           <TouchableOpacity
             onPress={() => {
-              Alert.alert(
-                "Asociar Pilotos",
-                "Esta función permitirá establecer qué pilotos están autorizados para volar esta aeronave. Estará disponible próximamente."
-              );
+              router.push({
+                pathname: "/aircrafts/assign-pilots",
+                params: {
+                  id,
+                  model: basic_specs.model,
+                  registration: basic_specs.registration,
+                },
+              });
             }}
             className="flex-1 bg-white p-3.5 rounded-2xl border border-slate-100 items-center justify-center shadow-sm"
             activeOpacity={0.7}
           >
             <View className="w-11 h-11 rounded-xl bg-slate-100 items-center justify-center mb-2">
-              {/* <Ionicons name="people" size={22} color="#0f1e3d" /> */}
               <MaterialCommunityIcons name="account-tie-hat" size={22} color="#0f1e3d" />
             </View>
             <ThemedText className="text-xs font-semibold text-slate-700 text-center">

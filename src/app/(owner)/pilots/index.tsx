@@ -7,6 +7,7 @@ import { useOwnerPilots } from "@/hooks/useOwnerPilots";
 import { PilotProfile } from "@/types/pilot";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import {
   arrayRemove,
   arrayUnion,
@@ -33,6 +34,7 @@ import {
 } from "react-native";
 
 export default function PilotsScreen() {
+  const router = useRouter();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [emailInput, setEmailInput] = useState("");
@@ -200,9 +202,6 @@ export default function PilotsScreen() {
   const renderPilotItem = ({ item }: { item: PilotProfile }) => {
     const fullName = `${item.user?.firstName || ""} ${item.user?.lastName || ""}`.trim() || "Piloto Registrado";
     const licenceType = item.aeronautical.licence_type;
-    const licenceNum = item.aeronautical.pilot_licence;
-    const cma = item.other_information.aeronautical_medical_certificate;
-    const hours = item.other_information.flight_hours;
 
     return (
       <View className="bg-brand-white border border-slate-100 rounded-2xl p-5 mb-4 shadow-sm">
@@ -224,74 +223,75 @@ export default function PilotsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Aeronautical & Medical Details Badges */}
-        <View className="flex-row flex-wrap gap-2 mb-3">
+        {/* Aeronautical Badges */}
+        <View className="flex-row flex-wrap gap-4 mb-3">
           {licenceType ? (
-            <View className="bg-slate-100 px-2.5 py-1 rounded-md">
+            <View className="bg-slate-100 px-2.5 py-1 rounded-md justify-center">
               <ThemedText type="caption" className="text-xs font-semibold text-slate-700">
                 {licenceType}
               </ThemedText>
             </View>
           ) : null}
-          {licenceNum ? (
-            <View className="bg-slate-100 px-2.5 py-1 rounded-md">
-              <ThemedText type="caption" className="text-xs font-semibold text-slate-700">
-                Licencia: {licenceNum}
-              </ThemedText>
-            </View>
-          ) : null}
-          {cma ? (
-            <View className="bg-slate-100 px-2.5 py-1 rounded-md">
-              <ThemedText type="caption" className="text-xs font-semibold text-slate-600">
-                CMA: {cma}
-              </ThemedText>
-            </View>
-          ) : null}
-          {hours !== undefined ? (
-            <View className="bg-slate-100 px-2.5 py-1 rounded-md">
-              <ThemedText type="caption" className="text-xs font-semibold text-slate-600">
-                {hours} hs de vuelo
-              </ThemedText>
-            </View>
-          ) : null}
+
+          {/* Botón Perfil */}
+          <TouchableOpacity
+            onPress={() => {
+              if (item.user?.uid) {
+                router.push({
+                  pathname: "/pilots/pilot-details",
+                  params: { pilotUid: item.user.uid },
+                });
+              }
+            }}
+            className="flex-row items-center bg-slate-100 px-3 py-1.5 rounded-xl gap-1"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="person-circle-outline" size={16} color="#0f1e3d" />
+            <ThemedText className="text-brand-blue text-xs font-bold">
+              Perfil
+            </ThemedText>
+            <Ionicons name="chevron-forward" size={12} color="#0f1e3d" />
+          </TouchableOpacity>
         </View>
 
-        <View className="flex-row items-center justify-between border-t border-slate-100 pt-3 mt-1">
-          {/* Toggle de Encargado */}
-          <TouchableOpacity
-            onPress={() => toggleEncargado(item)}
-            className={`flex-row items-center px-3 py-1.5 rounded-full border ${item.isEncargado
-              ? "bg-brand-gold/15 border-brand-gold/30"
-              : "bg-slate-50 border-slate-200"
-              }`}
-          >
-            <Ionicons
-              name={item.isEncargado ? "star" : "star-outline"}
-              size={14}
-              color={item.isEncargado ? "#b89c50" : "#64748B"}
-              style={{ marginRight: 4 }}
-            />
-            <ThemedText
-              className={`text-xs font-bold ${item.isEncargado ? "text-brand-gold" : "text-slate-500"
+        <View className="flex-row items-center justify-between border-t border-slate-100 pt-3 mt-1 flex-wrap gap-2">
+          <View className="flex-row items-center gap-4 flex-wrap">
+            {/* Toggle de Encargado */}
+            <TouchableOpacity
+              onPress={() => toggleEncargado(item)}
+              className={`flex-row items-center px-3 py-1.5 rounded-full border ${item.isEncargado
+                ? "bg-brand-gold/15 border-brand-gold/30"
+                : "bg-slate-50 border-slate-200"
                 }`}
             >
-              {item.isEncargado ? "ENCARGADO" : "Hacer Encargado"}
-            </ThemedText>
-          </TouchableOpacity>
+              <Ionicons
+                name={item.isEncargado ? "star" : "star-outline"}
+                size={14}
+                color={item.isEncargado ? "#b89c50" : "#64748B"}
+                style={{ marginRight: 4 }}
+              />
+              <ThemedText
+                className={`text-xs font-bold ${item.isEncargado ? "text-brand-gold" : "text-slate-500"
+                  }`}
+              >
+                {item.isEncargado ? "ENCARGADO" : "Hacer Encargado"}
+              </ThemedText>
+            </TouchableOpacity>
 
-          {/* Botón Asignar Aviones */}
-          {item.isEncargado && <TouchableOpacity
-            onPress={() => {
-              setSelectedPilot(item);
-              setModalVisible(true);
-            }}
-            className="flex-row items-center bg-brand-blue px-3 py-1.5 rounded-lg"
-          >
-            <Ionicons name="airplane-outline" size={14} color="white" style={{ marginRight: 4 }} />
-            <ThemedText className="text-white text-xs font-bold">
-              Asignar Aviones ({item.managed_aircrafts?.length || 0})
-            </ThemedText>
-          </TouchableOpacity>}
+            {/* Botón Asignar Aviones */}
+            {item.isEncargado && <TouchableOpacity
+              onPress={() => {
+                setSelectedPilot(item);
+                setModalVisible(true);
+              }}
+              className="flex-row items-center bg-brand-blue px-3 py-1.5 rounded-lg"
+            >
+              <Ionicons name="airplane-outline" size={14} color="white" style={{ marginRight: 4 }} />
+              <ThemedText className="text-white text-xs font-bold">
+                Aviones a su cargo ({item.managed_aircrafts?.length || 0})
+              </ThemedText>
+            </TouchableOpacity>}
+          </View>
         </View>
       </View>
     );
@@ -381,16 +381,18 @@ export default function PilotsScreen() {
           <View className="bg-brand-white w-full max-h-[80%] rounded-2xl p-6 shadow-xl">
             <View className="flex-row justify-between items-center mb-4 border-b border-slate-100 pb-3">
               <View>
-                <ThemedText type="subtitle" className="text-brand-blue font-bold">
-                  Asignar Aviones
-                </ThemedText>
-                <ThemedText type="caption" className="text-slate-500">
-                  A: {selectedPilot?.basic?.id_first_name} {selectedPilot?.basic?.id_last_name}
+                <View className="flex-row justify-between items-center gap-4 mb-3">
+                  <ThemedText type="subtitle" className="text-brand-blue font-bold">
+                    Asignar Aviones
+                  </ThemedText>
+                  <TouchableOpacity onPress={() => setModalVisible(false)}>
+                    <Ionicons name="close" size={24} color="#64748B" />
+                  </TouchableOpacity>
+                </View>
+                <ThemedText type="caption" className="text-slate-500 mb-2">
+                  Aeronaves que {selectedPilot?.basic?.id_first_name} {selectedPilot?.basic?.id_last_name} podrá gestionar como Encargado:
                 </ThemedText>
               </View>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#64748B" />
-              </TouchableOpacity>
             </View>
 
             {aircrafts.length === 0 ? (

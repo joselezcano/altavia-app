@@ -62,6 +62,13 @@ export default function OwnerLayout() {
                         ),
                     }}
                 />
+                <Tabs.Screen
+                    name="pilot-details"
+                    options={{
+                        href: null,
+                        tabBarStyle: { display: "none" },
+                    }}
+                />
             </Tabs>
         </ThemedView>
     );

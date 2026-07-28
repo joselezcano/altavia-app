@@ -101,11 +101,23 @@ export const pilotProfileSchema = z.object({
         ])),                             // Idiomas: 'Español', 'Inglés', 'Portugués', 'Otros'
         flight_hours: z.number().positive().int().optional(), // Total de horas voladas
     }),
-    owner_ids: z.array(z.string()), // El piloto puede volar para estos propietarios
-    isEncargado: z.boolean(), // Indicador de encargado
-    managed_aircrafts: z.array(z.string()), // Ids de aeronaves que puede gestionar o volar
+    owner_ids: z.array(z.string()),                 // El piloto puede volar para estos propietarios
+    isEncargado: z.boolean(),                       // Indicador de encargado
+    managed_aircrafts: z.array(z.string()),         // Ids de aeronaves que puede gestionar
+    pilot_aircrafts: z.array(z.string()),           // Ids de aeronaves que puede pilotar
     accepted_terms_version: z.string().optional(), // Versión de los términos y condiciones aceptadas
     updated_at: dateSchema,
 });
 
 export type PilotProfile = z.infer<typeof pilotProfileSchema>;
+
+export interface AssignPilotsSearchParams {
+    id: string;
+    model?: string;
+    registration?: string;
+}
+
+export interface PilotDetailsSearchParams {
+    pilotUid: string;
+    from?: string;
+}

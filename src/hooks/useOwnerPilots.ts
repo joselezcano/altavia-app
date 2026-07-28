@@ -75,6 +75,7 @@ export function useOwnerPilots(ownerUid: string | undefined) {
           owner_ids: ownerIds,
           isEncargado: Boolean(data.isEncargado),
           managed_aircrafts: Array.isArray(data.managed_aircrafts) ? data.managed_aircrafts : [],
+          pilot_aircrafts: Array.isArray(data.pilot_aircrafts) ? data.pilot_aircrafts : [],
           accepted_terms_version: data.accepted_terms_version || "",
           updated_at: (data.updated_at as Timestamp).toDate() || new Date(),
         };
