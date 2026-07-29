@@ -1,27 +1,24 @@
 import { db } from "@/config/firebase";
 import { AircraftSpecs } from "@/types/owner";
 import { useQuery } from "@tanstack/react-query";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 
-export interface AircraftSpecsDoc extends AircraftSpecs {
+export interface AdminAircraftSpecsDoc extends AircraftSpecs {
   id: string;
   assignedPilotId?: string | null;
   assignedPilotName?: string | null;
+  ownerId?: string;
+  pricePerMileOverride?: number | null;
 }
 
-export function useOwnerAircrafts(ownerUid: string | undefined) {
-  return useQuery<AircraftSpecsDoc[]>({
-    queryKey: ["owner-aircrafts", ownerUid],
+export function useAllAircrafts() {
+  return useQuery<AdminAircraftSpecsDoc[]>({
+    queryKey: ["all-aircrafts"],
     queryFn: async () => {
-      if (!ownerUid) return [];
-
       try {
-        const q = query(
-          collection(db, "AircraftSpecs"),
-          where("ownerId", "==", ownerUid)
-        );
+        const q = collection(db, "AircraftSpecs");
         const snapshot = await getDocs(q);
-        const list: AircraftSpecsDoc[] = [];
+        const list: AdminAircraftSpecsDoc[] = [];
 
         snapshot.forEach((doc) => {
           const data = doc.data();
@@ -30,15 +27,16 @@ export function useOwnerAircrafts(ownerUid: string | undefined) {
             ...(data as AircraftSpecs),
             assignedPilotId: data.assignedPilotId || null,
             assignedPilotName: data.assignedPilotName || null,
+            ownerId: data.ownerId,
+            pricePerMileOverride: data.pricePerMileOverride || null,
           });
         });
 
         return list;
       } catch (error) {
-        console.error("Error fetching owner aircrafts in useOwnerAircrafts:", error);
+        console.error("Error fetching all aircrafts in useAllAircrafts:", error);
         throw error;
       }
     },
-    enabled: !!ownerUid,
   });
 }

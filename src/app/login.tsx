@@ -58,21 +58,23 @@ export default function LoginScreen() {
       {/* Usamos ThemedView para heredar el color de fondo claro (brand-light) */}
       <ThemedView className="flex-1 justify-center px-8">
         {/* Cabecera / Logo */}
-        <View className="mb-12 items-center">
+        <View className="mb-12 items-center gap-1">
           {/* Aquí puedes reemplazar este texto por un componente <Image /> con el logo real de Alta Vía */}
-          <ThemedText type="title" className="text-5xl tracking-widest mb-1">
+          <ThemedText type="title" className="text-5xl tracking-widest">
             ALTAVIA
           </ThemedText>
+          {/* Linea dorada */}
+          <View style={{ width: 200, height: 1, backgroundColor: "#D4AF37" }} />
           <ThemedText
             type="caption"
-            className="uppercase tracking-[0.2em] font-medium text-brand-gold"
+            className="uppercase tracking-[0.2em] font-medium"
           >
             Aviation Platform
           </ThemedText>
         </View>
 
         {/* Formulario */}
-        <View className="space-y-5">
+        <View className="space-y-5 gap-2">
           <View>
             <ThemedText type="caption" className="mb-1.5 ml-1 font-medium">
               Correo Electrónico

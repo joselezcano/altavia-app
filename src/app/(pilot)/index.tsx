@@ -2,13 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Modal,
   ScrollView,
   TouchableOpacity,
   View
 } from "react-native";
 
-import SignOutButton from "@/components/sign-out-button";
+import UserAvatar from "@/components/user-avatar";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAuth } from "@/hooks/useAuth";
@@ -83,7 +82,6 @@ interface FlightPlanSample {
 
 export default function FlightPlanScreen() {
   const { user, userData } = useAuth();
-  const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
 
   // Fallback to email username if names are not loaded
@@ -186,14 +184,7 @@ export default function FlightPlanScreen() {
           </ThemedText>
         </View>
 
-        <TouchableOpacity
-          onPress={() => setModalVisible(true)}
-          className="w-11 h-11 rounded-full bg-brand-blue items-center justify-center shadow-sm"
-        >
-          <ThemedText className="text-white font-semibold text-base">
-            {userInitial}
-          </ThemedText>
-        </TouchableOpacity>
+        <UserAvatar size={44} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
@@ -307,60 +298,6 @@ export default function FlightPlanScreen() {
         </View>
       </ScrollView>
 
-      {/* Modal de Perfil y Cierre de Sesión */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={{ flex: 1, backgroundColor: "rgba(15, 30, 61, 0.4)" }}
-          activeOpacity={1}
-          onPress={() => setModalVisible(false)}
-        >
-          <View className="flex-1 justify-end">
-            <View className="bg-brand-white rounded-t-3xl p-6 shadow-xl border-t border-slate-100">
-              <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mb-6" />
-
-              {/* Info de Perfil */}
-              <View className="items-center mb-6">
-                <View className="w-16 h-16 rounded-full bg-brand-blue items-center justify-center mb-3">
-                  <ThemedText className="text-white font-bold text-2xl">
-                    {userInitial}
-                  </ThemedText>
-                </View>
-                <ThemedText className="font-bold text-lg text-brand-blue">
-                  {displayName}
-                </ThemedText>
-                <ThemedText type="caption" className="text-sm">
-                  {user?.email}
-                </ThemedText>
-                <View className="mt-2 bg-brand-gold/15 px-3 py-1 rounded-full">
-                  <ThemedText className="text-brand-gold text-xs font-semibold uppercase tracking-wider">
-                    Propietario de Aeronave
-                  </ThemedText>
-                </View>
-              </View>
-
-              {/* Botón de Cierre de Sesión */}
-              <View className="mb-4">
-                <SignOutButton />
-              </View>
-
-              {/* Botón para Cerrar Modal */}
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                className="w-full bg-slate-100 py-3 rounded-xl items-center"
-              >
-                <ThemedText className="text-slate-700 font-semibold">
-                  Cancelar
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </ThemedView>
   );
 }

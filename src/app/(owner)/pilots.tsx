@@ -16,6 +16,8 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { useState } from "react";
+import { useNavigation } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   Alert,
@@ -30,6 +32,8 @@ import {
 export default function PilotsScreen() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const [emailInput, setEmailInput] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
@@ -252,18 +256,26 @@ export default function PilotsScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 px-4 pt-2">
+    <ThemedView className="flex-1 px-4 pt-2" style={{ paddingTop: insets.top }}>
       {/* Header */}
-      <View className="mb-6 mt-2">
-        <ThemedText
-          type="caption"
-          className="uppercase font-bold text-brand-gold tracking-widest text-xs"
+      <View className="flex-row items-center mb-6 mt-2">
+        <TouchableOpacity
+          onPress={() => navigation.openDrawer()}
+          className="p-2 mr-3 bg-white rounded-xl shadow-sm border border-slate-100 active:bg-slate-50"
         >
-          Tripulación Privada
-        </ThemedText>
-        <ThemedText type="title" className="text-2xl font-bold mt-0.5 text-brand-blue">
-          Mis Pilotos
-        </ThemedText>
+          <Ionicons name="menu" size={24} color="#0f1e3d" />
+        </TouchableOpacity>
+        <View className="flex-1">
+          <ThemedText
+            type="caption"
+            className="uppercase font-bold text-brand-gold tracking-widest text-xs"
+          >
+            Tripulación Privada
+          </ThemedText>
+          <ThemedText type="title" className="text-2xl font-bold mt-0.5 text-brand-blue">
+            Mis Pilotos
+          </ThemedText>
+        </View>
       </View>
 
       {/* Formulario Vincular Piloto */}

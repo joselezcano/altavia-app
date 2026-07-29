@@ -1,8 +1,9 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
+import { useAircraftTemplates } from "@/hooks/useAircraftTemplates";
 import { useAuth } from "@/hooks/useAuth";
-import { AircraftSpecs, AircraftSpecsSchema, defaultAircraftSpecs } from "@/types/owner";
+import { AircraftSpecs, AircraftSpecsSchema } from "@/types/owner";
 import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
@@ -20,13 +21,21 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 export default function AddAircraftScreen() {
   const { user } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Selector states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedTemplateName, setSelectedTemplateName] = useState("");
+  const [isManualInput, setIsManualInput] = useState(false);
 
   const {
     control,
@@ -34,13 +43,54 @@ export default function AddAircraftScreen() {
     formState: { errors },
     trigger,
     watch,
+    setValue,
   } = useForm<AircraftSpecs>({
     resolver: zodResolver(AircraftSpecsSchema),
-    defaultValues: defaultAircraftSpecs,
+    defaultValues: {
+      basic_specs: { model: "", type: "", registration: "", pax_count: undefined as any },
+      technical_specs: { equipment: [], transponder: "S", flight_rules: "VFR", wake_turbulence_category: "L", fuel_capacity_gallons: undefined as any },
+      operating_specs: { cruise_speed_knots: undefined as any, fuel_burn_rate_gph: undefined as any, service_ceiling_feet: undefined as any, max_takeoff_weight_lbs: undefined as any, takeoff_distance_feet: undefined as any, landing_distance_feet: undefined as any, rate_of_climb_fpm: undefined as any },
+      emergency: { radio_equipment: [], survival_equipment: [], life_jacket_equipment: [], dinghies_capacity: { carried: false } },
+    },
     mode: "onChange",
   });
 
+  const { data: templates = [], isLoading: isLoadingTemplates } = useAircraftTemplates();
+
   const dinghiesCarried = watch("emergency.dinghies_capacity.carried");
+
+  // Watch fields for Step Validation
+  const model = watch("basic_specs.model");
+  const type = watch("basic_specs.type");
+  const registration = watch("basic_specs.registration");
+  const pax_count = watch("basic_specs.pax_count");
+
+  const equipment = watch("technical_specs.equipment");
+  const transponder = watch("technical_specs.transponder");
+  const flightRules = watch("technical_specs.flight_rules");
+  const wakeTurbulence = watch("technical_specs.wake_turbulence_category");
+  const fuelCapacity = watch("technical_specs.fuel_capacity_gallons");
+
+  const cruiseSpeed = watch("operating_specs.cruise_speed_knots");
+  const fuelBurn = watch("operating_specs.fuel_burn_rate_gph");
+  const ceiling = watch("operating_specs.service_ceiling_feet");
+  const weight = watch("operating_specs.max_takeoff_weight_lbs");
+  const takeoffDist = watch("operating_specs.takeoff_distance_feet");
+  const landingDist = watch("operating_specs.landing_distance_feet");
+  const climbRate = watch("operating_specs.rate_of_climb_fpm");
+
+  const isCurrentStepValid = () => {
+    if (currentStep === 1) {
+      return !!model && !!type && !!registration && pax_count > 0;
+    }
+    if (currentStep === 2) {
+      return (equipment?.length > 0) && !!transponder && !!flightRules && !!wakeTurbulence && fuelCapacity > 0;
+    }
+    if (currentStep === 3) {
+      return cruiseSpeed > 0 && fuelBurn > 0 && ceiling > 0 && weight > 0 && takeoffDist > 0 && landingDist > 0 && climbRate >= 0;
+    }
+    return true;
+  };
 
   const onSubmit = async (data: AircraftSpecs) => {
     if (!user) {
@@ -50,9 +100,12 @@ export default function AddAircraftScreen() {
 
     setIsSubmitting(true);
     try {
+      // Remove undefined values to prevent Firestore serialization crashes
+      const cleanData = JSON.parse(JSON.stringify(data));
+
       // Save specifications into 'AircraftSpecs' collection with owner ID
       await addDoc(collection(db, "AircraftSpecs"), {
-        ...data,
+        ...cleanData,
         ownerId: user.uid,
         createdAt: serverTimestamp(),
       });
@@ -114,8 +167,9 @@ export default function AddAircraftScreen() {
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-brand-light"
+      style={{ paddingTop: insets.top }}
     >
-      <ThemedView className="flex-1 px-4 pt-2">
+      <ThemedView className="flex-1 px-4">
         {/* Header */}
         <View className="flex-row items-center justify-between mb-4 mt-2">
           <TouchableOpacity
@@ -138,18 +192,16 @@ export default function AddAircraftScreen() {
           {[1, 2, 3, 4].map((step) => (
             <View key={step} className="items-center flex-1">
               <View
-                className={`w-8 h-8 rounded-full items-center justify-center font-bold ${
-                  currentStep === step
-                    ? "bg-brand-blue"
-                    : currentStep > step
+                className={`w-8 h-8 rounded-full items-center justify-center font-bold ${currentStep === step
+                  ? "bg-brand-blue"
+                  : currentStep > step
                     ? "bg-brand-gold"
                     : "bg-slate-200"
-                }`}
+                  }`}
               >
                 <ThemedText
-                  className={`text-sm font-bold ${
-                    currentStep >= step ? "text-white" : "text-slate-500"
-                  }`}
+                  className={`text-sm font-bold ${currentStep >= step ? "text-white" : "text-slate-500"
+                    }`}
                 >
                   {step}
                 </ThemedText>
@@ -165,103 +217,248 @@ export default function AddAircraftScreen() {
           {/* STEP 1: Basic specs */}
           {currentStep === 1 && (
             <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
-              <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-2">
+              <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-1">
                 1. Especificaciones Básicas
               </ThemedText>
 
-              {/* Model */}
-              <View>
-                <ThemedText type="caption" className="font-bold mb-1">Modelo de Avión</ThemedText>
-                <Controller
-                  control={control}
-                  name="basic_specs.model"
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      value={value}
-                      onChangeText={onChange}
-                      placeholder="Cessna 172 Skyhawk"
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
-                    />
-                  )}
-                />
-                {errors.basic_specs?.model && (
-                  <ThemedText className="text-red-500 text-xs mt-1">
-                    {errors.basic_specs.model.message}
-                  </ThemedText>
-                )}
-              </View>
+              {/* Autocomplete Search Input */}
+              <View className="border-b border-slate-100 pb-5 mb-2">
+                <ThemedText className="font-semibold text-brand-blue mb-2 text-sm">
+                  Buscar modelo o código ICAO
+                </ThemedText>
 
-              {/* ICAO Type */}
-              <View>
-                <ThemedText type="caption" className="font-bold mb-1">Tipo de Aeronave (ICAO, 2-4 caracteres)</ThemedText>
-                <Controller
-                  control={control}
-                  name="basic_specs.type"
-                  render={({ field: { onChange, value } }) => (
+                <View >
+                  <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4">
+                    <Ionicons name="search-outline" size={20} color="#94A3B8" style={{ marginRight: 8 }} />
                     <TextInput
-                      value={value}
-                      onChangeText={(val) => onChange(val.toUpperCase().trim())}
-                      placeholder="C172"
-                      maxLength={4}
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
-                    />
-                  )}
-                />
-                {errors.basic_specs?.type && (
-                  <ThemedText className="text-red-500 text-xs mt-1">
-                    {errors.basic_specs.type.message}
-                  </ThemedText>
-                )}
-              </View>
-
-              {/* Registration */}
-              <View>
-                <ThemedText type="caption" className="font-bold mb-1">Matrícula / Registro (e.g. ZP1234)</ThemedText>
-                <Controller
-                  control={control}
-                  name="basic_specs.registration"
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      value={value}
-                      onChangeText={(val) => onChange(val.toUpperCase().trim())}
-                      placeholder="ZP1234"
-                      maxLength={7}
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
-                    />
-                  )}
-                />
-                {errors.basic_specs?.registration && (
-                  <ThemedText className="text-red-500 text-xs mt-1">
-                    {errors.basic_specs.registration.message}
-                  </ThemedText>
-                )}
-              </View>
-
-              {/* Passengers Count */}
-              <View>
-                <ThemedText type="caption" className="font-bold mb-1">Capacidad de Personas a Bordo (POB)</ThemedText>
-                <Controller
-                  control={control}
-                  name="basic_specs.pax_count"
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      value={value !== undefined ? String(value) : ""}
-                      onChangeText={(val) => {
-                        const parsed = parseInt(val, 10);
-                        onChange(isNaN(parsed) ? 0 : parsed);
+                      className="text-brand-text font-medium text-base"
+                      style={{ flex: 1, height: 40, paddingVertical: 0 }}
+                      placeholderTextColor="#94A3B8"
+                      value={searchQuery}
+                      onChangeText={(text) => {
+                        setSearchQuery(text);
+                        setShowSuggestions(text.trim().length > 0);
+                        if (!text) {
+                          setSelectedTemplateName("");
+                        }
                       }}
-                      placeholder="4"
-                      keyboardType="numeric"
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
+                      onFocus={() => {
+                        if (searchQuery.trim().length > 0) {
+                          setShowSuggestions(true);
+                        }
+                      }}
                     />
+                    {searchQuery.length > 0 && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSearchQuery("");
+                          setSelectedTemplateName("");
+                          setShowSuggestions(false);
+                          setIsManualInput(false);
+                          setValue("basic_specs.model", "");
+                          setValue("basic_specs.type", "");
+                          setValue("basic_specs.pax_count", undefined as any);
+                          setValue("basic_specs.registration", "");
+                        }}
+                      >
+                        <Ionicons name="close-circle" size={20} color="#94A3B8" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Autocomplete Suggestions Dropdown */}
+                  {showSuggestions && (
+                    <View className="absolute top-[52px] left-0 right-0 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-lg max-h-48 z-50">
+                      <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                        {templates
+                          .filter(
+                            (tpl) =>
+                              tpl.template_info.name
+                                .toLowerCase()
+                                .includes(searchQuery.toLowerCase()) ||
+                              tpl.template_info.type
+                                .toLowerCase()
+                                .includes(searchQuery.toLowerCase())
+                          )
+                          .map((tpl) => (
+                            <TouchableOpacity
+                              key={tpl.id}
+                              onPress={() => {
+                                setValue("basic_specs.model", tpl.template_info.model);
+                                setValue("basic_specs.type", tpl.template_info.type);
+                                setValue("basic_specs.pax_count", tpl.template_info.default_pax_count);
+                                setValue("technical_specs", tpl.technical_specs);
+                                setValue("operating_specs", tpl.operating_specs);
+                                setValue("emergency", tpl.emergency);
+                                setSelectedTemplateName(tpl.template_info.name);
+                                setSearchQuery(tpl.template_info.name);
+                                setIsManualInput(false);
+                                setShowSuggestions(false);
+                                Toast.show({
+                                  type: "info",
+                                  text1: "Plantilla aplicada",
+                                  text2: `${tpl.template_info.name} cargado correctamente.`,
+                                });
+                              }}
+                              className="px-4 py-3 border-b border-slate-100 flex-row justify-between items-center active:bg-slate-50"
+                            >
+                              <View>
+                                <ThemedText className="text-sm font-semibold text-brand-blue">
+                                  {tpl.template_info.name}
+                                </ThemedText>
+                                <ThemedText type="caption" className="text-slate-400 text-xs">
+                                  Código ICAO: {tpl.template_info.type}
+                                </ThemedText>
+                              </View>
+                              <Ionicons name="airplane-outline" size={16} color="#b89c50" />
+                            </TouchableOpacity>
+                          ))}
+                        {templates.filter(
+                          (tpl) =>
+                            tpl.template_info.name
+                              .toLowerCase()
+                              .includes(searchQuery.toLowerCase()) ||
+                            tpl.template_info.type
+                              .toLowerCase()
+                              .includes(searchQuery.toLowerCase())
+                        ).length === 0 && (
+                            <View className="px-2 py-4">
+                              <ThemedText type="caption" className="text-slate-400 text-center mb-3">
+                                No hay coincidencias
+                              </ThemedText>
+                              <TouchableOpacity
+                                onPress={() => {
+                                  setIsManualInput(true);
+                                  setSelectedTemplateName("");
+                                  setShowSuggestions(false);
+                                  setValue("basic_specs.model", searchQuery);
+                                  setValue("basic_specs.type", "");
+                                  setValue("basic_specs.pax_count", undefined as any);
+                                  setValue("basic_specs.registration", "");
+                                }}
+                                className="bg-brand-gold/10 border border-brand-gold/20 px-4 py-2.5 rounded-xl items-center"
+                              >
+                                <View className="flex-row items-center gap-2">
+                                  <Ionicons
+                                    name="add-circle-outline"
+                                    size={20}
+                                    color="#C5A059"
+                                  />
+                                  <ThemedText type="accent" className="text-base font-bold text-brand-gold">
+                                    Ingresar datos manualmente
+                                  </ThemedText>
+                                </View>
+                              </TouchableOpacity>
+                            </View>
+                          )}
+                      </ScrollView>
+                    </View>
                   )}
-                />
-                {errors.basic_specs?.pax_count && (
-                  <ThemedText className="text-red-500 text-xs mt-1">
-                    {errors.basic_specs.pax_count.message}
-                  </ThemedText>
-                )}
+                </View>
               </View>
+
+              {/* Show basic fields only if a template is applied or manual input is active */}
+              {(isManualInput || !!selectedTemplateName) && (
+                <View className="gap-4">
+                  {/* Model */}
+                  <View>
+                    <ThemedText type="caption" className="font-bold mb-1">Modelo de Avión</ThemedText>
+                    <Controller
+                      control={control}
+                      name="basic_specs.model"
+                      render={({ field: { onChange, value } }) => (
+                        <TextInput
+                          value={value}
+                          onChangeText={onChange}
+                          placeholder="Cessna 172 Skyhawk"
+                          placeholderTextColor="#94A3B8"
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
+                        />
+                      )}
+                    />
+                    {errors.basic_specs?.model && (
+                      <ThemedText className="text-red-500 text-xs mt-1">
+                        {errors.basic_specs.model.message}
+                      </ThemedText>
+                    )}
+                  </View>
+
+                  {/* ICAO Type */}
+                  <View>
+                    <ThemedText type="caption" className="font-bold mb-1">Tipo de Aeronave (ICAO, 2-4 caracteres)</ThemedText>
+                    <Controller
+                      control={control}
+                      name="basic_specs.type"
+                      render={({ field: { onChange, value } }) => (
+                        <TextInput
+                          value={value}
+                          onChangeText={(val) => onChange(val.toUpperCase().trim())}
+                          placeholder="C172"
+                          placeholderTextColor="#94A3B8"
+                          maxLength={4}
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
+                        />
+                      )}
+                    />
+                    {errors.basic_specs?.type && (
+                      <ThemedText className="text-red-500 text-xs mt-1">
+                        {errors.basic_specs.type.message}
+                      </ThemedText>
+                    )}
+                  </View>
+
+                  {/* Registration */}
+                  <View>
+                    <ThemedText type="caption" className="font-bold mb-1">Matrícula / Registro (e.g. ZP1234)</ThemedText>
+                    <Controller
+                      control={control}
+                      name="basic_specs.registration"
+                      render={({ field: { onChange, value } }) => (
+                        <TextInput
+                          value={value}
+                          onChangeText={(val) => onChange(val.toUpperCase().trim())}
+                          placeholder="ZP1234"
+                          placeholderTextColor="#94A3B8"
+                          maxLength={7}
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
+                        />
+                      )}
+                    />
+                    {errors.basic_specs?.registration && (
+                      <ThemedText className="text-red-500 text-xs mt-1">
+                        {errors.basic_specs.registration.message}
+                      </ThemedText>
+                    )}
+                  </View>
+
+                  {/* Passengers Count */}
+                  <View>
+                    <ThemedText type="caption" className="font-bold mb-1">Capacidad de Personas a Bordo (POB)</ThemedText>
+                    <Controller
+                      control={control}
+                      name="basic_specs.pax_count"
+                      render={({ field: { onChange, value } }) => (
+                        <TextInput
+                          value={value !== undefined ? String(value) : ""}
+                          onChangeText={(val) => {
+                            const parsed = parseInt(val, 10);
+                            onChange(isNaN(parsed) ? 0 : parsed);
+                          }}
+                          placeholder="4"
+                          placeholderTextColor="#94A3B8"
+                          keyboardType="numeric"
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
+                        />
+                      )}
+                    />
+                    {errors.basic_specs?.pax_count && (
+                      <ThemedText className="text-red-500 text-xs mt-1">
+                        {errors.basic_specs.pax_count.message}
+                      </ThemedText>
+                    )}
+                  </View>
+                </View>
+              )}
             </View>
           )}
 
@@ -284,16 +481,14 @@ export default function AddAircraftScreen() {
                         <TouchableOpacity
                           key={rule}
                           onPress={() => onChange(rule)}
-                          className={`flex-1 py-2.5 rounded-lg border items-center ${
-                            value === rule
-                              ? "bg-brand-blue border-brand-blue"
-                              : "bg-slate-50 border-slate-200"
-                          }`}
+                          className={`flex-1 py-2.5 rounded-lg border items-center ${value === rule
+                            ? "bg-brand-blue border-brand-blue"
+                            : "bg-slate-50 border-slate-200"
+                            }`}
                         >
                           <ThemedText
-                            className={`font-semibold ${
-                              value === rule ? "text-white" : "text-slate-600"
-                            }`}
+                            className={`font-semibold ${value === rule ? "text-white" : "text-slate-600"
+                              }`}
                           >
                             {rule}
                           </ThemedText>
@@ -321,16 +516,14 @@ export default function AddAircraftScreen() {
                         <TouchableOpacity
                           key={level}
                           onPress={() => onChange(level)}
-                          className={`flex-1 py-2.5 rounded-lg border items-center ${
-                            value === level
-                              ? "bg-brand-blue border-brand-blue"
-                              : "bg-slate-50 border-slate-200"
-                          }`}
+                          className={`flex-1 py-2.5 rounded-lg border items-center ${value === level
+                            ? "bg-brand-blue border-brand-blue"
+                            : "bg-slate-50 border-slate-200"
+                            }`}
                         >
                           <ThemedText
-                            className={`font-semibold ${
-                              value === level ? "text-white" : "text-slate-600"
-                            }`}
+                            className={`font-semibold ${value === level ? "text-white" : "text-slate-600"
+                              }`}
                           >
                             {level}
                           </ThemedText>
@@ -363,6 +556,7 @@ export default function AddAircraftScreen() {
                         onChange(parts);
                       }}
                       placeholder="S, D, G"
+                      placeholderTextColor="#94A3B8"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -390,16 +584,14 @@ export default function AddAircraftScreen() {
                           key={tx}
                           onPress={() => onChange(tx)}
                           style={{ width: "30%", minWidth: 60 }}
-                          className={`py-2 rounded-lg border items-center ${
-                            value === tx
-                              ? "bg-brand-blue border-brand-blue"
-                              : "bg-slate-50 border-slate-200"
-                          }`}
+                          className={`py-2 rounded-lg border items-center ${value === tx
+                            ? "bg-brand-blue border-brand-blue"
+                            : "bg-slate-50 border-slate-200"
+                            }`}
                         >
                           <ThemedText
-                            className={`font-semibold text-xs ${
-                              value === tx ? "text-white" : "text-slate-600"
-                            }`}
+                            className={`font-semibold text-xs ${value === tx ? "text-white" : "text-slate-600"
+                              }`}
                           >
                             {tx}
                           </ThemedText>
@@ -429,6 +621,7 @@ export default function AddAircraftScreen() {
                         onChange(isNaN(parsed) ? 0 : parsed);
                       }}
                       placeholder="56"
+                      placeholderTextColor="#94A3B8"
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -464,6 +657,7 @@ export default function AddAircraftScreen() {
                         onChange(isNaN(parsed) ? 0 : parsed);
                       }}
                       placeholder="124"
+                      placeholderTextColor="#94A3B8"
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -490,6 +684,7 @@ export default function AddAircraftScreen() {
                         onChange(isNaN(parsed) ? 0 : parsed);
                       }}
                       placeholder="8.5"
+                      placeholderTextColor="#94A3B8"
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -516,6 +711,7 @@ export default function AddAircraftScreen() {
                         onChange(isNaN(parsed) ? 0 : parsed);
                       }}
                       placeholder="14000"
+                      placeholderTextColor="#94A3B8"
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -542,6 +738,7 @@ export default function AddAircraftScreen() {
                         onChange(isNaN(parsed) ? 0 : parsed);
                       }}
                       placeholder="2550"
+                      placeholderTextColor="#94A3B8"
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -568,6 +765,7 @@ export default function AddAircraftScreen() {
                         onChange(isNaN(parsed) ? 0 : parsed);
                       }}
                       placeholder="1630"
+                      placeholderTextColor="#94A3B8"
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -594,6 +792,7 @@ export default function AddAircraftScreen() {
                         onChange(isNaN(parsed) ? 0 : parsed);
                       }}
                       placeholder="1335"
+                      placeholderTextColor="#94A3B8"
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -620,6 +819,7 @@ export default function AddAircraftScreen() {
                         onChange(isNaN(parsed) ? 0 : parsed);
                       }}
                       placeholder="730"
+                      placeholderTextColor="#94A3B8"
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -658,6 +858,7 @@ export default function AddAircraftScreen() {
                         onChange(parts);
                       }}
                       placeholder="U, V, E"
+                      placeholderTextColor="#94A3B8"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -689,6 +890,7 @@ export default function AddAircraftScreen() {
                         onChange(parts);
                       }}
                       placeholder="P, D, M, J"
+                      placeholderTextColor="#94A3B8"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -720,6 +922,7 @@ export default function AddAircraftScreen() {
                         onChange(parts);
                       }}
                       placeholder="L, F, U, V"
+                      placeholderTextColor="#94A3B8"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -777,6 +980,7 @@ export default function AddAircraftScreen() {
                             onChange(isNaN(parsed) ? undefined : parsed);
                           }}
                           placeholder="1"
+                          placeholderTextColor="#94A3B8"
                           keyboardType="numeric"
                           className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-brand-text font-medium text-xs"
                         />
@@ -803,6 +1007,7 @@ export default function AddAircraftScreen() {
                             onChange(isNaN(parsed) ? undefined : parsed);
                           }}
                           placeholder="4"
+                          placeholderTextColor="#94A3B8"
                           keyboardType="numeric"
                           className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-brand-text font-medium text-xs"
                         />
@@ -844,6 +1049,7 @@ export default function AddAircraftScreen() {
                           value={value || ""}
                           onChangeText={(val) => onChange(val.toUpperCase())}
                           placeholder="AMARILLO"
+                          placeholderTextColor="#94A3B8"
                           className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-brand-text font-medium text-xs"
                         />
                       )}
@@ -863,6 +1069,7 @@ export default function AddAircraftScreen() {
                       value={value}
                       onChangeText={onChange}
                       placeholder="Agrega cualquier detalle adicional aquí..."
+                      placeholderTextColor="#94A3B8"
                       multiline
                       numberOfLines={4}
                       style={{ height: 100, textAlignVertical: "top" }}
@@ -875,48 +1082,54 @@ export default function AddAircraftScreen() {
           )}
         </ScrollView>
 
-        {/* Bottom Actions */}
-        <View className="flex-row gap-3 py-4 border-t border-slate-100 bg-brand-light">
-          {currentStep > 1 && (
-            <TouchableOpacity
-              onPress={() => setCurrentStep((prev) => prev - 1)}
-              className="flex-1 bg-slate-200 py-4 rounded-xl items-center"
-            >
-              <ThemedText className="text-slate-700 font-bold">
-                Atrás
-              </ThemedText>
-            </TouchableOpacity>
-          )}
 
-          {currentStep < 4 ? (
-            <TouchableOpacity
-              onPress={handleNext}
-              className="flex-2 bg-brand-blue py-4 rounded-xl items-center"
-            >
-              <ThemedText className="text-white font-bold">
-                Siguiente
-              </ThemedText>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={handleSubmit(onSubmit)}
-              disabled={isSubmitting}
-              className="flex-2 bg-brand-gold py-4 rounded-xl items-center flex-row justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <>
-                  <Ionicons name="save-outline" size={18} color="#FFFFFF" />
-                  <ThemedText className="text-white font-bold">
-                    Guardar Flota
-                  </ThemedText>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
-        </View>
       </ThemedView>
+
+      {/* Bottom Actions */}
+      <View
+        style={{ paddingBottom: insets.bottom }}
+        className="flex-row gap-3 px-4 border-t border-slate-100 bg-brand-light">
+        {currentStep > 1 && (
+          <TouchableOpacity
+            onPress={() => setCurrentStep((prev) => prev - 1)}
+            className="flex-1 bg-slate-200 py-4 rounded-xl items-center"
+          >
+            <ThemedText className="text-slate-700 font-bold">
+              Atrás
+            </ThemedText>
+          </TouchableOpacity>
+        )}
+
+        {currentStep < 4 ? (
+          <TouchableOpacity
+            onPress={handleNext}
+            disabled={!isCurrentStepValid()}
+            className={`flex-1 py-4 rounded-xl items-center ${isCurrentStepValid() ? "bg-brand-blue" : "bg-slate-300"
+              }`}
+          >
+            <ThemedText className="text-white font-bold">
+              Siguiente
+            </ThemedText>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={handleSubmit(onSubmit)}
+            disabled={isSubmitting}
+            className="flex-1 bg-brand-gold py-4 rounded-xl items-center flex-row justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <>
+                <Ionicons name="save-outline" size={18} color="#FFFFFF" />
+                <ThemedText className="text-white font-bold">
+                  Guardar Flota
+                </ThemedText>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
     </KeyboardAvoidingView>
   );
 }

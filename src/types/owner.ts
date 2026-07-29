@@ -257,7 +257,7 @@ export const AircraftSpecsSchema = z.object({
     // Equipo de emergencia
     emergency: z.object({
         // Equipo de radio comunicación
-        radio_equipment: RadioEquipmentArraySchema,
+        radio_equipment: EmergencyRadioArraySchema,
 
         // Equipo de supervivencia
         survival_equipment: SurvivalEquipmentArraySchema,

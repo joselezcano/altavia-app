@@ -35,7 +35,6 @@ function RootLayoutNav() {
   const isPilot = role === USER_ROLE.PILOT;
   const isClient = role === USER_ROLE.CLIENT;
   const isOwner = role === USER_ROLE.OWNER;
-  console.log(role)
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={user === null}>

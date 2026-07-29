@@ -101,6 +101,10 @@ export interface AircraftReservationDoc extends AircraftReservation {
     id: string;
 }
 
+export interface OwnerReservationItem extends AircraftReservationDoc {
+    outboundTime: Date;
+}
+
 
 import { Timestamp } from '@firebase/firestore';
 
