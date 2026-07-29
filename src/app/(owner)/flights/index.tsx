@@ -2,6 +2,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { UserModal } from "@/components/UserModal";
 import { useAuth } from "@/hooks/useAuth";
+import { useOwnerAircrafts } from "@/hooks/useOwnerAircrafts";
 import { useOwnerReservations } from "@/hooks/useOwnerReservations";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -13,17 +14,47 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 export default function OwnerFlightsScreen() {
   const { user, role } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  // Filter states
+  const [selectedAircraftId, setSelectedAircraftId] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
+  // Fetch Owner's aircrafts
+  const {
+    data: aircrafts = [],
+    isLoading: isLoadingAircrafts,
+  } = useOwnerAircrafts(user?.uid);
+
+  // Fetch all reservations
   const {
     data: reservations = [],
-    isLoading,
+    isLoading: isLoadingReservations,
     isRefetching,
     refetch,
   } = useOwnerReservations(user?.uid);
+
   const [modalVisible, setModalVisible] = useState(false);
+
+  const isLoading = isLoadingAircrafts || isLoadingReservations;
+
+  // Filter reservations by selected aircraft and status
+  const filteredReservations = reservations.filter((flight) => {
+    const matchesAircraft =
+      selectedAircraftId === "all" || flight.aircraftId === selectedAircraftId;
+    const matchesStatus =
+      selectedStatus === "all" ||
+      (selectedStatus === "in_progress"
+        ? ["delayed", "in_flight", "no_show"].includes(flight.internal_status)
+        : flight.internal_status === selectedStatus);
+    return matchesAircraft && matchesStatus;
+  });
 
   const getStatusBadge = (internalStatus: string) => {
     if (internalStatus === "canceled") {
@@ -33,6 +64,52 @@ export default function OwnerFlightsScreen() {
         border: "border-rose-200",
         text: "text-rose-800",
         icon: "close-circle",
+        iconColor: "#9f1239",
+      };
+    } else if (internalStatus === "pending") {
+      return {
+        label: "Pendiente",
+        bg: "bg-amber-100",
+        border: "border-amber-200",
+        text: "text-amber-800",
+        icon: "time-outline",
+        iconColor: "#92400e",
+      };
+    } else if (internalStatus === "completed") {
+      return {
+        label: "Completado",
+        bg: "bg-slate-100",
+        border: "border-slate-200",
+        text: "text-slate-700",
+        icon: "checkmark-done-circle",
+        iconColor: "#334155",
+      };
+    } else if (internalStatus === "in_flight") {
+      return {
+        label: "En Vuelo",
+        bg: "bg-sky-100",
+        border: "border-sky-200",
+        text: "text-sky-800",
+        icon: "airplane",
+        iconColor: "#075985",
+      };
+    } else if (internalStatus === "delayed") {
+      return {
+        label: "Demorado",
+        bg: "bg-orange-100",
+        border: "border-orange-200",
+        text: "text-orange-800",
+        icon: "alert-circle-outline",
+        iconColor: "#9a3412",
+      };
+    } else if (internalStatus === "no_show") {
+      return {
+        label: "No Presentado",
+        bg: "bg-purple-100",
+        border: "border-purple-200",
+        text: "text-purple-800",
+        icon: "person-remove-outline",
+        iconColor: "#6b21a8",
       };
     } else {
       return {
@@ -41,16 +118,26 @@ export default function OwnerFlightsScreen() {
         border: "border-emerald-200",
         text: "text-emerald-800",
         icon: "checkmark-circle",
+        iconColor: "#059669",
       };
     }
   };
 
   const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
 
+  const STATUS_OPTIONS = [
+    { id: "all", label: "Todos los Estados" },
+    { id: "pending", label: "Pendientes" },
+    { id: "confirmed", label: "Confirmados" },
+    { id: "in_progress", label: "En Progreso" },
+    { id: "completed", label: "Completados" },
+    { id: "canceled", label: "Cancelados" },
+  ];
+
   return (
-    <ThemedView className="flex-1 bg-brand-light px-4 pt-2">
+    <ThemedView className="flex-1 bg-brand-light px-4 pt-2" style={{ paddingTop: insets.top }}>
       {/* Top Header */}
-      <View className="flex-row items-center justify-between mb-6 mt-2">
+      <View className="flex-row items-center justify-between mb-4 mt-2">
         <View>
           <ThemedText
             type="caption"
@@ -71,6 +158,70 @@ export default function OwnerFlightsScreen() {
             {userInitial}
           </ThemedText>
         </TouchableOpacity>
+      </View>
+
+      {/* Filters Section */}
+      <View className="mb-4 gap-3">
+        {/* Aircraft Filter */}
+        <View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="py-1">
+            <TouchableOpacity
+              onPress={() => setSelectedAircraftId("all")}
+              className={`px-4 py-2 rounded-full mr-2 border ${selectedAircraftId === "all"
+                ? "bg-brand-blue border-brand-blue"
+                : "bg-white border-slate-200"
+                }`}
+            >
+              <ThemedText
+                className={`text-xs font-semibold ${selectedAircraftId === "all" ? "text-white" : "text-slate-600"
+                  }`}
+              >
+                Todas las Aeronaves
+              </ThemedText>
+            </TouchableOpacity>
+
+            {aircrafts.map((ac) => (
+              <TouchableOpacity
+                key={ac.id}
+                onPress={() => setSelectedAircraftId(ac.id)}
+                className={`px-4 py-2 rounded-full mr-2 border ${selectedAircraftId === ac.id
+                  ? "bg-brand-blue border-brand-blue"
+                  : "bg-white border-slate-200"
+                  }`}
+              >
+                <ThemedText
+                  className={`text-xs font-semibold ${selectedAircraftId === ac.id ? "text-white" : "text-slate-600"
+                    }`}
+                >
+                  {ac.basic_specs?.registration} ({ac.basic_specs?.type})
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Status Filter */}
+        <View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="py-1">
+            {STATUS_OPTIONS.map((status) => (
+              <TouchableOpacity
+                key={status.id}
+                onPress={() => setSelectedStatus(status.id)}
+                className={`px-4 py-2 rounded-full mr-2 border ${selectedStatus === status.id
+                  ? "bg-brand-gold border-brand-gold"
+                  : "bg-white border-slate-200"
+                  }`}
+              >
+                <ThemedText
+                  className={`text-xs font-semibold ${selectedStatus === status.id ? "text-white" : "text-slate-600"
+                    }`}
+                >
+                  {status.label}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       </View>
 
       <ScrollView
@@ -96,9 +247,21 @@ export default function OwnerFlightsScreen() {
               No hay vuelos reservados
             </ThemedText>
           </View>
+        ) : filteredReservations.length === 0 ? (
+          <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6 shadow-sm">
+            <View className="w-16 h-16 rounded-full bg-slate-100 items-center justify-center mb-4 border border-slate-200">
+              <Ionicons name="calendar-outline" size={32} color="#94a3b8" />
+            </View>
+            <ThemedText type="subtitle" className="text-center text-slate-800 text-lg">
+              Sin resultados
+            </ThemedText>
+            <ThemedText className="text-slate-400 mt-2 text-center text-xs font-medium">
+              No hay vuelos que coincidan con los filtros seleccionados.
+            </ThemedText>
+          </View>
         ) : (
           <View className="gap-4 mb-10">
-            {reservations.map((item) => {
+            {filteredReservations.map((item) => {
               const status = getStatusBadge(item.internal_status);
               const model = item.aircraftSpecs?.basic_specs?.model || "Aeronave";
               const registration = item.aircraftSpecs?.basic_specs?.registration || "N/A";
@@ -125,7 +288,7 @@ export default function OwnerFlightsScreen() {
                     </View>
 
                     <View className={`${status.bg} border ${status.border} px-2.5 py-1 rounded-full flex-row items-center gap-1`}>
-                      <Ionicons name={status.icon as any} size={12} className={status.text} color={status.text.includes("emerald") ? "#059669" : status.text.includes("amber") ? "#92400e" : status.text.includes("rose") ? "#9f1239" : "#1e40af"} />
+                      <Ionicons name={status.icon as any} size={12} color={status.iconColor} />
                       <ThemedText className={`text-xs font-bold ${status.text}`}>
                         {status.label}
                       </ThemedText>

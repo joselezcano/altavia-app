@@ -3,7 +3,7 @@ import { db } from "@/config/firebase";
 import { flightCurrentPositionSample } from "@/utils/sample-data";
 import { addDoc, collection, doc, Firestore, getDocs, query, serverTimestamp, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { useState } from "react";
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Text, TouchableOpacity, View } from 'react-native';
 
 
 // Used to load airports
@@ -115,7 +115,88 @@ export default function Test() {
                 });
             }
         }
-    }
+    };
+
+    const loadTemplates = async () => {
+        const c208Template = {
+            template_info: {
+                name: "Cessna 208B Grand Caravan",
+                type: "C208",
+                model: "Cessna 208B Grand Caravan",
+                default_pax_count: 10,
+            },
+            technical_specs: {
+                equipment: ["S", "D", "G"],
+                transponder: "S",
+                flight_rules: "VFR",
+                wake_turbulence_category: "L",
+                fuel_capacity_gallons: 332,
+            },
+            operating_specs: {
+                cruise_speed_knots: 185,
+                fuel_burn_rate_gph: 45,
+                service_ceiling_feet: 25000,
+                max_takeoff_weight_lbs: 8750,
+                takeoff_distance_feet: 2050,
+                landing_distance_feet: 1625,
+                rate_of_climb_fpm: 775,
+            },
+            emergency: {
+                radio_equipment: ["V", "E"],
+                survival_equipment: ["J", "M"],
+                life_jacket_equipment: ["L"],
+                dinghies_capacity: {
+                    carried: false,
+                },
+            },
+        };
+
+        const be20Template = {
+            template_info: {
+                name: "Beechcraft King Air B200",
+                type: "BE20",
+                model: "Beechcraft King Air B200",
+                default_pax_count: 9,
+            },
+            technical_specs: {
+                equipment: ["S", "D", "G", "I"],
+                transponder: "E",
+                flight_rules: "IFR",
+                wake_turbulence_category: "M",
+                fuel_capacity_gallons: 544,
+            },
+            operating_specs: {
+                cruise_speed_knots: 280,
+                fuel_burn_rate_gph: 100,
+                service_ceiling_feet: 35000,
+                max_takeoff_weight_lbs: 12500,
+                takeoff_distance_feet: 2580,
+                landing_distance_feet: 2845,
+                rate_of_climb_fpm: 2450,
+            },
+            emergency: {
+                radio_equipment: ["V", "U", "E"],
+                survival_equipment: ["M"],
+                life_jacket_equipment: ["L", "F"],
+                dinghies_capacity: {
+                    carried: true,
+                    number: 1,
+                    total_capacity: 8,
+                    covered: true,
+                    color: "ORANGE",
+                },
+            },
+        };
+
+        try {
+            addDoc(collection(db, "aircraft-templates"), c208Template);
+            addDoc(collection(db, "aircraft-templates"), be20Template);
+            Alert.alert("Éxito", "¡Plantillas cargadas con éxito en Firestore!");
+        } catch (e) {
+            console.error("Error al cargar plantillas:", e);
+            Alert.alert("Error", "Error al cargar plantillas.");
+        }
+    };
 
     return (
         <View className="flex-1 items-center justify-center bg-white dark:bg-gray-950">
@@ -167,6 +248,14 @@ export default function Test() {
                 disabled={loading}
             >
                 <ThemedText className="text-white font-bold">{loading ? "Loading..." : "Load airports"}</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={loadTemplates}
+                className="bg-brand-gold px-6 py-4 rounded-xl shadow-md mt-4"
+                activeOpacity={0.8}
+                disabled={loading}
+            >
+                <ThemedText className="text-white font-bold">{loading ? "Loading..." : "Load aircraft templates"}</ThemedText>
             </TouchableOpacity>
         </View >
     );

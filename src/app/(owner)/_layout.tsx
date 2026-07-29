@@ -53,7 +53,7 @@ export default function OwnerLayout() {
                 }}
             >
                 <Drawer.Screen
-                    name="index"
+                    name="flights"
                     options={{
                         drawerLabel: "Vuelos",
                         title: "Vuelos",
@@ -83,10 +83,14 @@ export default function OwnerLayout() {
                     }}
                 />
                 <Drawer.Screen
-                    name="dev-loader"
+                    name="test"
                     options={{
                         drawerItemStyle: { display: "none" },
-                        title: "Cargador Dev",
+                        drawerLabel: "Tests",
+                        title: "Tests",
+                        drawerIcon: ({ color, size }) => (
+                            <Ionicons name="flask-outline" size={size} color={color} />
+                        ),
                     }}
                 />
             </Drawer>
