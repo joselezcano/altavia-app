@@ -22,7 +22,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 // Define props to match what React Hook Form provides
@@ -77,6 +77,7 @@ const orderAirports = (items: Airport[]): Airport[] => {
 
 
 export default function AirportPicker({ value, onChange, error, allowedTypes }: AirportPickerProps) {
+    const insets = useSafeAreaInsets();
     const [modalVisible, setModalVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [airports, setAirports] = useState<Airport[]>([]);
@@ -293,7 +294,7 @@ export default function AirportPicker({ value, onChange, error, allowedTypes }: 
             {error && <Text style={styles.errorText}>{error}</Text>}
 
             <Modal visible={modalVisible} animationType="slide" transparent={false}>
-                <SafeAreaView style={styles.modalContainer}>
+                <SafeAreaView style={[styles.modalContainer, { paddingTop: insets.top }]}>
                     <View style={styles.header}>
                         <TextInput
                             autoComplete="off"

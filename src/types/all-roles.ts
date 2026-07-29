@@ -110,6 +110,10 @@ export interface ClientReservationItem extends AircraftReservationDoc {
     destinationAirport?: Airport;
 }
 
+export interface OwnerReservationItem extends AircraftReservationDoc {
+    outboundTime: Date;
+}
+
 
 import { Timestamp } from '@firebase/firestore';
 

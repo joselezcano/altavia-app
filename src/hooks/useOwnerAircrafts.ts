@@ -13,19 +13,24 @@ export function useOwnerAircrafts(ownerUid: string | undefined) {
     queryFn: async () => {
       if (!ownerUid) return [];
 
-      const q = query(
-        collection(db, "AircraftSpecs"),
-        where("ownerId", "==", ownerUid)
-      );
-      const snapshot = await getDocs(q);
-      const list: AircraftSpecsDoc[] = [];
+      try {
+        const q = query(
+          collection(db, "AircraftSpecs"),
+          where("ownerId", "==", ownerUid)
+        );
+        const snapshot = await getDocs(q);
+        const list: AircraftSpecsDoc[] = [];
 
-      snapshot.forEach((doc) => list.push({
-        id: doc.id,
-        ...(doc.data() as AircraftSpecs)
-      }));
+        snapshot.forEach((doc) => list.push({
+          id: doc.id,
+          ...(doc.data() as AircraftSpecs)
+        }));
 
-      return list;
+        return list;
+      } catch (error) {
+        console.error("Error fetching owner aircrafts in useOwnerAircrafts:", error);
+        throw error;
+      }
     },
     enabled: !!ownerUid,
   });

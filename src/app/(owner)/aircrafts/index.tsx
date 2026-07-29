@@ -5,8 +5,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { AircraftSpecs } from "@/types/owner";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { CollectionReference, collection, onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
+import { useNavigation } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   FlatList,
@@ -21,6 +23,8 @@ interface AircraftSpecsDoc extends AircraftSpecs {
 export default function ListAircraftsScreen() {
   const { user } = useAuth();
   const router = useRouter();
+  const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const [aircrafts, setAircrafts] = useState<AircraftSpecsDoc[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -108,10 +112,16 @@ export default function ListAircraftsScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 px-4 pt-2">
+    <ThemedView className="flex-1 px-4 pt-2" style={{ paddingTop: insets.top }}>
       {/* Header */}
-      <View className="flex-row justify-between items-center mb-6 mt-2">
-        <View>
+      <View className="flex-row items-center mb-6 mt-2">
+        <TouchableOpacity
+          onPress={() => navigation.openDrawer()}
+          className="p-2 mr-3 bg-white rounded-xl shadow-sm border border-slate-100 active:bg-slate-50"
+        >
+          <Ionicons name="menu" size={24} color="#0f1e3d" />
+        </TouchableOpacity>
+        <View className="flex-1">
           <ThemedText
             type="caption"
             className="uppercase font-bold text-brand-gold tracking-widest text-xs"

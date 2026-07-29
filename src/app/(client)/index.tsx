@@ -1,422 +1,134 @@
-import AirportPicker from "@/components/airport-picker";
-import { CustomDatePicker } from "@/components/custom-date-picker";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { UserModal } from "@/components/UserModal";
-import { db } from "@/config/firebase";
+import UserAvatar from "@/components/user-avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { FlightSearchForm, FlightSearchFormSchema } from "@/types/client";
+import AltaviaLogo from "@/utils/altavia-logo";
 import { Ionicons } from "@expo/vector-icons";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Switch,
-  TextInput,
-  TouchableOpacity,
-  View
-} from "react-native";
+import { usePathname, useRouter } from "expo-router";
+import { ScrollView, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-
-const CURRENT_CONTRACT_VERSION = "1.0";
-
-
-export default function ClientDashboard() {
-  const { user, role } = useAuth();
+export default function ClientHomeScreen() {
+  const { user } = useAuth();
   const router = useRouter();
-  const params = useLocalSearchParams<{ reset?: string }>();
-
-  const [isCheckingTerms, setIsCheckingTerms] = useState(true);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-
-  useEffect(() => {
-    const verifyLegalStatus = async () => {
-      if (!user) return;
-
-      try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
-          if (userData.acceptedTermsVersion !== CURRENT_CONTRACT_VERSION) {
-            router.replace("/terms");
-            return;
-          }
-        }
-      } catch (error) {
-        console.error("Error verificando estado legal:", error);
-      } finally {
-        setIsCheckingTerms(false);
-      }
-    };
-
-    verifyLegalStatus();
-  }, [user]);
-
-  const [defaultValues] = useState<FlightSearchForm>(() => {
-    return {
-      trip: {
-        origin_airport_ident: "",
-        origin_airport: undefined,
-        origin_timezone: undefined,
-        destination_airport_ident: "",
-        destination_airport: undefined,
-        destination_timezone: undefined,
-      },
-      schedule: {
-        roundtrip: false,
-        outbound_flight_datetime_utc: null,
-        return_flight_datetime_utc: null,
-      },
-      capacity: {
-        passangers: 1,
-      },
-    };
-  });
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-    trigger,
-    watch,
-    setValue,
-    reset,
-  } = useForm<FlightSearchForm>({
-    resolver: zodResolver(FlightSearchFormSchema),
-    defaultValues,
-    mode: "onChange",
-  });
-
-  useEffect(() => {
-    if (params.reset === "true") {
-      reset({
-        trip: {
-          origin_airport_ident: "",
-          origin_airport: undefined,
-          origin_timezone: undefined,
-          destination_airport_ident: "",
-          destination_airport: undefined,
-          destination_timezone: undefined,
-        },
-        schedule: {
-          roundtrip: false,
-          outbound_flight_datetime_utc: null,
-          return_flight_datetime_utc: null,
-        },
-        capacity: {
-          passangers: 1,
-        },
-      });
-      setCurrentStep(1);
-      router.setParams({ reset: undefined });
-    }
-  }, [params.reset]);
-
-  const isRoundtrip = watch("schedule.roundtrip");
-  const outboundDate = watch("schedule.outbound_flight_datetime_utc");
-
-  const handleNext = async () => {
-    if (currentStep === 1) {
-      const isValid = await trigger([
-        "trip.origin_airport_ident",
-        "trip.destination_airport_ident",
-        "capacity.passangers",
-      ]);
-      if (isValid) {
-        setCurrentStep(2);
-      } else {
-        Alert.alert("Campos requeridos", "Por favor completa el origen, destino y número de pasajeros.");
-      }
-    }
-  };
-
-  const onSubmit = (data: FlightSearchForm) => {
-    router.push({
-      pathname: "/(client)/search-results",
-      params: {
-        searchData: JSON.stringify(data),
-      },
-    });
-  };
-
-  if (isCheckingTerms) {
-    return (
-      <ThemedView className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#0f1e3d" />
-      </ThemedView>
-    );
-  }
+  const insets = useSafeAreaInsets();
+  const pathname = usePathname();
+  const isFocused = pathname === "/(client)" || pathname === "/(client)/";
 
   const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
+  const firstName = user?.email?.split("@")[0] || "Pasajero";
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-brand-light"
-    >
-      <ThemedView className="flex-1 px-4 pt-2">
-        {/* Top Header with Greeting & Avatar */}
-        <View className="flex-row justify-between items-center mb-4 mt-2">
-          <View>
-            <ThemedText
-              type="caption"
-              className="uppercase font-bold text-brand-gold tracking-widest"
-            >
-              Bienvenido
-            </ThemedText>
-            <ThemedText type="title" className="mt-0.5 text-xl">
-              {user?.email?.split("@")[0] || "Pasajero"}
-            </ThemedText>
+    <ThemedView className="flex-1 bg-brand-light">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} bounces={false}>
+        {/* HERO SECTION / BANNER */}
+        <View
+          className="bg-brand-blue rounded-b-[40px] px-6 shadow-md overflow-hidden relative"
+          style={{ paddingTop: insets.top + 16, paddingBottom: 48 }}
+        >
+          {/* Decoración de fondo */}
+          <View className="absolute -right-20 top-0 opacity-10">
+            <Ionicons name="airplane" size={240} color="#FFFFFF" />
           </View>
 
-          <TouchableOpacity
-            onPress={() => setModalVisible(true)}
-            className="w-11 h-11 rounded-full bg-brand-blue items-center justify-center shadow-sm"
-            activeOpacity={0.8}
-          >
-            <ThemedText className="text-white font-bold text-base">
-              {userInitial}
+          <View className="flex-row justify-between items-center mb-8">
+            <View className="flex-1">
+              <View className="mb-6">
+                <AltaviaLogo width={140} color="#FFFFFF" />
+              </View>
+              <ThemedText className="text-white text-4xl font-extrabold mb-1">
+                Hola, {firstName} 👋
+              </ThemedText>
+              <ThemedText className="text-brand-gold text-lg font-medium">
+                Bienvenido de nuevo
+              </ThemedText>
+            </View>
+            <View className="mt-[-40px]">
+              <UserAvatar size={56} />
+            </View>
+          </View>
+
+          <View className="mt-2">
+            <ThemedText className="text-slate-300 text-sm max-w-[80%] leading-relaxed mb-6">
+              Experimente el estándar más alto en aviación privada. Su próximo destino lo espera.
             </ThemedText>
+
+            <TouchableOpacity
+              onPress={() => router.push("/(client)/book")}
+              className="bg-brand-gold py-3 px-6 rounded-full self-start flex-row items-center"
+            >
+              <ThemedText className="text-brand-blue font-bold mr-2">
+                Reservar un vuelo
+              </ThemedText>
+              <Ionicons name="arrow-forward" size={18} color="#0f1e3d" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* QUICK ACTIONS / CARDS */}
+        <View className="px-6 -mt-6">
+          <TouchableOpacity
+            onPress={() => router.push("/(client)/flights")}
+            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex-row items-center justify-between mb-4"
+          >
+            <View className="flex-row items-center">
+              <View className="w-12 h-12 rounded-full bg-blue-50 items-center justify-center mr-4">
+                <Ionicons name="ticket" size={24} color="#0f1e3d" />
+              </View>
+              <View>
+                <ThemedText className="font-bold text-brand-blue text-base">Mis Vuelos</ThemedText>
+                <ThemedText className="text-slate-500 text-xs mt-0.5">Gestione sus reservas activas</ThemedText>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
           </TouchableOpacity>
+
+          <View className="flex-row justify-between gap-4 mb-6">
+            <TouchableOpacity
+              onPress={() => router.push("/(client)/profile")}
+              className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex-1 items-center"
+            >
+              <View className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center mb-3">
+                <Ionicons name="person" size={20} color="#0f1e3d" />
+              </View>
+              <ThemedText className="font-semibold text-brand-blue text-sm">Mi Perfil</ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex-1 items-center"
+              onPress={() => { /* Proponer beneficios o soporte */ }}
+            >
+              <View className="w-10 h-10 rounded-full bg-amber-50 items-center justify-center mb-3">
+                <Ionicons name="star" size={20} color="#D4AF37" />
+              </View>
+              <ThemedText className="font-semibold text-brand-blue text-sm">Beneficios</ThemedText>
+            </TouchableOpacity>
+          </View>
+
+          {/* INSPIRATION / PROMO SECTION */}
+          <ThemedText className="font-bold text-brand-blue text-lg mb-3 mt-2">
+            Destinos Destacados
+          </ThemedText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="overflow-visible">
+            <View className="w-64 bg-white rounded-2xl p-4 mr-4 shadow-sm border border-slate-100">
+              <View className="w-full h-32 bg-slate-200 rounded-xl mb-3 overflow-hidden justify-center items-center">
+                <Ionicons name="image-outline" size={32} color="#94A3B8" />
+                <ThemedText className="text-slate-400 text-xs mt-2">Punta del Este</ThemedText>
+              </View>
+              <ThemedText className="font-bold text-brand-blue">Uruguay</ThemedText>
+              <ThemedText className="text-xs text-slate-500 mt-1">Conexiones directas en <ThemedText className="text-brand-gold font-bold text-xs">90 min</ThemedText></ThemedText>
+            </View>
+            <View className="w-64 bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+              <View className="w-full h-32 bg-slate-200 rounded-xl mb-3 overflow-hidden justify-center items-center">
+                <Ionicons name="image-outline" size={32} color="#94A3B8" />
+                <ThemedText className="text-slate-400 text-xs mt-2">Asunción</ThemedText>
+              </View>
+              <ThemedText className="font-bold text-brand-blue">Paraguay</ThemedText>
+              <ThemedText className="text-xs text-slate-500 mt-1">Base de operaciones <ThemedText className="text-brand-gold font-bold text-xs">Premium</ThemedText></ThemedText>
+            </View>
+          </ScrollView>
         </View>
-
-        {/* Step Indicator Header */}
-        <View className="flex-row justify-between mb-4 px-4 bg-white py-3 rounded-2xl border border-slate-100 shadow-sm">
-          {[1, 2].map((step) => (
-            <View key={step} className="items-center flex-1">
-              <View
-                className={`w-7 h-7 rounded-full items-center justify-center font-bold ${currentStep === step
-                  ? "bg-brand-blue"
-                  : currentStep > step
-                    ? "bg-brand-gold"
-                    : "bg-slate-200"
-                  }`}
-              >
-                <ThemedText
-                  className={`text-xs font-bold ${currentStep >= step ? "text-white" : "text-slate-500"
-                    }`}
-                >
-                  {step}
-                </ThemedText>
-              </View>
-              <ThemedText className="text-[10px] font-medium text-slate-500 mt-1">
-                {step === 1 ? "Ruta y Pasajeros" : "Horario"}
-              </ThemedText>
-            </View>
-          ))}
-        </View>
-
-        <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-          {/* STEP 1: Route & Passenger Capacity */}
-          {currentStep === 1 && (
-            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
-              <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-1">
-                1. Selecciona tu Ruta y Pasajeros
-              </ThemedText>
-
-              {/* Origin Airport */}
-              <View>
-                <ThemedText type="caption" className="font-bold mb-1">
-                  Aeropuerto Origen
-                </ThemedText>
-                <Controller
-                  control={control}
-                  name="trip.origin_airport"
-                  render={({ field: { onChange, value } }) => (
-                    <AirportPicker
-                      value={value}
-                      onChange={(airport) => {
-                        onChange(airport);
-                        setValue("trip.origin_airport_ident", airport?.ident || "");
-                        setValue("trip.origin_timezone", airport?.timezone || "");
-                      }}
-                    />
-                  )}
-                />
-                {errors.trip?.origin_airport_ident && (
-                  <ThemedText className="text-red-500 text-xs mt-1">
-                    {errors.trip.origin_airport_ident.message}
-                  </ThemedText>
-                )}
-              </View>
-
-              {/* Destination Airport */}
-              <View>
-                <ThemedText type="caption" className="font-bold mb-1">
-                  Aeropuerto Destino
-                </ThemedText>
-                <Controller
-                  control={control}
-                  name="trip.destination_airport"
-                  render={({ field: { onChange, value } }) => (
-                    <AirportPicker
-                      value={value}
-                      onChange={(airport) => {
-                        onChange(airport);
-                        setValue("trip.destination_airport_ident", airport?.ident || "");
-                        setValue("trip.destination_timezone", airport?.timezone || "");
-                      }}
-                    />
-                  )}
-                />
-                {errors.trip?.destination_airport_ident && (
-                  <ThemedText className="text-red-500 text-xs mt-1">
-                    {errors.trip.destination_airport_ident.message}
-                  </ThemedText>
-                )}
-              </View>
-
-              {/* Passengers Count */}
-              <View>
-                <ThemedText type="caption" className="font-bold mb-1">
-                  Cantidad de Pasajeros
-                </ThemedText>
-                <Controller
-                  control={control}
-                  name="capacity.passangers"
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      value={value !== undefined ? String(value) : ""}
-                      onChangeText={(val) => {
-                        const parsed = parseInt(val, 10);
-                        onChange(isNaN(parsed) ? 0 : parsed);
-                      }}
-                      placeholder="1"
-                      keyboardType="numeric"
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
-                    />
-                  )}
-                />
-                {errors.capacity?.passangers && (
-                  <ThemedText className="text-red-500 text-xs mt-1">
-                    {errors.capacity.passangers.message}
-                  </ThemedText>
-                )}
-              </View>
-
-              {/* Trip type toggle: Roundtrip */}
-              <View className="flex-row items-center justify-between pt-2 border-t border-slate-100 pt-5 mt-2">
-                <View>
-                  <ThemedText className="font-bold text-slate-800 text-sm">Vuelo de Ida y Vuelta</ThemedText>
-                </View>
-                <Controller
-                  control={control}
-                  name="schedule.roundtrip"
-                  render={({ field: { onChange, value } }) => (
-                    <Switch
-                      value={value}
-                      onValueChange={onChange}
-                      trackColor={{ false: "#CBD5E1", true: "#0f1e3d" }}
-                      thumbColor="#FFFFFF"
-                    />
-                  )}
-                />
-              </View>
-
-              <TouchableOpacity
-                onPress={handleNext}
-                className="bg-brand-blue py-3.5 rounded-xl items-center justify-center mt-2 shadow-sm"
-                activeOpacity={0.8}
-              >
-                <ThemedText className="text-white font-bold">Seleccionar Horario</ThemedText>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* STEP 2: Dates & Schedule */}
-          {currentStep === 2 && (
-            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
-              <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-1">
-                2. Selecciona Fechas del Vuelo
-              </ThemedText>
-
-              {/* Outbound Date */}
-              <View>
-                <ThemedText type="caption" className="font-bold mb-1">
-                  Horario de Ida
-                </ThemedText>
-                <Controller
-                  control={control}
-                  name="schedule.outbound_flight_datetime_utc"
-                  render={({ field: { onChange, value } }) => (
-                    <CustomDatePicker
-                      value={value}
-                      onChange={onChange}
-                      placeholder="Seleccionar fecha y hora de salida"
-                      minimumDate={new Date()}
-                    />
-                  )}
-                />
-                {errors.schedule?.outbound_flight_datetime_utc && (
-                  <ThemedText className="text-red-500 text-xs mt-1">
-                    {errors.schedule.outbound_flight_datetime_utc.message}
-                  </ThemedText>
-                )}
-              </View>
-
-              {/* Return Date (if Roundtrip) */}
-              {isRoundtrip && (
-                <View>
-                  <ThemedText type="caption" className="font-bold mb-1">
-                    Horario de Vuelta
-                  </ThemedText>
-                  <Controller
-                    control={control}
-                    name="schedule.return_flight_datetime_utc"
-                    render={({ field: { onChange, value } }) => (
-                      <CustomDatePicker
-                        value={value}
-                        onChange={onChange}
-                        placeholder="Seleccionar fecha y hora de retorno"
-                        minimumDate={outboundDate || new Date()}
-                      />
-                    )}
-                  />
-                  {errors.schedule?.return_flight_datetime_utc && (
-                    <ThemedText className="text-red-500 text-xs mt-1">
-                      {errors.schedule.return_flight_datetime_utc.message}
-                    </ThemedText>
-                  )}
-                </View>
-              )}
-
-              <View className="flex-row gap-3 mt-2">
-                <TouchableOpacity
-                  onPress={() => setCurrentStep(1)}
-                  className="flex-1 bg-slate-100 py-3.5 rounded-xl items-center justify-center border border-slate-200"
-                  activeOpacity={0.7}
-                >
-                  <ThemedText className="text-slate-700 font-bold">Anterior</ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleSubmit(onSubmit)}
-                  className="flex-1 bg-brand-gold py-3.5 rounded-xl items-center justify-center shadow-md flex-row gap-2"
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="search" size={18} color="#FFFFFF" />
-                  <ThemedText className="text-white font-bold">Buscar Vuelos</ThemedText>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-        </ScrollView>
-
-        {/* Profile Bottom Sheet Modal */}
-        <UserModal modalVisible={modalVisible} setModalVisible={setModalVisible} user={user} role={role} userInitial={userInitial} />
-
-      </ThemedView>
-    </KeyboardAvoidingView>
+      </ScrollView>
+    </ThemedView>
   );
 }

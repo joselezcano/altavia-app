@@ -18,3 +18,7 @@
 - Debemos encapsular todas las consultas a Firestore mediante hooks personalizados utilizando `@tanstack/react-query` (`useQuery`).
 - Se debe evitar el uso de `useEffect` para cargar datos iniciales.
 - No se debe abusar de `onSnapshot` (suscripción en tiempo real) a menos que sea estrictamente necesario para la funcionalidad (ej. seguimiento de vuelos en tiempo real). Para datos estáticos o de lectura única, preferir peticiones normales (`getDoc` / `getDocs`) dentro de `useQuery`.
+
+## 4. Manejo de Errores y Consultas Firebase (Índices)
+- En todas las consultas de lectura o escritura de Firebase (como `getDoc`, `getDocs`, `setDoc`, `updateDoc`, `deleteDoc`) que no sean suscripciones reactivas (`onSnapshot`), se debe implementar obligatoriamente un bloque `try-catch`.
+- Esto asegura la captura de errores específicos de Firebase, especialmente aquellos que indican la necesidad de crear un índice compuesto (que proveen el enlace directo para su generación automática en la consola de Firebase).
