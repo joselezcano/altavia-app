@@ -22,22 +22,11 @@ export default function AssignFlightPilotsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { reservationId, aircraftModel, aircraftRegistration, origin, destination } =
-    useLocalSearchParams<{
-      reservationId?: string;
-      aircraftModel?: string;
-      aircraftRegistration?: string;
-      origin?: string;
-      destination?: string;
-    }>();
+  const { reservationId } = useLocalSearchParams<{
+    reservationId?: string;
+  }>();
 
   const targetReservationId = Array.isArray(reservationId) ? reservationId[0] : reservationId;
-  const modelStr = Array.isArray(aircraftModel) ? aircraftModel[0] : aircraftModel;
-  const registrationStr = Array.isArray(aircraftRegistration)
-    ? aircraftRegistration[0]
-    : aircraftRegistration;
-  const originStr = Array.isArray(origin) ? origin[0] : origin;
-  const destinationStr = Array.isArray(destination) ? destination[0] : destination;
 
   const { data: pilots = [], isLoading: isLoadingPilots } = useOwnerPilots(user?.uid);
   const { data: reservations = [], isLoading: isLoadingReservations } = useOwnerReservations(user?.uid);
@@ -165,10 +154,9 @@ export default function AssignFlightPilotsScreen() {
   };
 
   const isLoading = isLoadingPilots || isLoadingReservations;
-  const displayModel = modelStr || reservation?.aircraftSpecs?.basic_specs?.model || "Aeronave";
-  const displayRegistration = registrationStr || reservation?.aircraftSpecs?.basic_specs?.registration || "";
-  const displayOrigin = originStr || reservation?.originAirport?.iata_code || reservation?.originAirport?.name || reservation?.trip.origin_airport_ident || "";
-  const displayDestination = destinationStr || reservation?.destinationAirport?.iata_code || reservation?.destinationAirport?.name || reservation?.trip.destination_airport_ident || "";
+  const displayModel = reservation?.aircraftSpecs?.basic_specs?.model || "";
+  const displayRegistration = reservation?.aircraftSpecs?.basic_specs?.registration || "";
+  const bothAirportsHaveIATACodes = reservation?.originAirport?.iata_code && reservation?.destinationAirport?.iata_code;
 
   return (
     <ThemedView className="flex-1 px-4 pt-2">
@@ -209,23 +197,49 @@ export default function AssignFlightPilotsScreen() {
           ) : null}
         </View>
 
-        {displayOrigin && displayDestination ? (
+        {bothAirportsHaveIATACodes ? (
           <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-white/10">
-            <ThemedText className="text-xs font-bold text-slate-200">
-              {displayOrigin}
+            <ThemedText className="text-sm font-bold text-slate-200">
+              {reservation?.originAirport?.iata_code}
             </ThemedText>
             <MaterialCommunityIcons name="airplane" size={14} color="#C5A059" />
-            <ThemedText className="text-xs font-bold text-slate-200">
-              {displayDestination}
+            <ThemedText className="text-sm font-bold text-slate-200">
+              {reservation?.destinationAirport?.iata_code}
             </ThemedText>
             <View className="flex-1" />
             <View className="bg-white/15 px-2 py-0.5 rounded-md">
-              <ThemedText className="text-[10px] font-bold text-white">
+              <ThemedText className="text-sm font-bold text-white">
                 {assignedPilotIds.length} tripulante(s)
               </ThemedText>
             </View>
           </View>
-        ) : null}
+        ) : (
+          <View className="flex-row items-center justify-between gap-3 mt-3 pt-3 border-t border-white/10">
+            <View className="flex-col items-start gap-2">
+              {/* Origin Airport */}
+              <View className="flex-row items-center gap-2">
+                <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#C5A059" />
+                <ThemedText className="text-xs font-bold text-slate-200" numberOfLines={1}>
+                  {reservation?.originAirport?.name}
+                </ThemedText>
+              </View>
+
+              {/* Destination Airport */}
+              <View className="flex-row items-center gap-2">
+                <MaterialCommunityIcons name="airplane-landing" size={14} color="#C5A059" />
+                <ThemedText className="text-xs font-bold text-slate-200" numberOfLines={1}>
+                  {reservation?.destinationAirport?.name}
+                </ThemedText>
+              </View>
+            </View>
+            <View className="flex-row items-center gap-2 bg-white/15 p-2 rounded-md">
+              <MaterialCommunityIcons name="account-tie-hat" size={16} color="#FFFFFF" />
+              <ThemedText className="text-xs font-bold text-white">
+                {assignedPilotIds.length}
+              </ThemedText>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Pilots List */}

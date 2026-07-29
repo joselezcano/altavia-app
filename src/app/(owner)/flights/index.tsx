@@ -284,10 +284,6 @@ export default function OwnerFlightsScreen() {
                         pathname: "/flights/assign-pilots",
                         params: {
                           reservationId: item.id,
-                          aircraftModel: model,
-                          aircraftRegistration: registration,
-                          origin: item.originAirport?.iata_code || item.originAirport?.name || item.trip.origin_airport_ident,
-                          destination: item.destinationAirport?.iata_code || item.destinationAirport?.name || item.trip.destination_airport_ident,
                         },
                       })
                     }

@@ -255,7 +255,7 @@ export default function PilotsScreen() {
         </View>
 
         <View className="flex-row items-center justify-between border-t border-slate-100 pt-3 mt-1 flex-wrap gap-2">
-          <View className="flex-row items-center gap-4 flex-wrap">
+          <View className="flex-row items-center gap-4 flex-wrap mb-1">
             {/* Toggle de Encargado */}
             <TouchableOpacity
               onPress={() => toggleEncargado(item)}
@@ -284,10 +284,10 @@ export default function PilotsScreen() {
                 setSelectedPilot(item);
                 setModalVisible(true);
               }}
-              className="flex-row items-center bg-brand-blue px-3 py-1.5 rounded-lg"
+              className="flex-row items-center bg-brand-blue px-3 py-2 rounded-lg"
             >
               <Ionicons name="airplane-outline" size={14} color="white" style={{ marginRight: 4 }} />
-              <ThemedText className="text-white text-xs font-bold">
+              <ThemedText className="text-white text-sm font-bold">
                 Aviones a su cargo ({item.managed_aircrafts?.length || 0})
               </ThemedText>
             </TouchableOpacity>}
