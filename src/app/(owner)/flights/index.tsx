@@ -4,6 +4,7 @@ import { UserModal } from "@/components/UserModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerAircrafts } from "@/hooks/useOwnerAircrafts";
 import { useOwnerReservations } from "@/hooks/useOwnerReservations";
+import { getStatusBadge } from "@/utils/flight-status";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -55,73 +56,6 @@ export default function OwnerFlightsScreen() {
         : flight.internal_status === selectedStatus);
     return matchesAircraft && matchesStatus;
   });
-
-  const getStatusBadge = (internalStatus: string) => {
-    if (internalStatus === "canceled") {
-      return {
-        label: "Cancelado",
-        bg: "bg-rose-100",
-        border: "border-rose-200",
-        text: "text-rose-800",
-        icon: "close-circle",
-        iconColor: "#9f1239",
-      };
-    } else if (internalStatus === "pending") {
-      return {
-        label: "Pendiente",
-        bg: "bg-amber-100",
-        border: "border-amber-200",
-        text: "text-amber-800",
-        icon: "time-outline",
-        iconColor: "#92400e",
-      };
-    } else if (internalStatus === "completed") {
-      return {
-        label: "Completado",
-        bg: "bg-slate-100",
-        border: "border-slate-200",
-        text: "text-slate-700",
-        icon: "checkmark-done-circle",
-        iconColor: "#334155",
-      };
-    } else if (internalStatus === "in_flight") {
-      return {
-        label: "En Vuelo",
-        bg: "bg-sky-100",
-        border: "border-sky-200",
-        text: "text-sky-800",
-        icon: "airplane",
-        iconColor: "#075985",
-      };
-    } else if (internalStatus === "delayed") {
-      return {
-        label: "Demorado",
-        bg: "bg-orange-100",
-        border: "border-orange-200",
-        text: "text-orange-800",
-        icon: "alert-circle-outline",
-        iconColor: "#9a3412",
-      };
-    } else if (internalStatus === "no_show") {
-      return {
-        label: "No Presentado",
-        bg: "bg-purple-100",
-        border: "border-purple-200",
-        text: "text-purple-800",
-        icon: "person-remove-outline",
-        iconColor: "#6b21a8",
-      };
-    } else {
-      return {
-        label: "Confirmado",
-        bg: "bg-emerald-100",
-        border: "border-emerald-200",
-        text: "text-emerald-800",
-        icon: "checkmark-circle",
-        iconColor: "#059669",
-      };
-    }
-  };
 
   const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
 
@@ -436,43 +370,7 @@ export default function OwnerFlightsScreen() {
                     activeOpacity={0.8}
                   >
                     <Ionicons name="information-circle-outline" size={16} color="#FFFFFF" />
-                    <ThemedText className="text-xs font-bold text-white">Detalles</ThemedText>
-                    <Ionicons name="chevron-forward" size={14} color="#FFFFFF" />
-                  </TouchableOpacity>
-
-                  {/* Tripulación Button */}
-                  <TouchableOpacity
-                    onPress={() =>
-                      router.push({
-                        pathname: "/flights/assign-pilots",
-                        params: {
-                          reservationId: item.id,
-                        },
-                      })
-                    }
-                    className="mt-3 shadow-sm bg-brand-blue py-3 px-4 rounded-xl flex-row items-center justify-center gap-1.5"
-                    activeOpacity={0.8}
-                  >
-                    <MaterialCommunityIcons name="account-tie-hat" size={16} color="#FFFFFF" />
-                    <ThemedText className="text-xs font-bold text-white">
-                      Tripulación{item.pilot_ids && item.pilot_ids.length > 0 ? ` (${item.pilot_ids.length})` : ""}
-                    </ThemedText>
-                    <Ionicons name="chevron-forward" size={14} color="#FFFFFF" />
-                  </TouchableOpacity>
-
-                  {/* Tracking de Vuelo Button */}
-                  <TouchableOpacity
-                    onPress={() =>
-                      router.push({
-                        pathname: "/flights/flight-tracker",
-                        params: { fa_flight_id: item.fa_flight_id ?? "" },
-                      })
-                    }
-                    className="mt-3 shadow-sm bg-brand-blue py-3 px-4 rounded-xl flex-row items-center justify-center gap-1.5"
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="location-outline" size={16} color="#FFFFFF" />
-                    <ThemedText className="text-xs font-bold text-white">Tracking de Vuelo</ThemedText>
+                    <ThemedText className="text-xs font-bold text-white">Más Información</ThemedText>
                     <Ionicons name="chevron-forward" size={14} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>

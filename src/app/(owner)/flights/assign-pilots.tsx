@@ -17,8 +17,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 export default function AssignFlightPilotsScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -159,7 +162,7 @@ export default function AssignFlightPilotsScreen() {
   const bothAirportsHaveIATACodes = reservation?.originAirport?.iata_code && reservation?.destinationAirport?.iata_code;
 
   return (
-    <ThemedView className="flex-1 px-4 pt-2">
+    <ThemedView className="flex-1 px-4 pt-2" style={{ paddingTop: insets.top }}>
       {/* Header */}
       <View className="flex-row items-center justify-between mb-4 mt-2">
         <TouchableOpacity

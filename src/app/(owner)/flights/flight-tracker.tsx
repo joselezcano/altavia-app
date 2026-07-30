@@ -8,7 +8,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { cssInterop } from "nativewind";
 import { useState } from "react";
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+
 
 cssInterop(Image, { className: "style" });
 
@@ -113,7 +115,9 @@ function getFlightStatusBadge(status: string) {
     }
 }
 
+
 export default function FlightTrackerScreen() {
+    const insets = useSafeAreaInsets();
     const router = useRouter();
     const { fa_flight_id } = useLocalSearchParams<{
         fa_flight_id?: string;
@@ -168,11 +172,11 @@ export default function FlightTrackerScreen() {
     const statusBadge = getFlightStatusBadge(flightStatus);
 
     return (
-        <ThemedView className="flex-1 bg-brand-light px-4 pt-2">
+        <ThemedView className="flex-1 bg-brand-light px-4 pt-2" style={{ paddingTop: insets.top }}>
             {/* Top Header */}
             <View className="flex-row items-center justify-between mb-4 mt-2">
                 <TouchableOpacity
-                    onPress={() => router.push("/(owner)/flights")}
+                    onPress={() => router.back()}
                     className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
                     activeOpacity={0.8}
                 >
@@ -212,7 +216,7 @@ export default function FlightTrackerScreen() {
                             Tracking de vuelo no disponible en este momento.
                         </ThemedText>
                         <TouchableOpacity
-                            onPress={() => router.push("/(owner)/flights")}
+                            onPress={() => router.back()}
                             className="bg-brand-blue px-5 py-3 rounded-xl flex-row items-center gap-2 shadow-md"
                             activeOpacity={0.8}
                         >

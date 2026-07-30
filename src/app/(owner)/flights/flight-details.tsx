@@ -1,21 +1,35 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerReservations } from "@/hooks/useOwnerReservations";
+import { getStatusBadge, INTERNAL_STATUS_DEFINITIONS } from "@/utils/flight-status";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo } from "react";
+import { doc, updateDoc } from "firebase/firestore";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
+  Modal,
   ScrollView,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 export default function FlightDetailsScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
   const { reservationId } = useLocalSearchParams<{ reservationId: string }>();
+
+  const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const {
     data: reservations = [],
@@ -27,23 +41,33 @@ export default function FlightDetailsScreen() {
     return reservations.find((r) => r.id === reservationId) || null;
   }, [reservationId, reservations]);
 
-  const getStatusBadge = (internalStatus: string) => {
-    if (internalStatus === "canceled") {
-      return {
-        label: "Cancelado",
-        bg: "bg-rose-100",
-        border: "border-rose-200",
-        text: "text-rose-800",
-        icon: "close-circle",
-      };
-    } else {
-      return {
-        label: "Confirmado",
-        bg: "bg-emerald-100",
-        border: "border-emerald-200",
-        text: "text-emerald-800",
-        icon: "checkmark-circle",
-      };
+  const openStatusModal = () => {
+    if (reservation) {
+      setSelectedStatus(reservation.internal_status);
+      setIsStatusModalVisible(true);
+    }
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!reservation || !selectedStatus) return;
+
+    setIsUpdatingStatus(true);
+    try {
+      const reservationRef = doc(db, "aircraft-reservation", reservation.id);
+      await updateDoc(reservationRef, {
+        internal_status: selectedStatus,
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["owner-reservations", user?.uid],
+      });
+
+      setIsStatusModalVisible(false);
+    } catch (error) {
+      console.error("Error al actualizar el estado del vuelo:", error);
+      Alert.alert("Error", "No se pudo actualizar el estado del vuelo. Intente nuevamente.");
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -57,11 +81,17 @@ export default function FlightDetailsScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 bg-brand-light px-4 pt-2">
+    <ThemedView className="flex-1 bg-brand-light px-4 pt-2" style={{ paddingTop: insets.top }}>
       {/* Header */}
       <View className="flex-row items-center justify-between mb-4 mt-2">
         <TouchableOpacity
-          onPress={() => router.push("/(owner)/flights")}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(owner)/flights");
+            }
+          }}
           className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
           activeOpacity={0.8}
         >
@@ -77,6 +107,59 @@ export default function FlightDetailsScreen() {
         </View>
         <View className="w-10" />
       </View>
+
+      {/* Tool Bar Row */}
+      {reservation && (
+        <View className="flex-row items-center gap-2 mb-4">
+          {/* Tripulación Button */}
+          <TouchableOpacity
+            onPress={() =>
+              router.push({
+                pathname: "/flights/assign-pilots",
+                params: {
+                  reservationId: reservation.id,
+                },
+              })
+            }
+            className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons name="account-tie-hat" size={20} color="#FFFFFF" />
+            <ThemedText className="text-[9.5px] font-bold text-white text-center" numberOfLines={1}>
+              Tripulación{reservation.pilot_ids && reservation.pilot_ids.length > 0 ? ` (${reservation.pilot_ids.length})` : ""}
+            </ThemedText>
+          </TouchableOpacity>
+
+          {/* Plan de Vuelo Button (Dummy) */}
+          <TouchableOpacity
+            onPress={() => { }}
+            className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
+            activeOpacity={0.8}
+          >
+            <Ionicons name="document-text-outline" size={20} color="#FFFFFF" />
+            <ThemedText className="text-[9.5px] font-bold text-white text-center" numberOfLines={1}>
+              Plan de Vuelo
+            </ThemedText>
+          </TouchableOpacity>
+
+          {/* Tracking de Vuelo Button */}
+          <TouchableOpacity
+            onPress={() =>
+              router.push({
+                pathname: "/flights/flight-tracker",
+                params: { fa_flight_id: reservation.fa_flight_id ?? "" },
+              })
+            }
+            className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
+            activeOpacity={0.8}
+          >
+            <Ionicons name="location-outline" size={20} color="#FFFFFF" />
+            <ThemedText className="text-[9.5px] font-bold text-white text-center" numberOfLines={1}>
+              Tracking
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {isLoading ? (
@@ -98,7 +181,13 @@ export default function FlightDetailsScreen() {
               No fue posible recuperar los detalles de la reservación seleccionada.
             </ThemedText>
             <TouchableOpacity
-              onPress={() => router.push("/(owner)/flights")}
+              onPress={() => {
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace("/(owner)/flights");
+                }
+              }}
               className="bg-brand-blue px-5 py-3 rounded-xl flex-row items-center gap-2 shadow-md"
               activeOpacity={0.8}
             >
@@ -143,11 +232,25 @@ export default function FlightDetailsScreen() {
                     </View>
                   </View>
 
-                  <View className={`${status.bg} border ${status.border} px-2.5 py-1 rounded-full flex-row items-center gap-1`}>
-                    <Ionicons name={status.icon as any} size={12} className={status.text} color={status.text.includes("emerald") ? "#059669" : status.text.includes("amber") ? "#92400e" : status.text.includes("rose") ? "#9f1239" : "#1e40af"} />
-                    <ThemedText className={`text-xs font-bold ${status.text}`}>
-                      {status.label}
-                    </ThemedText>
+                  {/* Status Indicator & Separate Edit Button Below */}
+                  <View className="items-end gap-3">
+                    <View className={`${status.bg} border ${status.border} px-2.5 py-1 rounded-full flex-row items-center gap-1`}>
+                      <Ionicons name={status.icon as any} size={12} color={status.iconColor} />
+                      <ThemedText className={`text-xs font-bold ${status.text}`}>
+                        {status.label}
+                      </ThemedText>
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={openStatusModal}
+                      className="bg-brand-blue/10 border border-brand-blue/20 px-2.5 py-1 rounded-lg flex-row items-center gap-1"
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="pencil" size={11} color="#0f1e3d" />
+                      <ThemedText className="text-xs font-bold text-brand-blue">
+                        Cambiar estado
+                      </ThemedText>
+                    </TouchableOpacity>
                   </View>
                 </View>
 
@@ -370,6 +473,104 @@ export default function FlightDetailsScreen() {
           );
         })()}
       </ScrollView>
+
+      {/* Change Status Modal */}
+      <Modal
+        visible={isStatusModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsStatusModalVisible(false)}
+      >
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white rounded-t-3xl p-6 max-h-[85%] border-t border-slate-200">
+            {/* Modal Header */}
+            <View className="flex-row items-center justify-between mb-4 border-b border-slate-100 pb-3">
+              <View>
+                <ThemedText type="caption" className="uppercase font-bold text-brand-gold tracking-widest text-[10px]">
+                  Gestión de Operación
+                </ThemedText>
+                <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg">
+                  Cambiar Estado del Vuelo
+                </ThemedText>
+              </View>
+              <TouchableOpacity
+                onPress={() => setIsStatusModalVisible(false)}
+                className="p-1.5 rounded-full bg-slate-100"
+              >
+                <Ionicons name="close" size={20} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Options List */}
+            <ScrollView showsVerticalScrollIndicator={false} className="mb-4">
+              <View className="gap-3 py-1">
+                {INTERNAL_STATUS_DEFINITIONS.map((def) => {
+                  const badge = getStatusBadge(def.id);
+                  const isSelected = selectedStatus === def.id;
+
+                  return (
+                    <TouchableOpacity
+                      key={def.id}
+                      onPress={() => setSelectedStatus(def.id)}
+                      activeOpacity={0.8}
+                      className={`p-4 rounded-2xl border ${isSelected
+                        ? "border-brand-blue bg-blue-50/50"
+                        : "border-slate-200 bg-white"
+                        }`}
+                    >
+                      <View className="flex-row items-center justify-between mb-1.5">
+                        <View className={`${badge.bg} border ${badge.border} px-2.5 py-1 rounded-full flex-row items-center gap-1.5`}>
+                          <Ionicons name={badge.icon as any} size={12} color={badge.iconColor} />
+                          <ThemedText className={`text-xs font-bold ${badge.text}`}>
+                            {def.label}
+                          </ThemedText>
+                        </View>
+                        <View
+                          className={`w-5 h-5 rounded-full border items-center justify-center ${isSelected
+                            ? "border-brand-blue bg-brand-blue"
+                            : "border-slate-300 bg-white"
+                            }`}
+                        >
+                          {isSelected && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+                        </View>
+                      </View>
+
+                      <ThemedText className="text-xs text-slate-500 font-medium leading-5 mt-1">
+                        {def.hint}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+
+            {/* Modal Actions */}
+            <View className="flex-row items-center gap-3 pt-2">
+              <TouchableOpacity
+                onPress={() => setIsStatusModalVisible(false)}
+                className="flex-1 py-3.5 rounded-xl border border-slate-300 items-center justify-center bg-white"
+                activeOpacity={0.8}
+                disabled={isUpdatingStatus}
+              >
+                <ThemedText className="text-xs font-bold text-slate-700">Cancelar</ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleUpdateStatus}
+                className="flex-1 py-3.5 rounded-xl bg-brand-blue items-center justify-center shadow-sm flex-row gap-2"
+                activeOpacity={0.8}
+                disabled={isUpdatingStatus}
+              >
+                {isUpdatingStatus ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <ThemedText className="text-xs font-bold text-white">Guardar Estado</ThemedText>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ThemedView>
   );
 }
