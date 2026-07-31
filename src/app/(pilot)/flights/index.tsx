@@ -90,7 +90,7 @@ export default function FlightPlanScreen() {
 
   const handleViewDetails = (leg: PilotFlightLeg) => {
     router.push({
-      pathname: "/flight-details",
+      pathname: "/flights/flight-details",
       params: {
         reservationId: leg.reservationId,
         legType: leg.legType,

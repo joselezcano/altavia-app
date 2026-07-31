@@ -185,7 +185,7 @@ export default function PilotFlightDetailsScreen() {
     if (!reservation && !params.reservationId) return;
 
     router.push({
-      pathname: "/create-flight-plan",
+      pathname: "/flights/create-flight-plan",
       params: {
         reservationId: params.reservationId || reservation?.id,
         legType: params.legType || "outbound",
@@ -232,7 +232,7 @@ export default function PilotFlightDetailsScreen() {
             if (router.canGoBack()) {
               router.back();
             } else {
-              router.replace("/(pilot)");
+              router.replace("/(pilot)/flights");
             }
           }}
           className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
@@ -294,7 +294,7 @@ export default function PilotFlightDetailsScreen() {
           <TouchableOpacity
             onPress={() =>
               router.push({
-                pathname: "/flight-tracker",
+                pathname: "/flights/flight-tracker",
                 params: { fa_flight_id: reservation.fa_flight_id ?? "" },
               })
             }
@@ -333,7 +333,7 @@ export default function PilotFlightDetailsScreen() {
                 if (router.canGoBack()) {
                   router.back();
                 } else {
-                  router.replace("/(pilot)");
+                  router.replace("/(pilot)/flights");
                 }
               }}
               className="bg-brand-blue px-5 py-3 rounded-xl flex-row items-center gap-2 shadow-md"

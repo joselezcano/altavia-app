@@ -30,7 +30,7 @@ export default function PilotLayout() {
                 }}
             >
                 <Tabs.Screen
-                    name="index"
+                    name="flights"
                     options={{
                         title: "Mis Vuelos",
                         tabBarIcon: ({ color, size }) => (
@@ -56,20 +56,6 @@ export default function PilotLayout() {
                         tabBarIcon: ({ color, size }) => (
                             <Ionicons name="airplane" size={size} color={color} />
                         ),
-                    }}
-                />
-                <Tabs.Screen
-                    name="create-flight-plan"
-                    options={{
-                        href: null,
-                        tabBarStyle: { display: "none" },
-                    }}
-                />
-                <Tabs.Screen
-                    name="flight-details"
-                    options={{
-                        href: null,
-                        tabBarStyle: { display: "none" },
                     }}
                 />
             </Tabs>
