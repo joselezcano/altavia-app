@@ -88,9 +88,9 @@ export default function FlightPlanScreen() {
     setRefreshing(false);
   };
 
-  const handleCreatePlan = (leg: PilotFlightLeg) => {
+  const handleViewDetails = (leg: PilotFlightLeg) => {
     router.push({
-      pathname: "/create-flight-plan",
+      pathname: "/flight-details",
       params: {
         reservationId: leg.reservationId,
         legType: leg.legType,
@@ -104,7 +104,7 @@ export default function FlightPlanScreen() {
   };
 
   const formatDate = (date: Date) => {
-    if (!date || isNaN(date.getTime())) return "S/F";
+    if (!date || isNaN(date.getTime())) return "Sin confirmar";
     const dateStr = date.toLocaleDateString("es-ES", {
       day: "2-digit",
       month: "short",
@@ -114,14 +114,13 @@ export default function FlightPlanScreen() {
       hour: "2-digit",
       minute: "2-digit",
     });
-    return `${dateStr} - ${timeStr}`;
+    return `${dateStr} - ${timeStr} hs`;
   };
 
-  const getAirportLabel = (ident: string, airportObj?: any) => {
-    if (!ident) return "Desconocido";
-    const name = airportObj?.name || airportObj?.municipality || ident;
-    const iata = airportObj?.iata_code ? ` (${airportObj.iata_code})` : ` (${ident})`;
-    return `${name}${iata}`;
+  const getAirportLabel = (airportObj?: any) => {
+    const name = airportObj?.municipality || airportObj?.name || "";
+    const code = airportObj?.icao_code ? ` (${airportObj.icao_code})` : (airportObj?.iata_code ? ` (${airportObj.iata_code})` : "");
+    return `${name}${code}`;
   };
 
   return (
@@ -152,7 +151,7 @@ export default function FlightPlanScreen() {
       >
         <View className="mb-4 flex-row justify-between items-center">
           <ThemedText type="subtitle" className="text-lg">
-            Próximos Vuelos Asignados
+            Próximos Vuelos
           </ThemedText>
         </View>
 
@@ -164,23 +163,24 @@ export default function FlightPlanScreen() {
             </ThemedText>
           </View>
         ) : flightLegs.length === 0 ? (
-          <View className="bg-brand-white border border-slate-100 rounded-2xl p-8 items-center justify-center my-6 shadow-sm">
+          <View className="bg-brand-white rounded-2xl p-8 border border-slate-100 items-center justify-center my-6">
             <Ionicons name="airplane-outline" size={48} color="#94A3B8" />
             <ThemedText className="font-bold text-lg text-brand-blue mt-3">
               Sin Vuelos Asignados
             </ThemedText>
             <ThemedText className="text-slate-500 text-center text-sm mt-1">
-              No tienes vuelos o reservas asignadas actualmente.
+              No tienes vuelos asignados actualmente.
             </ThemedText>
           </View>
         ) : (
+          // Next flight card
           <View className="space-y-4 mb-8">
             {flightLegs.map((leg) => {
-              const originLabel = getAirportLabel(leg.originIdent, leg.originAirport);
-              const destLabel = getAirportLabel(leg.destinationIdent, leg.destinationAirport);
+              const originLabel = getAirportLabel(leg.originAirport);
+              const destLabel = getAirportLabel(leg.destinationAirport);
               const routeTitle = `${originLabel} ➔ ${destLabel}`;
-              const aircraftReg = leg.aircraftSpecs?.basic_specs?.registration || "Matrícula S/I";
-              const aircraftModel = leg.aircraftSpecs?.basic_specs?.model || leg.aircraftSpecs?.basic_specs?.type || "";
+              const aircraftReg = leg.aircraftSpecs?.basic_specs?.registration || "Matrícula";
+              const aircraftModel = leg.aircraftSpecs?.basic_specs?.model || "Avión";
               const legBadge = leg.legType === "outbound" ? "Vuelo de Ida" : "Vuelo de Vuelta";
 
               return (
@@ -189,17 +189,17 @@ export default function FlightPlanScreen() {
                   className="bg-brand-blue rounded-2xl p-5 mb-4 shadow-md relative overflow-hidden"
                 >
                   {/* Fondo decorativo sutil */}
-                  <View className="absolute right-[-20px] bottom-[-20px] opacity-10">
+                  <View className="absolute right-[-20px] bottom-[-15px] opacity-10">
                     <Ionicons name="airplane" size={150} color="#FFFFFF" />
                   </View>
 
                   <View className="flex-row justify-between items-center mb-1">
-                    <ThemedText className="text-brand-gold uppercase font-semibold text-xs tracking-wider">
+                    <ThemedText className="text-slate-300 uppercase font-semibold text-xs tracking-wider">
                       {legBadge}
                     </ThemedText>
                     {aircraftModel ? (
                       <ThemedText className="text-slate-300 text-xs font-medium">
-                        {aircraftReg} ({aircraftModel})
+                        {aircraftModel} ({aircraftReg})
                       </ThemedText>
                     ) : (
                       <ThemedText className="text-slate-300 text-xs font-medium">
@@ -221,12 +221,12 @@ export default function FlightPlanScreen() {
                     </View>
 
                     <TouchableOpacity
-                      onPress={() => handleCreatePlan(leg)}
+                      onPress={() => handleViewDetails(leg)}
                       className="bg-brand-gold px-4 py-2.5 rounded-xl flex-row items-center gap-1 shadow-sm"
                     >
-                      <Ionicons name="add" size={18} color="#FFFFFF" />
+                      <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
                       <ThemedText className="text-white font-semibold text-sm">
-                        Crear Plan
+                        Ver más
                       </ThemedText>
                     </TouchableOpacity>
                   </View>

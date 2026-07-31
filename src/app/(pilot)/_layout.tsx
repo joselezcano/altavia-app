@@ -65,6 +65,13 @@ export default function PilotLayout() {
                         tabBarStyle: { display: "none" },
                     }}
                 />
+                <Tabs.Screen
+                    name="flight-details"
+                    options={{
+                        href: null,
+                        tabBarStyle: { display: "none" },
+                    }}
+                />
             </Tabs>
         </ThemedView>
     );
