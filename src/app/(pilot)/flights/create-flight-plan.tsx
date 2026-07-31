@@ -51,6 +51,8 @@ export default function CreateFlightPlanScreen() {
     legType?: string;
     originIdent?: string;
     destinationIdent?: string;
+    originIcaoCode?: string;
+    destinationIcaoCode?: string;
     departureTime?: string;
     aircraftId?: string;
     paxCount?: string;
@@ -75,12 +77,12 @@ export default function CreateFlightPlanScreen() {
         flight_type: "N",
       },
       departure: {
-        icao: params.originIdent || "",
+        icao: params.originIcaoCode || "",
         datetime_utc: params.departureTime || (new Date().toISOString().split('.')[0] + 'Z'),
         off_block_time: "", // ejemplo: "0000",
       },
       arrival: {
-        icao: params.destinationIdent || "",
+        icao: params.destinationIcaoCode || "",
         datetime_utc: "",
         alternate_icao: "",
       },
@@ -116,6 +118,10 @@ export default function CreateFlightPlanScreen() {
       },
     },
     aircraft_reservation_id: params.reservationId || undefined,
+    airports: {
+      origin_ident: params.originIdent || "",
+      destination_ident: params.destinationIdent || "",
+    },
   };
 
   const {
@@ -194,8 +200,8 @@ export default function CreateFlightPlanScreen() {
         }
       }
 
-      const depIdent = params.originIdent || "";
-      const arrIdent = params.destinationIdent || "";
+      const depIdent = params.originIcaoCode || "";
+      const arrIdent = params.destinationIcaoCode || "";
       const depDateUtc = params.departureTime?.split('.')[0] + 'Z' || "";
       const depDateObj = new Date(depDateUtc);
       const offBlockTime = !isNaN(depDateObj.getTime())
@@ -269,6 +275,10 @@ export default function CreateFlightPlanScreen() {
           },
         },
         aircraft_reservation_id: params.reservationId || undefined,
+        airports: {
+          origin_ident: params.originIdent || "",
+          destination_ident: params.destinationIdent || "",
+        },
       };
 
       if (isMounted) {
@@ -285,7 +295,7 @@ export default function CreateFlightPlanScreen() {
     return () => {
       isMounted = false;
     };
-  }, [params.flightPlanId, params.reservationId, params.aircraftId, params.originIdent, params.destinationIdent, params.departureTime, params.paxCount]);
+  }, [params.flightPlanId, params.reservationId, params.aircraftId, params.originIcaoCode, params.destinationIcaoCode, params.departureTime, params.paxCount]);
 
   const onSubmit = async (data: FlightPlan) => {
     if (!user) {
@@ -299,7 +309,7 @@ export default function CreateFlightPlanScreen() {
         const docRef = doc(db, "flight-plans", params.flightPlanId);
         await updateDoc(docRef, {
           ...data,
-          aircraft_reservation_id: params.reservationId || data.aircraft_reservation_id || null,
+          pilot_id: user.uid,
           updated_at: serverTimestamp(),
           status: "Updated",
         });
@@ -325,10 +335,9 @@ export default function CreateFlightPlanScreen() {
       } else {
         const docRef = await addDoc(collection(db, "flight-plans"), {
           ...data,
-          aircraft_reservation_id: params.reservationId || data.aircraft_reservation_id || null,
-          pilotId: user.uid,
+          pilot_id: user.uid,
           updated_at: serverTimestamp(),
-          createdAt: serverTimestamp(),
+          created_at: serverTimestamp(),
           status: "New",
         });
 
@@ -344,7 +353,11 @@ export default function CreateFlightPlanScreen() {
           text2: `ID: ${docRef.id.slice(0, 8)}...`,
         });
 
-        router.push("/(pilot)/plans");
+        if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.push("/(pilot)/plans");
+        }
       }
     } catch (error: any) {
       console.error("Error saving flight plan:", error);

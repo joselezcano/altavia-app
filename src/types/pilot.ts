@@ -94,7 +94,14 @@ export const flightPlanSchema = z.object({
         }),
     }),
     aircraft_reservation_id: z.string().optional(),
+    airports: z.object({
+        origin_ident: z.string(),
+        destination_ident: z.string(),
+    }).optional(),
+    pilot_id: z.string().optional(),
+    status: z.enum(["New", "Updated", "Approved"]).optional(),
     updated_at: dateSchema.optional(),
+    created_at: dateSchema.optional(),
 });
 
 import type { Airport, ClientReservationItem } from './all-roles';
@@ -105,9 +112,6 @@ export type FlightPlan = z.infer<typeof flightPlanSchema>;
 
 export interface FlightPlanDoc extends FlightPlan {
     id: string;
-    pilot_id: string;
-    status: "New" | "Updated" | "Approved";
-    created_at: z.infer<typeof dateSchema>;
 }
 
 
@@ -117,6 +121,8 @@ export interface PilotFlightLeg {
     legType: 'outbound' | 'return';
     originIdent: string;
     destinationIdent: string;
+    originIcaoCode: string;
+    destinationIcaoCode: string;
     departureTime: Date;
     arrivalTime?: Date | null;
     aircraftId: string;

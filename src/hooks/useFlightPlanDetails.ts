@@ -20,8 +20,9 @@ export function useFlightPlanDetails(flightPlanId: string | undefined) {
           id: docSnap.id,
           flight_plan: data.flight_plan,
           aircraft_reservation_id: data.aircraft_reservation_id,
-          pilot_id: data.pilotId || data.pilot_id,
-          status: data.status || "Pending",
+          airports: data.airports,
+          pilot_id: data.pilot_id,
+          status: data.status,
           updated_at: data.updated_at?.toDate ? data.updated_at.toDate() : data.updated_at || new Date(),
           created_at: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt || new Date(),
         };

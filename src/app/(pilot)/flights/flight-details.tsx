@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFlightPlanByReservation } from "@/hooks/useFlightPlanByReservation";
 import { usePilotReservations } from "@/hooks/usePilotReservations";
 import { useReservationPilots } from "@/hooks/useReservationPilots";
+import { ClientReservationItem } from "@/types/all-roles";
 import { getStatusBadge } from "@/utils/flight-status";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -151,6 +152,11 @@ const BadgesList = ({
   );
 };
 
+const getAirportLabel = (airportIdent: string, reservation: ClientReservationItem) => {
+  return reservation.originAirport?.ident === airportIdent ? reservation.originAirport?.name : reservation.destinationAirport?.name;
+};
+
+
 export default function PilotFlightDetailsScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -161,6 +167,8 @@ export default function PilotFlightDetailsScreen() {
     legType?: string;
     originIdent?: string;
     destinationIdent?: string;
+    originIcaoCode?: string;
+    destinationIcaoCode?: string;
     departureTime?: string;
     aircraftId?: string;
     paxCount?: string;
@@ -180,7 +188,11 @@ export default function PilotFlightDetailsScreen() {
   const { data: assignedPilots = [], isLoading: isLoadingPilots } = useReservationPilots(reservation?.pilot_ids);
 
   const targetReservationId = params.reservationId || reservation?.id;
-  const { data: existingFlightPlan } = useFlightPlanByReservation(targetReservationId);
+  const { data: existingFlightPlan } = useFlightPlanByReservation(
+    targetReservationId,
+    params.originIdent,
+    params.destinationIdent
+  );
 
   const formatFlightTime = (hours: number) => {
     if (!hours || isNaN(hours) || hours <= 0) return "N/A";
@@ -209,16 +221,10 @@ export default function PilotFlightDetailsScreen() {
         params: {
           reservationId: targetReservationId,
           legType: params.legType || "outbound",
-          originIdent:
-            params.originIdent ||
-            reservation?.originAirport?.icao_code ||
-            reservation?.trip?.origin_airport_ident ||
-            "",
-          destinationIdent:
-            params.destinationIdent ||
-            reservation?.destinationAirport?.icao_code ||
-            reservation?.trip?.destination_airport_ident ||
-            "",
+          originIdent: params.originIdent || "",
+          destinationIdent: params.destinationIdent || "",
+          originIcaoCode: params.originIcaoCode || "",
+          destinationIcaoCode: params.destinationIcaoCode || "",
           departureTime:
             params.departureTime ||
             reservation?.schedule?.outbound_flight_departure_time?.toISOString() ||
@@ -373,6 +379,8 @@ export default function PilotFlightDetailsScreen() {
           const cruiseSpeed = reservation.aircraftSpecs?.operating_specs?.cruise_speed_knots || reservation.cruise_speed_knots;
           const serviceCeiling = reservation.aircraftSpecs?.operating_specs?.service_ceiling_feet;
           const paxCapacity = reservation.aircraftSpecs?.basic_specs?.pax_count;
+          const originAirportLabel = params.originIdent ? getAirportLabel(params.originIdent, reservation) : "";
+          const destinationAirportLabel = params.destinationIdent ? getAirportLabel(params.destinationIdent, reservation) : "";
 
           // Flight duration computation
           const outboundMs = reservation.schedule.outbound_flight_arrival_time.getTime() - reservation.schedule.outbound_flight_departure_time.getTime();
@@ -423,7 +431,7 @@ export default function PilotFlightDetailsScreen() {
                           Origen
                         </ThemedText>
                         <ThemedText className="text-sm font-medium text-brand-blue" numberOfLines={2}>
-                          {reservation.originAirport?.name || reservation.trip.origin_airport_ident}
+                          {originAirportLabel}
                         </ThemedText>
                       </View>
                     </View>
@@ -432,12 +440,8 @@ export default function PilotFlightDetailsScreen() {
                     <View className="flex-row items-center gap-2 pl-0.5 my-0.5">
                       <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
                       <View className="flex-row items-center gap-1.5 ml-3">
-                        <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#C5A059" />
-                        {reservation.schedule.roundtrip && (
-                          <ThemedText className="text-xs font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                            Ida y Vuelta
-                          </ThemedText>
-                        )}
+                        <MaterialCommunityIcons name={reservation.originAirport?.ident === params.originIdent ? "airplane-takeoff" : "airplane-landing"} size={14} color="#C5A059" />
+                        <ThemedText className="text-xs font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">{reservation.originAirport?.ident === params.originIdent ? "Ida" : "Vuelta"}</ThemedText>
                       </View>
                     </View>
 
@@ -449,7 +453,7 @@ export default function PilotFlightDetailsScreen() {
                           Destino
                         </ThemedText>
                         <ThemedText className="text-sm font-medium text-brand-blue" numberOfLines={2}>
-                          {reservation.destinationAirport?.name || reservation.trip.destination_airport_ident}
+                          {destinationAirportLabel}
                         </ThemedText>
                       </View>
                     </View>
@@ -550,7 +554,6 @@ export default function PilotFlightDetailsScreen() {
                     {assignedPilots.map((pilot, index) => {
                       const firstName = pilot.basic?.id_first_name || pilot.user?.firstName || "";
                       const lastName = pilot.basic?.id_last_name || pilot.user?.lastName || "";
-                      const name = `${firstName} ${lastName}`.trim() || "Piloto";
                       const licenceType = pilot.aeronautical?.licence_type || "Sin tipo de licencia";
 
                       return (

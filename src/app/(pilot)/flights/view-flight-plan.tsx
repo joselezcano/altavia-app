@@ -68,11 +68,19 @@ export default function ViewFlightPlanScreen() {
     flightPlanId?: string;
     reservationId?: string;
     aircraftModel?: string;
+    origin?: string;
+    destination?: string;
+    originIcaoCode?: string;
+    destinationIcaoCode?: string;
+    originIdent?: string;
+    destinationIdent?: string;
   }>();
 
   const { data: planById, isLoading: isLoadingById } = useFlightPlanDetails(params.flightPlanId);
   const { data: planByRes, isLoading: isLoadingByRes } = useFlightPlanByReservation(
-    params.flightPlanId ? undefined : params.reservationId
+    params.flightPlanId ? undefined : params.reservationId,
+    params.originIdent,
+    params.destinationIdent
   );
 
   const plan = planById || planByRes;
@@ -272,7 +280,7 @@ export default function ViewFlightPlanScreen() {
                 {em?.dinghies_capacity?.carried && (
                   <>
                     <DetailRow label="Cantidad de Balsas" value={String(em.dinghies_capacity.number || 0)} />
-                    <DetailRow label="Capacidad Total Balsas" value={`${em.dinghies_capacity.total_capacity || 0} personas`} />
+                    <DetailRow label="Capacidad Total de Balsas" value={`${em.dinghies_capacity.total_capacity || 0} personas`} />
                     <DetailRow label="Cubierta de Protección" value={em.dinghies_capacity.covered ? "Sí" : "No"} />
                     <DetailRow label="Color de Balsas" value={em.dinghies_capacity.color || "-"} />
                   </>

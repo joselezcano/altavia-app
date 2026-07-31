@@ -12,7 +12,7 @@ export function usePilotFlightPlans(pilotId: string | undefined) {
       try {
         const q = query(
           collection(db, "flight-plans"),
-          where("pilotId", "==", pilotId)
+          where("pilot_id", "==", pilotId)
         );
 
         const snapshot = await getDocs(q);
@@ -24,8 +24,9 @@ export function usePilotFlightPlans(pilotId: string | undefined) {
             id: docSnap.id,
             flight_plan: data.flight_plan,
             aircraft_reservation_id: data.aircraft_reservation_id,
-            pilot_id: data.pilotId,
-            status: data.status || "Pending",
+            airports: data.airports,
+            pilot_id: data.pilot_id,
+            status: data.status,
             updated_at: data.updated_at?.toDate ? data.updated_at.toDate() : data.updated_at || new Date(),
             created_at: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt || new Date(),
           });
