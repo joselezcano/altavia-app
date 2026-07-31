@@ -2,6 +2,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAircraftDetails } from "@/hooks/useAircraftDetails";
 import { useAuth } from "@/hooks/useAuth";
+import { useFlightPlanByReservation } from "@/hooks/useFlightPlanByReservation";
 import { usePilotReservations } from "@/hooks/usePilotReservations";
 import { useReservationPilots } from "@/hooks/useReservationPilots";
 import { getStatusBadge } from "@/utils/flight-status";
@@ -113,10 +114,16 @@ const BadgesList = ({
   map,
 }: {
   label: string;
-  items: string[] | undefined;
+  items: string[] | string | undefined | null;
   map: Record<string, string>;
 }) => {
-  const hasItems = items && items.length > 0;
+  const list = Array.isArray(items)
+    ? items
+    : typeof items === "string" && items.trim() !== ""
+      ? items.split(/[\s,]+/).filter(Boolean)
+      : [];
+
+  const hasItems = list.length > 0;
   return (
     <View className="py-2.5 border-b border-slate-100">
       <ThemedText type="caption" className="text-slate-500 font-medium mb-1.5">
@@ -124,9 +131,9 @@ const BadgesList = ({
       </ThemedText>
       {hasItems ? (
         <View className="flex-row flex-wrap gap-1.5 mt-0.5">
-          {items.map((item) => (
+          {list.map((item, idx) => (
             <View
-              key={item}
+              key={`${item}-${idx}`}
               className="bg-slate-100 border border-slate-200/65 px-2.5 py-1 rounded-md"
             >
               <ThemedText className="text-xs font-semibold text-slate-700">
@@ -172,6 +179,9 @@ export default function PilotFlightDetailsScreen() {
   const { data: aircraft, isLoading: isLoadingAircraft } = useAircraftDetails(targetAircraftId);
   const { data: assignedPilots = [], isLoading: isLoadingPilots } = useReservationPilots(reservation?.pilot_ids);
 
+  const targetReservationId = params.reservationId || reservation?.id;
+  const { data: existingFlightPlan } = useFlightPlanByReservation(targetReservationId);
+
   const formatFlightTime = (hours: number) => {
     if (!hours || isNaN(hours) || hours <= 0) return "N/A";
     const h = Math.floor(hours);
@@ -184,29 +194,40 @@ export default function PilotFlightDetailsScreen() {
   const handleCreateFlightPlan = () => {
     if (!reservation && !params.reservationId) return;
 
-    router.push({
-      pathname: "/flights/create-flight-plan",
-      params: {
-        reservationId: params.reservationId || reservation?.id,
-        legType: params.legType || "outbound",
-        originIdent:
-          params.originIdent ||
-          reservation?.originAirport?.icao_code ||
-          reservation?.trip?.origin_airport_ident ||
-          "",
-        destinationIdent:
-          params.destinationIdent ||
-          reservation?.destinationAirport?.icao_code ||
-          reservation?.trip?.destination_airport_ident ||
-          "",
-        departureTime:
-          params.departureTime ||
-          reservation?.schedule?.outbound_flight_departure_time?.toISOString() ||
-          new Date().toISOString(),
-        aircraftId: targetAircraftId || "",
-        paxCount: params.paxCount || String(reservation?.capacity?.passangers || 1),
-      },
-    });
+    if (existingFlightPlan) {
+      router.push({
+        pathname: "/flights/view-flight-plan",
+        params: {
+          flightPlanId: existingFlightPlan.id,
+          reservationId: targetReservationId,
+          aircraftModel: aircraft?.basic_specs.model,
+        },
+      });
+    } else {
+      router.push({
+        pathname: "/flights/create-flight-plan",
+        params: {
+          reservationId: targetReservationId,
+          legType: params.legType || "outbound",
+          originIdent:
+            params.originIdent ||
+            reservation?.originAirport?.icao_code ||
+            reservation?.trip?.origin_airport_ident ||
+            "",
+          destinationIdent:
+            params.destinationIdent ||
+            reservation?.destinationAirport?.icao_code ||
+            reservation?.trip?.destination_airport_ident ||
+            "",
+          departureTime:
+            params.departureTime ||
+            reservation?.schedule?.outbound_flight_departure_time?.toISOString() ||
+            new Date().toISOString(),
+          aircraftId: targetAircraftId || "",
+          paxCount: params.paxCount || String(reservation?.capacity?.passangers || 1),
+        },
+      });
+    }
   };
 
   const formatValue = (val: string | number | undefined | null) => {

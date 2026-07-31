@@ -106,7 +106,7 @@ export type FlightPlan = z.infer<typeof flightPlanSchema>;
 export interface FlightPlanDoc extends FlightPlan {
     id: string;
     pilot_id: string;
-    status: "New" | "Approved";
+    status: "New" | "Updated" | "Approved";
     created_at: z.infer<typeof dateSchema>;
 }
 

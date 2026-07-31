@@ -7,6 +7,7 @@ export default function FlightsLayout() {
             <Stack.Screen name="flight-details" />
             <Stack.Screen name="flight-tracker" />
             <Stack.Screen name="create-flight-plan" />
+            <Stack.Screen name="view-flight-plan" />
         </Stack>
     );
 }

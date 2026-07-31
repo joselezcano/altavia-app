@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { addDoc, collection, doc, getDoc, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -25,11 +25,28 @@ import {
 import Toast from "react-native-toast-message";
 
 
+const formatArrayValue = (val: any, separator: string = ", "): string => {
+  if (Array.isArray(val)) {
+    return val.join(separator);
+  }
+  if (typeof val === "string") {
+    return val;
+  }
+  return "";
+};
+
+const normalizeArray = (val: any): string[] => {
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string" && val.trim() !== "") return val.split(/[\s,]+/).filter(Boolean);
+  return [];
+};
+
 export default function CreateFlightPlanScreen() {
   const { user, userData, profileData } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
   const params = useLocalSearchParams<{
+    flightPlanId?: string;
     reservationId?: string;
     legType?: string;
     originIdent?: string;
@@ -118,6 +135,44 @@ export default function CreateFlightPlanScreen() {
 
   useEffect(() => {
     let isMounted = true;
+
+    async function populateFromExistingPlan() {
+      if (!params.flightPlanId) return;
+      try {
+        const docRef = doc(db, "flight-plans", params.flightPlanId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists() && isMounted) {
+          const data = docSnap.data();
+          if (data.flight_plan) {
+            const fp = data.flight_plan;
+            reset({
+              flight_plan: {
+                ...fp,
+                aircraft: {
+                  ...fp.aircraft,
+                  equipment: normalizeArray(fp.aircraft?.equipment),
+                },
+                route: {
+                  ...fp.route,
+                  waypoints: normalizeArray(fp.route?.waypoints),
+                  encoded_route: normalizeArray(fp.route?.encoded_route),
+                },
+                emergency: {
+                  ...fp.emergency,
+                  radio_equipment: normalizeArray(fp.emergency?.radio_equipment),
+                  survival_equipment: normalizeArray(fp.emergency?.survival_equipment),
+                  life_jacket_equipment: normalizeArray(fp.emergency?.life_jacket_equipment),
+                },
+              },
+              aircraft_reservation_id: data.aircraft_reservation_id || params.reservationId || undefined,
+            });
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Error fetching existing flight plan for edit:", e);
+      }
+    }
 
     async function populateFromParams() {
       const pilotName =
@@ -221,12 +276,16 @@ export default function CreateFlightPlanScreen() {
       }
     }
 
-    populateFromParams();
+    if (params.flightPlanId) {
+      populateFromExistingPlan();
+    } else {
+      populateFromParams();
+    }
 
     return () => {
       isMounted = false;
     };
-  }, [params.reservationId, params.aircraftId, params.originIdent, params.destinationIdent, params.departureTime, params.paxCount]);
+  }, [params.flightPlanId, params.reservationId, params.aircraftId, params.originIdent, params.destinationIdent, params.departureTime, params.paxCount]);
 
   const onSubmit = async (data: FlightPlan) => {
     if (!user) {
@@ -236,26 +295,59 @@ export default function CreateFlightPlanScreen() {
 
     setIsSubmitting(true);
     try {
-      const docRef = await addDoc(collection(db, "flight-plans"), {
-        ...data,
-        aircraft_reservation_id: params.reservationId || data.aircraft_reservation_id || null,
-        pilotId: user.uid,
-        updated_at: serverTimestamp(),
-        createdAt: serverTimestamp(),
-        status: "New",
-      });
+      if (params.flightPlanId) {
+        const docRef = doc(db, "flight-plans", params.flightPlanId);
+        await updateDoc(docRef, {
+          ...data,
+          aircraft_reservation_id: params.reservationId || data.aircraft_reservation_id || null,
+          updated_at: serverTimestamp(),
+          status: "Updated",
+        });
 
-      await queryClient.invalidateQueries({ queryKey: ["pilot-flight-plans", user.uid] });
+        await queryClient.invalidateQueries({ queryKey: ["pilot-flight-plans", user.uid] });
+        await queryClient.invalidateQueries({ queryKey: ["flight-plan-details", params.flightPlanId] });
+        const resId = params.reservationId || data.aircraft_reservation_id;
+        if (resId) {
+          await queryClient.invalidateQueries({ queryKey: ["flight-plan-reservation", resId] });
+        }
 
-      Toast.show({
-        type: "success",
-        text1: "Plan de Vuelo Creado",
-        text2: `ID: ${docRef.id.slice(0, 8)}...`,
-      });
+        Toast.show({
+          type: "success",
+          text1: "Plan de Vuelo Actualizado",
+          text2: `ID: ${params.flightPlanId.slice(0, 8)}...`,
+        });
 
-      router.push("/(pilot)/plans");
+        if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.push("/(pilot)/plans");
+        }
+      } else {
+        const docRef = await addDoc(collection(db, "flight-plans"), {
+          ...data,
+          aircraft_reservation_id: params.reservationId || data.aircraft_reservation_id || null,
+          pilotId: user.uid,
+          updated_at: serverTimestamp(),
+          createdAt: serverTimestamp(),
+          status: "New",
+        });
+
+        await queryClient.invalidateQueries({ queryKey: ["pilot-flight-plans", user.uid] });
+        const resId = params.reservationId || data.aircraft_reservation_id;
+        if (resId) {
+          await queryClient.invalidateQueries({ queryKey: ["flight-plan-reservation", resId] });
+        }
+
+        Toast.show({
+          type: "success",
+          text1: "Plan de Vuelo Creado",
+          text2: `ID: ${docRef.id.slice(0, 8)}...`,
+        });
+
+        router.push("/(pilot)/plans");
+      }
     } catch (error: any) {
-      console.error("Error creating flight plan:", error);
+      console.error("Error saving flight plan:", error);
       Alert.alert("Error", error.message || "No se pudo guardar el plan de vuelo.");
     } finally {
       setIsSubmitting(false);
@@ -331,7 +423,7 @@ export default function CreateFlightPlanScreen() {
             </ThemedText>
           </TouchableOpacity>
           <ThemedText className="font-bold text-brand-blue text-lg">
-            Nuevo Plan de Vuelo
+            {params.flightPlanId ? "Editar Plan de Vuelo" : "Nuevo Plan de Vuelo"}
           </ThemedText>
           <View style={{ width: 60 }} />
         </View>
@@ -467,7 +559,7 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.aircraft.equipment"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value.length > 0 ? value.join(", ") : ""}
+                      value={formatArrayValue(value, ", ")}
                       onChangeText={(val) => {
                         // Map val into letters
                         const letters = val.split("").map((letter) => letter.toUpperCase());
@@ -837,7 +929,7 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.route.waypoints"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value.length > 0 ? value.join(" ") : ""}
+                      value={formatArrayValue(value, " ")}
                       onChangeText={(val) => {
                         const waypoints = val.toLocaleUpperCase().replace(".", "").split(/\s+/).filter(Boolean);
                         if (val.endsWith(" ")) {
@@ -870,7 +962,7 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.route.encoded_route"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value.length > 0 ? value.join(" ") : ""}
+                      value={formatArrayValue(value, " ")}
                       onChangeText={(val) => {
                         const waypoints = val.toLocaleUpperCase().replace(".", "").split(/\s+/).filter(Boolean);
                         if (val.endsWith(" ")) {
@@ -1044,7 +1136,7 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.emergency.radio_equipment"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value.length > 0 ? value.join(", ") : ""}
+                      value={formatArrayValue(value, ", ")}
                       onChangeText={(val) => {
                         // Map val into letters
                         const letters = val.split("").map((letter) => letter.toUpperCase());
@@ -1076,7 +1168,7 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.emergency.survival_equipment"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value.length > 0 ? value.join(", ") : ""}
+                      value={formatArrayValue(value, ", ")}
                       onChangeText={(val) => {
                         // Map val into letters
                         const letters = val.split("").map((letter) => letter.toUpperCase());
@@ -1108,7 +1200,7 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.emergency.life_jacket_equipment"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value.length > 0 ? value.join(", ") : ""}
+                      value={formatArrayValue(value, ", ")}
                       onChangeText={(val) => {
                         // Map val into letters
                         const letters = val.split("").map((letter) => letter.toUpperCase());
@@ -1373,7 +1465,7 @@ export default function CreateFlightPlanScreen() {
                   <>
                     <Ionicons name="cloud-upload" size={20} color="#FFFFFF" />
                     <ThemedText className="text-white font-bold">
-                      Enviar Plan
+                      {params.flightPlanId ? "Guardar Cambios" : "Enviar Plan"}
                     </ThemedText>
                   </>
                 )}
