@@ -74,6 +74,12 @@ export const WakeTurbulenceCategorySchema = z.enum(['L', 'M', 'H', 'J']);
 
 export const EquipmentSchema = z.enum(['D', 'F', 'G', 'I', 'O', 'P', 'R', 'S', 'T', 'U', 'X', 'Z']);
 
+export type Equipment = z.infer<typeof EquipmentSchema>;
+
+export const EquipmentArraySchema = z.array(EquipmentSchema).nonempty(`Valores permitidos: ${EquipmentSchema.options.join(', ')}.`);
+
+export type EquipmentArray = z.infer<typeof EquipmentArraySchema>;
+
 
 /*
  * Transponder
@@ -91,7 +97,13 @@ export const EquipmentSchema = z.enum(['D', 'F', 'G', 'I', 'O', 'P', 'R', 'S', '
 // P: Mode S with pressure altitude, no ACID.
 // X: Mode S with neither ACID nor pressure altitude.
 
-export const TransponderSchema = z.enum(['A', 'C', 'S', 'E', 'H', 'L', 'I', 'P', 'X']);
+const transponderAllowableValues = ['A', 'C', 'S', 'E', 'H', 'L', 'I', 'P', 'X'];
+
+export const TransponderSchema = z.enum(transponderAllowableValues, {
+    message: `Valores permitidos: ${transponderAllowableValues.join(', ')}.`
+});
+
+export type Transponder = z.infer<typeof TransponderSchema>;
 
 
 /*
@@ -141,9 +153,13 @@ export const RadioEquipmentArraySchema = z.array(RadioEquipmentEnum);
 // V (VHF): Operational radio capability on the international civilian distress frequency (121.5 MHz).
 // E (ELT): Presence of a serviceable Emergency Locator Transmitter (or Emergency Location Beacon).
 
-export const EmergencyRadioEnum = z.enum(['U', 'V', 'E']);
+export const EmergencyRadioSchema = z.enum(['U', 'V', 'E']);
 
-export const EmergencyRadioArraySchema = z.array(EmergencyRadioEnum);
+export type EmergencyRadio = z.infer<typeof EmergencyRadioSchema>;
+
+export const EmergencyRadioArraySchema = z.array(EmergencyRadioSchema).nonempty(`Valores permitidos: ${EmergencyRadioSchema.options.join(', ')}.`);
+
+export type EmergencyRadioArray = z.infer<typeof EmergencyRadioArraySchema>;
 
 
 /*
@@ -155,9 +171,13 @@ export const EmergencyRadioArraySchema = z.array(EmergencyRadioEnum);
 // M (Maritime): Specialized oceanic or open-water survival supplies.
 // J (Jungle): Survival equipment dedicated to tropical or dense wilderness areas.
 
-export const SurvivalEquipmentEnum = z.enum(['P', 'D', 'M', 'J']);
+export const SurvivalEquipmentSchema = z.enum(['P', 'D', 'M', 'J']);
 
-export const SurvivalEquipmentArraySchema = z.array(SurvivalEquipmentEnum);
+export type SurvivalEquipment = z.infer<typeof SurvivalEquipmentSchema>;
+
+export const SurvivalEquipmentArraySchema = z.array(SurvivalEquipmentSchema).nonempty(`Valores permitidos: ${SurvivalEquipmentSchema.options.join(', ')}.`);
+
+export type SurvivalEquipmentArray = z.infer<typeof SurvivalEquipmentArraySchema>;
 
 
 /*
@@ -169,9 +189,13 @@ export const SurvivalEquipmentArraySchema = z.array(SurvivalEquipmentEnum);
 // U (UHF radio): Jackets have emergency UHF radio beacons.
 // V (VHF radio): Jackets have emergency VHF radio transmitters.
 
-export const LifeJacketEnum = z.enum(['L', 'F', 'U', 'V']);
+export const LifeJacketSchema = z.enum(['L', 'F', 'U', 'V']);
 
-export const LifeJacketArraySchema = z.array(LifeJacketEnum);
+export type LifeJacket = z.infer<typeof LifeJacketSchema>;
+
+export const LifeJacketArraySchema = z.array(LifeJacketSchema).nonempty(`Valores permitidos: ${LifeJacketSchema.options.join(', ')}.`);
+
+export type LifeJacketArray = z.infer<typeof LifeJacketArraySchema>;
 
 
 /*
@@ -185,11 +209,11 @@ export const LifeJacketArraySchema = z.array(LifeJacketEnum);
 
 export const DinghiesCapacitySchema = z.object({
     carried: z.boolean(),
-    number: z.number().int().nonnegative().optional(),
-    total_capacity: z.number().int().nonnegative().optional(),
-    covered: z.boolean().optional(),
-    color: z.string().toUpperCase().optional(),
-}).refine((data) => !data.carried || (data.number !== undefined && data.total_capacity !== undefined), {
+    number: z.number().int().nonnegative("Debe ser mayor a cero si lleva balsas"),
+    total_capacity: z.number().int().nonnegative("Debe ser mayor a cero si lleva balsas"),
+    covered: z.boolean(),
+    color: z.string().toUpperCase(),
+}).refine((data) => !data.carried || (data.carried && data.number > 0 && data.total_capacity > 0), {
     message: "El número y la capacidad total son obligatorios si se llevan balsas",
     path: ["number"]
 });
@@ -215,7 +239,7 @@ export const AircraftSpecsSchema = z.object({
     // Especificaciones técnicas
     technical_specs: z.object({
         // Tipo de equipo de radio comunicación
-        equipment: z.array(EquipmentSchema),
+        equipment: EquipmentArraySchema,
 
         // Tipo de transponder
         transponder: TransponderSchema,

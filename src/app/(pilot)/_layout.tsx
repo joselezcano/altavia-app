@@ -32,12 +32,22 @@ export default function PilotLayout() {
                 <Tabs.Screen
                     name="index"
                     options={{
-                        title: "Flight Plan",
+                        title: "Mis Vuelos",
                         tabBarIcon: ({ color, size }) => (
                             <Ionicons name="paper-plane" size={size} color={color} />
                         ),
                     }}
                 />
+                <Tabs.Screen
+                    name="plans"
+                    options={{
+                        title: "Mis Planes",
+                        tabBarIcon: ({ color, size }) => (
+                            <Ionicons name="document-text" size={size} color={color} />
+                        ),
+                    }}
+                />
+
                 <Tabs.Screen
                     name="manage-fleet"
                     options={{

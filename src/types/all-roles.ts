@@ -72,7 +72,7 @@ export const AircraftReservationSchema = z.object({
         return_flight_arrival_time: z.date().nullable(),
     }),
     capacity: z.object({
-        passangers: z.number().positive().int(),
+        passangers: z.number().positive().int(), // Requested seats by the client
     }),
     event_ids: z.array(z.string()),
     client_status: z.enum([

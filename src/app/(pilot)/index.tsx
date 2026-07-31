@@ -1,183 +1,139 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import {
-  ScrollView,
-  TouchableOpacity,
-  View
-} from "react-native";
-
-import UserAvatar from "@/components/user-avatar";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import UserAvatar from "@/components/user-avatar";
 import { useAuth } from "@/hooks/useAuth";
-
-interface FlightPlanSample {
-  id: string;
-  route: string;
-  depIcao: string;
-  arrIcao: string;
-  aircraft: string;
-  date: string;
-  time: string;
-  status: "Approved" | "Pending" | "Completed" | "Draft";
-}
-
-
-// const fp = {
-//   "flight_plan": {
-//     "aircraft": {
-//       "registration": "N12345",
-//       // "type": "C172",
-//       // "wake_turbulence": "L",
-//       // "equipment": ["S", "D", "G", "S"],
-//       "transponder": "C"
-//     },
-//     "flight_details": {
-//       // "callsign": "AAL123", Numero
-//       // "flight_rules": "IFR",
-//       // "flight_type": "S"
-//     },
-//     "departure": {
-//       // "icao": "KSEA",
-//       // "datetime_utc": "2026-07-15T15:00:00Z",
-//       "off_block_time": "1500"
-//     },
-//     "arrival": {
-//       // "icao": "KPDX",
-//       // "datetime_utc": "2026-07-15T16:00:00Z",
-//       // "alternate_icao": "KSLE"
-//     },
-//     "route": {
-//       // "cruising_speed_knots": 120,
-//       "cruising_altitude_feet": 8500,
-//       "waypoints": [
-//         "SEA",
-//         "HAROB",
-//         "BTG",
-//         "PDX"
-//       ],
-//       "encoded_route": "SEA.HAROB4.BTG.PDX"
-//     },
-//     // "performance": {
-//     //   "eet_hours": 1,
-//     //   "eet_minutes": 0,
-//     //   "fuel_hours": 3,
-//     //   "fuel_minutes": 30
-//     // },
-//     // "emergency": {
-//     //   "pax_count": 3,
-//       // "radio_equipment": ["U", "V"],
-//       // "survival_equipment": ["P"],
-//       // "life_jacket_equipment": ["J"],
-//       // "dinghies_capacity": "TBN"
-//     },
-//     "pilot": {
-//       // "name": "J. DOE",
-//       "contact_info": "+1-555-019-2834"
-//     }
-//   }
-// };
-
+import { usePilotReservations } from "@/hooks/usePilotReservations";
+import { PilotFlightLeg } from "@/types/pilot";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function FlightPlanScreen() {
   const { user, userData } = useAuth();
   const router = useRouter();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const {
+    data: reservations = [],
+    isLoading,
+    refetch,
+  } = usePilotReservations(user?.uid);
 
   // Fallback to email username if names are not loaded
   const displayName =
     userData?.firstName && userData?.lastName
       ? `${userData.firstName} ${userData.lastName}`
-      : user?.email?.split("@")[0] || "Propietario";
+      : user?.email?.split("@")[0] || "Piloto";
 
-  const userInitial = displayName.charAt(0).toUpperCase();
+  // Build separate flight leg objects for outbound and return legs
+  const flightLegs = useMemo(() => {
+    const legs: PilotFlightLeg[] = [];
 
-  // Mock list of flight plans for the Owner
-  const flightPlans: FlightPlanSample[] = [
-    {
-      id: "FP-2026-004",
-      route: "Asunción ➔ Punta del Este",
-      depIcao: "SGAS",
-      arrIcao: "SULS",
-      aircraft: "ZP-XYZ (King Air 250)",
-      date: "18 Jul, 2026",
-      time: "09:30 AM",
-      status: "Approved",
-    },
-    {
-      id: "FP-2026-005",
-      route: "Asunción ➔ São Paulo",
-      depIcao: "SGAS",
-      arrIcao: "SBGR",
-      aircraft: "ZP-XYZ (King Air 250)",
-      date: "22 Jul, 2026",
-      time: "14:00 PM",
-      status: "Pending",
-    },
-    {
-      id: "FP-2026-003",
-      route: "Montevideo ➔ Asunción",
-      depIcao: "SUMU",
-      arrIcao: "SGAS",
-      aircraft: "ZP-XYZ (King Air 250)",
-      date: "12 Jul, 2026",
-      time: "16:15 PM",
-      status: "Completed",
-    },
-  ];
+    reservations.forEach((res) => {
+      // Outbound leg
+      const outboundLeg: PilotFlightLeg = {
+        id: `${res.id}-outbound`,
+        reservationId: res.id,
+        legType: "outbound",
+        originIdent: res.originAirport?.icao_code || "",
+        destinationIdent: res.destinationAirport?.icao_code || "",
+        departureTime: res.schedule.outbound_flight_departure_time,
+        arrivalTime: res.schedule.outbound_flight_arrival_time,
+        aircraftId: res.aircraftId,
+        aircraftSpecs: res.aircraftSpecs,
+        originAirport: res.originAirport,
+        destinationAirport: res.destinationAirport,
+        paxCount: res.capacity?.passangers || res.aircraftSpecs?.basic_specs?.pax_count || 1,
+        reservationDoc: res,
+      };
+      legs.push(outboundLeg);
 
-  const getStatusStyle = (status: FlightPlanSample["status"]) => {
-    switch (status) {
-      case "Approved":
-        return {
-          bg: "bg-emerald-50 text-emerald-700 border-emerald-200",
-          dot: "bg-emerald-500",
+      // Return leg if roundtrip
+      if (res.schedule.roundtrip && res.schedule.return_flight_departure_time) {
+        const returnLeg: PilotFlightLeg = {
+          id: `${res.id}-return`,
+          reservationId: res.id,
+          legType: "return",
+          originIdent: res.destinationAirport?.icao_code || "",
+          destinationIdent: res.originAirport?.icao_code || "",
+          departureTime: res.schedule.return_flight_departure_time,
+          arrivalTime: res.schedule.return_flight_arrival_time,
+          aircraftId: res.aircraftId,
+          aircraftSpecs: res.aircraftSpecs,
+          originAirport: res.destinationAirport,
+          destinationAirport: res.originAirport,
+          paxCount: res.capacity?.passangers || res.aircraftSpecs?.basic_specs?.pax_count || 1,
+          reservationDoc: res,
         };
-      case "Pending":
-        return {
-          bg: "bg-amber-50 text-amber-700 border-amber-200",
-          dot: "bg-amber-500",
-        };
-      case "Completed":
-        return {
-          bg: "bg-slate-50 text-slate-700 border-slate-200",
-          dot: "bg-slate-500",
-        };
-      default:
-        return {
-          bg: "bg-blue-50 text-blue-700 border-blue-200",
-          dot: "bg-blue-500",
-        };
-    }
+        legs.push(returnLeg);
+      }
+    });
+
+    // Sort legs by departure time ascending (soonest first)
+    legs.sort((a, b) => a.departureTime.getTime() - b.departureTime.getTime());
+
+    return legs;
+  }, [reservations]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
   };
 
-  const translateStatus = (status: FlightPlanSample["status"]) => {
-    switch (status) {
-      case "Approved":
-        return "Aprobado";
-      case "Pending":
-        return "Pendiente";
-      case "Completed":
-        return "Completado";
-      default:
-        return "Borrador";
-    }
+  const handleCreatePlan = (leg: PilotFlightLeg) => {
+    router.push({
+      pathname: "/create-flight-plan",
+      params: {
+        reservationId: leg.reservationId,
+        legType: leg.legType,
+        originIdent: leg.originIdent,
+        destinationIdent: leg.destinationIdent,
+        departureTime: leg.departureTime.toISOString(),
+        aircraftId: leg.aircraftId,
+        paxCount: String(leg.paxCount),
+      },
+    });
   };
 
-  const handleCreateNew = () => {
-    router.push("/create-flight-plan");
+  const formatDate = (date: Date) => {
+    if (!date || isNaN(date.getTime())) return "S/F";
+    const dateStr = date.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    const timeStr = date.toLocaleTimeString("es-ES", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `${dateStr} - ${timeStr}`;
+  };
+
+  const getAirportLabel = (ident: string, airportObj?: any) => {
+    if (!ident) return "Desconocido";
+    const name = airportObj?.name || airportObj?.municipality || ident;
+    const iata = airportObj?.iata_code ? ` (${airportObj.iata_code})` : ` (${ident})`;
+    return `${name}${iata}`;
   };
 
   return (
     <ThemedView className="flex-1 px-4 pt-2">
       {/* Cabecera con Saludo y Avatar */}
-      <View className="flex-row justify-between items-center mb-6">
+      <View className="flex-row justify-between items-center mb-6 mt-2">
         <View>
           <ThemedText
             type="caption"
             className="uppercase font-bold text-brand-gold tracking-widest text-xs"
           >
-            Panel de Propietario
+            Panel de Piloto
           </ThemedText>
           <ThemedText type="title" className="text-2xl font-bold mt-0.5">
             Hola, {displayName.split(" ")[0]}
@@ -187,117 +143,99 @@ export default function FlightPlanScreen() {
         <UserAvatar size={44} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-        {/* Tarjeta de Resumen / Acción Rápida */}
-        <View className="bg-brand-blue rounded-2xl p-5 mb-6 shadow-md relative overflow-hidden">
-          {/* Fondo decorativo sutil */}
-          <View className="absolute right-[-20px] bottom-[-20px] opacity-10">
-            <Ionicons name="airplane" size={150} color="#FFFFFF" />
-          </View>
-
-          <ThemedText className="text-brand-gold uppercase font-semibold text-xs tracking-wider mb-1">
-            Próximo Vuelo Planificado
-          </ThemedText>
-          <ThemedText className="text-white font-bold text-lg mb-4">
-            {flightPlans[0].route}
-          </ThemedText>
-
-          <View className="flex-row justify-between items-center">
-            <View>
-              <ThemedText className="text-slate-300 text-xs">Fecha y Hora</ThemedText>
-              <ThemedText className="text-white text-sm font-semibold">
-                {flightPlans[0].date} - {flightPlans[0].time}
-              </ThemedText>
-            </View>
-
-            <TouchableOpacity
-              onPress={handleCreateNew}
-              className="bg-brand-gold px-4 py-2 rounded-xl flex-row items-center gap-1 shadow-sm"
-            >
-              <Ionicons name="add" size={18} color="#FFFFFF" />
-              <ThemedText className="text-white font-semibold text-sm">
-                Crear Plan
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Sección de Historial de Planes de Vuelo */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        className="flex-1"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View className="mb-4 flex-row justify-between items-center">
           <ThemedText type="subtitle" className="text-lg">
-            Planes de Vuelo
+            Próximos Vuelos Asignados
           </ThemedText>
-          <TouchableOpacity onPress={handleCreateNew}>
-            <ThemedText type="accent" className="text-xs">
-              Ver Todos
+        </View>
+
+        {isLoading ? (
+          <View className="py-12 items-center justify-center">
+            <ActivityIndicator size="large" color="#0f1e3d" />
+            <ThemedText className="text-slate-500 text-sm mt-3">
+              Cargando vuelos asignados...
             </ThemedText>
-          </TouchableOpacity>
-        </View>
+          </View>
+        ) : flightLegs.length === 0 ? (
+          <View className="bg-brand-white border border-slate-100 rounded-2xl p-8 items-center justify-center my-6 shadow-sm">
+            <Ionicons name="airplane-outline" size={48} color="#94A3B8" />
+            <ThemedText className="font-bold text-lg text-brand-blue mt-3">
+              Sin Vuelos Asignados
+            </ThemedText>
+            <ThemedText className="text-slate-500 text-center text-sm mt-1">
+              No tienes vuelos o reservas asignadas actualmente.
+            </ThemedText>
+          </View>
+        ) : (
+          <View className="space-y-4 mb-8">
+            {flightLegs.map((leg) => {
+              const originLabel = getAirportLabel(leg.originIdent, leg.originAirport);
+              const destLabel = getAirportLabel(leg.destinationIdent, leg.destinationAirport);
+              const routeTitle = `${originLabel} ➔ ${destLabel}`;
+              const aircraftReg = leg.aircraftSpecs?.basic_specs?.registration || "Matrícula S/I";
+              const aircraftModel = leg.aircraftSpecs?.basic_specs?.model || leg.aircraftSpecs?.basic_specs?.type || "";
+              const legBadge = leg.legType === "outbound" ? "Vuelo de Ida" : "Vuelo de Vuelta";
 
-        {/* Listado de Planes de Vuelo */}
-        <View className="space-y-4 mb-8">
-          {flightPlans.map((plan) => {
-            const statusStyle = getStatusStyle(plan.status);
-            return (
-              <View
-                key={plan.id}
-                className="bg-brand-white border border-slate-100 rounded-xl p-4 shadow-sm"
-              >
-                <View className="flex-row justify-between items-start mb-3">
-                  <View>
-                    <ThemedText className="font-bold text-base text-brand-blue">
-                      {plan.route}
-                    </ThemedText>
-                    <ThemedText type="caption" className="text-xs mt-0.5">
-                      {plan.aircraft}
-                    </ThemedText>
+              return (
+                <View
+                  key={leg.id}
+                  className="bg-brand-blue rounded-2xl p-5 mb-4 shadow-md relative overflow-hidden"
+                >
+                  {/* Fondo decorativo sutil */}
+                  <View className="absolute right-[-20px] bottom-[-20px] opacity-10">
+                    <Ionicons name="airplane" size={150} color="#FFFFFF" />
                   </View>
-                  <View
-                    className={`flex-row items-center gap-1.5 px-2.5 py-1 rounded-full border ${statusStyle.bg}`}
-                  >
-                    <View className={`w-2.5 h-2.5 rounded-full ${statusStyle.dot}`} />
-                    <ThemedText className="text-xs font-semibold">
-                      {translateStatus(plan.status)}
-                    </ThemedText>
-                  </View>
-                </View>
 
-                <View className="border-t border-slate-100 pt-3 flex-row justify-between items-center">
-                  <View className="flex-row items-center gap-4">
-                    <View>
-                      <ThemedText type="caption" className="text-[10px] uppercase font-semibold">
-                        Origen
+                  <View className="flex-row justify-between items-center mb-1">
+                    <ThemedText className="text-brand-gold uppercase font-semibold text-xs tracking-wider">
+                      {legBadge}
+                    </ThemedText>
+                    {aircraftModel ? (
+                      <ThemedText className="text-slate-300 text-xs font-medium">
+                        {aircraftReg} ({aircraftModel})
                       </ThemedText>
-                      <ThemedText className="text-xs font-bold text-slate-700">
-                        {plan.depIcao}
+                    ) : (
+                      <ThemedText className="text-slate-300 text-xs font-medium">
+                        {aircraftReg}
+                      </ThemedText>
+                    )}
+                  </View>
+
+                  <ThemedText className="text-white font-bold text-lg mb-4">
+                    {routeTitle}
+                  </ThemedText>
+
+                  <View className="flex-row justify-between items-center border-t border-white/10 pt-3">
+                    <View>
+                      <ThemedText className="text-slate-300 text-xs">Fecha y Hora</ThemedText>
+                      <ThemedText className="text-white text-sm font-semibold mt-0.5">
+                        {formatDate(leg.departureTime)}
                       </ThemedText>
                     </View>
-                    <Ionicons name="arrow-forward" size={14} color="#64748B" />
-                    <View>
-                      <ThemedText type="caption" className="text-[10px] uppercase font-semibold">
-                        Destino
-                      </ThemedText>
-                      <ThemedText className="text-xs font-bold text-slate-700">
-                        {plan.arrIcao}
-                      </ThemedText>
-                    </View>
-                  </View>
 
-                  <View className="items-end">
-                    <ThemedText type="caption" className="text-[10px] uppercase font-semibold">
-                      Salida
-                    </ThemedText>
-                    <ThemedText className="text-xs font-medium text-slate-700">
-                      {plan.date}
-                    </ThemedText>
+                    <TouchableOpacity
+                      onPress={() => handleCreatePlan(leg)}
+                      className="bg-brand-gold px-4 py-2.5 rounded-xl flex-row items-center gap-1 shadow-sm"
+                    >
+                      <Ionicons name="add" size={18} color="#FFFFFF" />
+                      <ThemedText className="text-white font-semibold text-sm">
+                        Crear Plan
+                      </ThemedText>
+                    </TouchableOpacity>
                   </View>
                 </View>
-              </View>
-            );
-          })}
-        </View>
+              );
+            })}
+          </View>
+        )}
       </ScrollView>
-
     </ThemedView>
   );
 }

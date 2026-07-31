@@ -2,12 +2,14 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
-import { FlightPlan, flightPlanSchema } from "@/types/pilot";
+import { AircraftSpecs, EmergencyRadioSchema, EquipmentSchema, FlightRulesSchema, LifeJacketSchema, SurvivalEquipmentSchema, WakeTurbulenceCategorySchema } from "@/types/owner";
+import { FlightPlan, flightPlanSchema, FlightTypesSchema } from "@/types/pilot";
 import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "expo-router";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { addDoc, collection, doc, getDoc, serverTimestamp } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -15,67 +17,88 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Switch,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
 
+
 export default function CreateFlightPlanScreen() {
-  const { user } = useAuth();
+  const { user, userData, profileData } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const params = useLocalSearchParams<{
+    reservationId?: string;
+    legType?: string;
+    originIdent?: string;
+    destinationIdent?: string;
+    departureTime?: string;
+    aircraftId?: string;
+    paxCount?: string;
+  }>();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Default values matching the Zod schema structure
+  // Default values matching the Zod schema structure with empty route/performance fields
   const defaultValues: FlightPlan = {
     flight_plan: {
       aircraft: {
-        registration: "ZP-XYZ",
-        type: "B350",
-        wake_turbulence: "M",
-        equipment: ["S", "D", "G", "S"],
-        transponder: "S",
+        registration: "",
+        type: "",
+        wake_turbulence: "L",
+        equipment: [],
+        transponder: "",
       },
       flight_details: {
-        callsign: "ZPXYZ",
+        callsign: "",
         flight_rules: "IFR",
-        flight_type: "G",
+        flight_type: "N",
       },
       departure: {
-        icao: "SGAS",
-        datetime_utc: new Date().toISOString(),
-        off_block_time: "1200",
+        icao: params.originIdent || "",
+        datetime_utc: params.departureTime || (new Date().toISOString().split('.')[0] + 'Z'),
+        off_block_time: "", // ejemplo: "0000",
       },
       arrival: {
-        icao: "SULS",
-        datetime_utc: new Date(Date.now() + 2 * 3600 * 1000).toISOString(),
-        alternate_icao: "SUMU",
+        icao: params.destinationIdent || "",
+        datetime_utc: "",
+        alternate_icao: "",
       },
       route: {
-        cruising_speed_knots: 250,
-        cruising_altitude_feet: 18000,
-        waypoints: ["ASU", "PTE"],
-        encoded_route: "SGAS ASU PTE SULS",
+        cruising_speed_knots: 0,
+        cruising_altitude_feet: 0,
+        waypoints: [], // ejemplo: ["SGOV", "SGVR"]
+        encoded_route: [], // ejemplo: ["SGAS", "SGOV", "SGVR", "SGES"],
       },
       performance: {
-        eet_hours: 2,
+        eet_hours: 0,
         eet_minutes: 0,
-        fuel_hours: 4,
-        fuel_minutes: 30,
+        fuel_hours: 0,
+        fuel_minutes: 0,
       },
       emergency: {
-        pax_count: 2,
-        radio_equipment: ["V", "U"],
-        survival_equipment: ["P"],
-        life_jacket_equipment: ["J"],
-        dinghies_capacity: "4",
+        pax_count: params.paxCount ? parseInt(params.paxCount, 10) : 1,
+        radio_equipment: [],
+        survival_equipment: [],
+        life_jacket_equipment: [],
+        dinghies_capacity: {
+          carried: false,
+          number: 0,
+          total_capacity: 0,
+          covered: false,
+          color: "",
+        },
       },
       pilot: {
-        name: "Juan Perez",
-        contact_info: "+595981123456",
+        name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || "",
+        contact_info: profileData?.basic.telephone || "",
+        observations: "",
       },
     },
+    aircraft_reservation_id: params.reservationId || undefined,
   };
 
   const {
@@ -83,11 +106,127 @@ export default function CreateFlightPlanScreen() {
     handleSubmit,
     formState: { errors },
     trigger,
+    reset,
+    watch
   } = useForm<FlightPlan>({
-    resolver: zodResolver(flightPlanSchema),
+    resolver: zodResolver(flightPlanSchema) as any,
     defaultValues,
     mode: "onChange",
   });
+
+  const dinghiesCarried = watch("flight_plan.emergency.dinghies_capacity.carried");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function populateFromParams() {
+      const pilotName =
+        `${profileData?.basic?.id_first_name || ''} ${profileData?.basic?.id_last_name || ''}`.trim() ||
+        `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() ||
+        "";
+      const pilotContact = profileData?.basic?.telephone || "";
+
+      let aircraftSpecs: AircraftSpecs | null = null;
+      if (params.aircraftId) {
+        try {
+          const specDocRef = doc(db, "AircraftSpecs", params.aircraftId);
+          const specSnap = await getDoc(specDocRef);
+          if (specSnap.exists()) {
+            aircraftSpecs = specSnap.data() as AircraftSpecs;
+          }
+        } catch (e) {
+          console.error("Error al obtener especificaciones de la aeronave para el plan de vuelo:", e);
+        }
+      }
+
+      const depIdent = params.originIdent || "";
+      const arrIdent = params.destinationIdent || "";
+      const depDateUtc = params.departureTime?.split('.')[0] + 'Z' || "";
+      const depDateObj = new Date(depDateUtc);
+      const offBlockTime = !isNaN(depDateObj.getTime())
+        ? String(depDateObj.getUTCHours()).padStart(2, "0") + String(depDateObj.getUTCMinutes()).padStart(2, "0")
+        : "";
+
+      const registration = aircraftSpecs?.basic_specs.registration || "";
+      const type = aircraftSpecs?.basic_specs.type || "";
+      const wake_turbulence = aircraftSpecs?.technical_specs.wake_turbulence_category ?? "L";
+      const equipment = aircraftSpecs?.technical_specs.equipment || [];
+      const transponder = aircraftSpecs?.technical_specs.transponder ?? "";
+      const flight_rules = aircraftSpecs?.technical_specs.flight_rules ?? "IFR";
+
+      const pax_count = params.paxCount
+        ? parseInt(params.paxCount, 10)
+        : aircraftSpecs?.basic_specs?.pax_count || 1; // Requested seats by the client
+
+      const populatedValues: FlightPlan = {
+        flight_plan: {
+          aircraft: {
+            registration,
+            type,
+            wake_turbulence,
+            equipment,
+            transponder,
+          },
+          flight_details: {
+            callsign: registration,
+            flight_rules,
+            flight_type: "N",
+          },
+          departure: {
+            icao: depIdent,
+            datetime_utc: depDateUtc,
+            off_block_time: offBlockTime,
+          },
+          arrival: {
+            icao: arrIdent,
+            datetime_utc: "",
+            alternate_icao: "",
+          },
+          route: {
+            cruising_speed_knots: 0,
+            cruising_altitude_feet: 0,
+            waypoints: [],
+            encoded_route: [],
+          },
+          performance: {
+            eet_hours: 0,
+            eet_minutes: 0,
+            fuel_hours: 0,
+            fuel_minutes: 0,
+          },
+          emergency: {
+            pax_count: isNaN(pax_count) ? 1 : pax_count,
+            radio_equipment: aircraftSpecs?.emergency.radio_equipment || [],
+            survival_equipment: aircraftSpecs?.emergency.survival_equipment || [],
+            life_jacket_equipment: aircraftSpecs?.emergency.life_jacket_equipment || [],
+            dinghies_capacity: aircraftSpecs?.emergency.dinghies_capacity || {
+              carried: false,
+              number: 0,
+              total_capacity: 0,
+              covered: false,
+              color: "",
+            },
+          },
+          pilot: {
+            name: pilotName,
+            contact_info: pilotContact,
+            observations: "",
+          },
+        },
+        aircraft_reservation_id: params.reservationId || undefined,
+      };
+
+      if (isMounted) {
+        reset(populatedValues);
+      }
+    }
+
+    populateFromParams();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [params.reservationId, params.aircraftId, params.originIdent, params.destinationIdent, params.departureTime, params.paxCount]);
 
   const onSubmit = async (data: FlightPlan) => {
     if (!user) {
@@ -97,13 +236,16 @@ export default function CreateFlightPlanScreen() {
 
     setIsSubmitting(true);
     try {
-      // Add additional metadata and save to Firestore
       const docRef = await addDoc(collection(db, "flight-plans"), {
         ...data,
+        aircraft_reservation_id: params.reservationId || data.aircraft_reservation_id || null,
         pilotId: user.uid,
+        updated_at: serverTimestamp(),
         createdAt: serverTimestamp(),
-        status: "Pending", // Set initial status
+        status: "New",
       });
+
+      await queryClient.invalidateQueries({ queryKey: ["pilot-flight-plans", user.uid] });
 
       Toast.show({
         type: "success",
@@ -111,7 +253,7 @@ export default function CreateFlightPlanScreen() {
         text2: `ID: ${docRef.id.slice(0, 8)}...`,
       });
 
-      router.back();
+      router.push("/(pilot)/plans");
     } catch (error: any) {
       console.error("Error creating flight plan:", error);
       Alert.alert("Error", error.message || "No se pudo guardar el plan de vuelo.");
@@ -119,6 +261,7 @@ export default function CreateFlightPlanScreen() {
       setIsSubmitting(false);
     }
   };
+
 
   // Helper to validate current step before proceeding
   const handleNext = async () => {
@@ -224,12 +367,12 @@ export default function CreateFlightPlanScreen() {
           {currentStep === 1 && (
             <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-2">
-                1. Aeronave y Detalles
+                1. Especificaciones de la Aeronave
               </ThemedText>
 
               {/* Matrícula */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">Matrícula (e.g. ZP-XYZ)</ThemedText>
+                <ThemedText type="caption" className="font-bold mb-1">Matrícula (ej. ZPXYZ)</ThemedText>
                 <Controller
                   control={control}
                   name="flight_plan.aircraft.registration"
@@ -237,8 +380,12 @@ export default function CreateFlightPlanScreen() {
                     <TextInput
                       value={value}
                       onChangeText={(val) => onChange(val.toUpperCase())}
-                      placeholder="ZP-XYZ"
+                      placeholder=""
                       maxLength={7}
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -252,7 +399,7 @@ export default function CreateFlightPlanScreen() {
 
               {/* Tipo de Aeronave */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">Tipo de Aeronave (OACI e.g. B350)</ThemedText>
+                <ThemedText type="caption" className="font-bold mb-1">Tipo de Aeronave [OACI] (ej. C172)</ThemedText>
                 <Controller
                   control={control}
                   name="flight_plan.aircraft.type"
@@ -260,8 +407,12 @@ export default function CreateFlightPlanScreen() {
                     <TextInput
                       value={value}
                       onChangeText={(val) => onChange(val.toUpperCase())}
-                      placeholder="B350"
+                      placeholder=""
                       maxLength={4}
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -281,7 +432,7 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.aircraft.wake_turbulence"
                   render={({ field: { onChange, value } }) => (
                     <View className="flex-row gap-2">
-                      {(["L", "M", "H", "J"] as const).map((level) => (
+                      {WakeTurbulenceCategorySchema.options.map((level) => (
                         <TouchableOpacity
                           key={level}
                           onPress={() => onChange(level)}
@@ -310,21 +461,25 @@ export default function CreateFlightPlanScreen() {
 
               {/* Equipamiento (Array) */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">Equipamiento (Separado por comas)</ThemedText>
+                <ThemedText type="caption" className="font-bold mb-1">Equipamiento (1 o más letras)</ThemedText>
                 <Controller
                   control={control}
                   name="flight_plan.aircraft.equipment"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value ? value.join(", ") : ""}
+                      value={value.length > 0 ? value.join(", ") : ""}
                       onChangeText={(val) => {
-                        const parts = val
-                          .split(/[\s,]+/)
-                          .filter(Boolean)
-                          .map((x) => x.toUpperCase().slice(0, 1));
-                        onChange(parts);
+                        // Map val into letters
+                        const letters = val.split("").map((letter) => letter.toUpperCase());
+                        // Check that each letter complies with the schema
+                        const validParts = new Set(letters.filter((part) => EquipmentSchema.safeParse(part).success));
+                        onChange([...validParts]);
                       }}
-                      placeholder="S, D, G, S"
+                      placeholder=""
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -344,10 +499,14 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.aircraft.transponder"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value}
-                      onChangeText={(val) => onChange(val.toUpperCase().slice(0, 1))}
-                      placeholder="S"
+                      value={value ?? ""}
+                      onChangeText={(val) => onChange(val.toUpperCase())}
+                      placeholder=""
                       maxLength={1}
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -369,7 +528,7 @@ export default function CreateFlightPlanScreen() {
                     <TextInput
                       value={value}
                       onChangeText={(val) => onChange(val.toUpperCase())}
-                      placeholder="ZPXYZ"
+                      placeholder=""
                       maxLength={7}
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -390,7 +549,7 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.flight_details.flight_rules"
                   render={({ field: { onChange, value } }) => (
                     <View className="flex-row gap-2">
-                      {(["IFR", "VFR", "Y", "Z"] as const).map((rule) => (
+                      {(FlightRulesSchema.options).map((rule) => (
                         <TouchableOpacity
                           key={rule}
                           onPress={() => onChange(rule)}
@@ -425,7 +584,7 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.flight_details.flight_type"
                   render={({ field: { onChange, value } }) => (
                     <View className="flex-row gap-2">
-                      {(["S", "N", "G", "M", "X"] as const).map((type) => (
+                      {(FlightTypesSchema.options).map((type) => (
                         <TouchableOpacity
                           key={type}
                           onPress={() => onChange(type)}
@@ -463,7 +622,7 @@ export default function CreateFlightPlanScreen() {
 
               {/* Origen ICAO */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">Origen OACI (e.g. SGAS)</ThemedText>
+                <ThemedText type="caption" className="font-bold mb-1">Origen [OACI]</ThemedText>
                 <Controller
                   control={control}
                   name="flight_plan.departure.icao"
@@ -471,8 +630,12 @@ export default function CreateFlightPlanScreen() {
                     <TextInput
                       value={value}
                       onChangeText={(val) => onChange(val.toUpperCase())}
-                      placeholder="SGAS"
+                      placeholder="ej. SGAS"
                       maxLength={4}
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -486,7 +649,7 @@ export default function CreateFlightPlanScreen() {
 
               {/* Fecha / Hora Salida */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">Fecha/Hora de Salida (UTC ISO Format)</ThemedText>
+                <ThemedText type="caption" className="font-bold mb-1">Fecha / Hora de Salida (UTC)</ThemedText>
                 <Controller
                   control={control}
                   name="flight_plan.departure.datetime_utc"
@@ -494,8 +657,12 @@ export default function CreateFlightPlanScreen() {
                     <TextInput
                       value={value}
                       onChangeText={onChange}
-                      placeholder="2026-07-15T15:00:00Z"
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium text-xs"
+                      placeholder="AAAA-MM-DDTHH:MM:SSZ"
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
+                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium text-sm"
                     />
                   )}
                 />
@@ -516,8 +683,9 @@ export default function CreateFlightPlanScreen() {
                     <TextInput
                       value={value}
                       onChangeText={onChange}
-                      placeholder="1200"
+                      placeholder=""
                       maxLength={4}
+                      keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -531,7 +699,7 @@ export default function CreateFlightPlanScreen() {
 
               {/* Destino ICAO */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">Destino OACI (e.g. SULS)</ThemedText>
+                <ThemedText type="caption" className="font-bold mb-1">Destino [OACI]</ThemedText>
                 <Controller
                   control={control}
                   name="flight_plan.arrival.icao"
@@ -539,8 +707,12 @@ export default function CreateFlightPlanScreen() {
                     <TextInput
                       value={value}
                       onChangeText={(val) => onChange(val.toUpperCase())}
-                      placeholder="SULS"
+                      placeholder="ej. SGES"
                       maxLength={4}
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -554,7 +726,7 @@ export default function CreateFlightPlanScreen() {
 
               {/* Fecha / Hora Llegada */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">Fecha/Hora de Llegada (UTC ISO Format)</ThemedText>
+                <ThemedText type="caption" className="font-bold mb-1">Fecha / Hora de Llegada (UTC)</ThemedText>
                 <Controller
                   control={control}
                   name="flight_plan.arrival.datetime_utc"
@@ -562,8 +734,12 @@ export default function CreateFlightPlanScreen() {
                     <TextInput
                       value={value}
                       onChangeText={onChange}
-                      placeholder="2026-07-15T17:00:00Z"
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium text-xs"
+                      placeholder="AAAA-MM-DDTHH:MM:SSZ"
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
+                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium text-sm"
                     />
                   )}
                 />
@@ -574,18 +750,22 @@ export default function CreateFlightPlanScreen() {
                 )}
               </View>
 
-              {/* Alternativo ICAO (Opcional) */}
+              {/* Aeródromo Alternativo ICAO (Opcional) */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">Alternativo OACI (Opcional)</ThemedText>
+                <ThemedText type="caption" className="font-bold mb-1">Aeródromo Alternativo [OACI] (Opcional)</ThemedText>
                 <Controller
                   control={control}
                   name="flight_plan.arrival.alternate_icao"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
                       value={value || ""}
-                      onChangeText={(val) => onChange(val ? val.toUpperCase() : undefined)}
-                      placeholder="SUMU"
+                      onChangeText={(val) => onChange(val.toUpperCase())}
+                      placeholder=""
                       maxLength={4}
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -599,18 +779,18 @@ export default function CreateFlightPlanScreen() {
 
               {/* Velocidad de Crucero (Knots) */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">Velocidad de Crucero (Knots)</ThemedText>
+                <ThemedText type="caption" className="font-bold mb-1">Velocidad de Crucero (Nudos)</ThemedText>
                 <Controller
                   control={control}
                   name="flight_plan.route.cruising_speed_knots"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value !== undefined ? String(value) : ""}
+                      value={String(value)}
                       onChangeText={(val) => {
                         const parsed = parseInt(val, 10);
                         onChange(isNaN(parsed) ? 0 : parsed);
                       }}
-                      placeholder="250"
+                      placeholder=""
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -631,12 +811,12 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.route.cruising_altitude_feet"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value !== undefined ? String(value) : ""}
+                      value={String(value)}
                       onChangeText={(val) => {
                         const parsed = parseInt(val, 10);
                         onChange(isNaN(parsed) ? 0 : parsed);
                       }}
-                      placeholder="18000"
+                      placeholder=""
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -651,17 +831,26 @@ export default function CreateFlightPlanScreen() {
 
               {/* Waypoints (Array) */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">Puntos de Ruta (Separados por espacios)</ThemedText>
+                <ThemedText type="caption" className="font-bold mb-1">Puntos de Ruta (separados por espacios)</ThemedText>
                 <Controller
                   control={control}
                   name="flight_plan.route.waypoints"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value ? value.join(" ") : ""}
+                      value={value.length > 0 ? value.join(" ") : ""}
                       onChangeText={(val) => {
-                        onChange(val.split(/\s+/).filter(Boolean));
+                        const waypoints = val.toLocaleUpperCase().replace(".", "").split(/\s+/).filter(Boolean);
+                        if (val.endsWith(" ")) {
+                          onChange(waypoints.concat(""));
+                        } else {
+                          onChange(waypoints);
+                        }
                       }}
-                      placeholder="ASU PTE"
+                      placeholder="ej. SGOV SGVR"
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -681,9 +870,20 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.route.encoded_route"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value}
-                      onChangeText={onChange}
-                      placeholder="SGAS ASU PTE SULS"
+                      value={value.length > 0 ? value.join(" ") : ""}
+                      onChangeText={(val) => {
+                        const waypoints = val.toLocaleUpperCase().replace(".", "").split(/\s+/).filter(Boolean);
+                        if (val.endsWith(" ")) {
+                          onChange(waypoints.concat(""));
+                        } else {
+                          onChange(waypoints);
+                        }
+                      }}
+                      placeholder="ej. SGAS SGOV SGVR SGES"
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -713,12 +913,12 @@ export default function CreateFlightPlanScreen() {
                     name="flight_plan.performance.eet_hours"
                     render={({ field: { onChange, value } }) => (
                       <TextInput
-                        value={value !== undefined ? String(value) : ""}
+                        value={String(value)}
                         onChangeText={(val) => {
                           const parsed = parseInt(val, 10);
                           onChange(isNaN(parsed) ? 0 : parsed);
                         }}
-                        placeholder="2"
+                        placeholder=""
                         keyboardType="numeric"
                         className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                       />
@@ -738,12 +938,12 @@ export default function CreateFlightPlanScreen() {
                     name="flight_plan.performance.eet_minutes"
                     render={({ field: { onChange, value } }) => (
                       <TextInput
-                        value={value !== undefined ? String(value) : ""}
+                        value={String(value)}
                         onChangeText={(val) => {
                           const parsed = parseInt(val, 10);
                           onChange(isNaN(parsed) ? 0 : parsed);
                         }}
-                        placeholder="0"
+                        placeholder=""
                         keyboardType="numeric"
                         className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                       />
@@ -766,12 +966,12 @@ export default function CreateFlightPlanScreen() {
                     name="flight_plan.performance.fuel_hours"
                     render={({ field: { onChange, value } }) => (
                       <TextInput
-                        value={value !== undefined ? String(value) : ""}
+                        value={String(value)}
                         onChangeText={(val) => {
                           const parsed = parseInt(val, 10);
                           onChange(isNaN(parsed) ? 0 : parsed);
                         }}
-                        placeholder="4"
+                        placeholder=""
                         keyboardType="numeric"
                         className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                       />
@@ -791,12 +991,12 @@ export default function CreateFlightPlanScreen() {
                     name="flight_plan.performance.fuel_minutes"
                     render={({ field: { onChange, value } }) => (
                       <TextInput
-                        value={value !== undefined ? String(value) : ""}
+                        value={String(value)}
                         onChangeText={(val) => {
                           const parsed = parseInt(val, 10);
                           onChange(isNaN(parsed) ? 0 : parsed);
                         }}
-                        placeholder="30"
+                        placeholder=""
                         keyboardType="numeric"
                         className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                       />
@@ -818,12 +1018,12 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.emergency.pax_count"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value !== undefined ? String(value) : ""}
+                      value={String(value)}
                       onChangeText={(val) => {
                         const parsed = parseInt(val, 10);
                         onChange(isNaN(parsed) ? 0 : parsed);
                       }}
-                      placeholder="2"
+                      placeholder=""
                       keyboardType="numeric"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
@@ -844,15 +1044,19 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.emergency.radio_equipment"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value ? value.join(", ") : ""}
+                      value={value.length > 0 ? value.join(", ") : ""}
                       onChangeText={(val) => {
-                        const parts = val
-                          .split(/[\s,]+/)
-                          .filter(Boolean)
-                          .map((x) => x.toUpperCase().slice(0, 1));
-                        onChange(parts);
+                        // Map val into letters
+                        const letters = val.split("").map((letter) => letter.toUpperCase());
+                        // Check that each letter complies with the schema
+                        const validParts = new Set(letters.filter((part) => EmergencyRadioSchema.safeParse(part).success));
+                        onChange([...validParts]);
                       }}
-                      placeholder="U, V"
+                      placeholder=""
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -872,15 +1076,19 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.emergency.survival_equipment"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value ? value.join(", ") : ""}
+                      value={value.length > 0 ? value.join(", ") : ""}
                       onChangeText={(val) => {
-                        const parts = val
-                          .split(/[\s,]+/)
-                          .filter(Boolean)
-                          .map((x) => x.toUpperCase().slice(0, 1));
-                        onChange(parts);
+                        // Map val into letters
+                        const letters = val.split("").map((letter) => letter.toUpperCase());
+                        // Check that each letter complies with the schema
+                        const validParts = new Set(letters.filter((part) => SurvivalEquipmentSchema.safeParse(part).success));
+                        onChange([...validParts]);
                       }}
-                      placeholder="P, D"
+                      placeholder=""
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -900,15 +1108,19 @@ export default function CreateFlightPlanScreen() {
                   name="flight_plan.emergency.life_jacket_equipment"
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      value={value ? value.join(", ") : ""}
+                      value={value.length > 0 ? value.join(", ") : ""}
                       onChangeText={(val) => {
-                        const parts = val
-                          .split(/[\s,]+/)
-                          .filter(Boolean)
-                          .map((x) => x.toUpperCase().slice(0, 1));
-                        onChange(parts);
+                        // Map val into letters
+                        const letters = val.split("").map((letter) => letter.toUpperCase());
+                        // Check that each letter complies with the schema
+                        const validParts = new Set(letters.filter((part) => LifeJacketSchema.safeParse(part).success));
+                        onChange([...validParts]);
                       }}
-                      placeholder="J, L"
+                      placeholder=""
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -920,27 +1132,127 @@ export default function CreateFlightPlanScreen() {
                 )}
               </View>
 
-              {/* Capacidad de botes salvavidas (Opcional) */}
-              <View>
-                <ThemedText type="caption" className="font-bold mb-1">Capacidad de Botes Salvavidas (Opcional)</ThemedText>
+              {/* Dinghies Carried (Switch) */}
+              <View className="flex-row justify-between items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mt-2">
+                <View className="flex-1 pr-4">
+                  <ThemedText className="font-bold text-sm text-brand-blue">¿Lleva balsas salvavidas?</ThemedText>
+                  <ThemedText type="caption" className="text-[11px] text-slate-500 mt-0.5">
+                    Activar si el avión cuenta con balsas de emergencia a bordo.
+                  </ThemedText>
+                </View>
                 <Controller
                   control={control}
-                  name="flight_plan.emergency.dinghies_capacity"
+                  name="flight_plan.emergency.dinghies_capacity.carried"
                   render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      value={value || ""}
-                      onChangeText={(val) => onChange(val || undefined)}
-                      placeholder="4"
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
+                    <Switch
+                      value={value}
+                      onValueChange={onChange}
+                      trackColor={{ false: "#CBD5E1", true: "#0f1e3d" }}
+                      thumbColor="#F1F5F9"
                     />
                   )}
                 />
-                {errors.flight_plan?.emergency?.dinghies_capacity && (
-                  <ThemedText className="text-red-500 text-xs mt-1">
-                    {errors.flight_plan.emergency.dinghies_capacity.message}
-                  </ThemedText>
-                )}
               </View>
+
+              {/* Dinghies Details (Conditional) */}
+              {dinghiesCarried && (
+                <View className="bg-slate-50 rounded-xl p-4 border border-slate-200 gap-3 mt-2">
+                  <ThemedText className="font-bold text-xs text-brand-blue uppercase tracking-wider">
+                    Detalles de Balsas
+                  </ThemedText>
+
+                  {/* Quantity */}
+                  <View>
+                    <ThemedText type="caption" className="font-bold text-xs mb-1">Cantidad de Balsas</ThemedText>
+                    <Controller
+                      control={control}
+                      name="flight_plan.emergency.dinghies_capacity.number"
+                      render={({ field: { onChange, value } }) => (
+                        <TextInput
+                          value={String(value)}
+                          onChangeText={(val) => {
+                            const parsed = parseInt(val, 10);
+                            onChange(isNaN(parsed) ? 0 : parsed);
+                          }}
+                          placeholder=""
+                          keyboardType="numeric"
+                          className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-brand-text font-medium text-xs"
+                        />
+                      )}
+                    />
+                    {errors.flight_plan?.emergency?.dinghies_capacity?.number && (
+                      <ThemedText className="text-red-500 text-xs mt-1">
+                        {errors.flight_plan.emergency?.dinghies_capacity?.number.message}
+                      </ThemedText>
+                    )}
+                  </View>
+
+                  {/* Combined Capacity */}
+                  <View>
+                    <ThemedText type="caption" className="font-bold text-xs mb-1">Capacidad Combinada Total (Personas)</ThemedText>
+                    <Controller
+                      control={control}
+                      name="flight_plan.emergency.dinghies_capacity.total_capacity"
+                      render={({ field: { onChange, value } }) => (
+                        <TextInput
+                          value={String(value)}
+                          onChangeText={(val) => {
+                            const parsed = parseInt(val, 10);
+                            onChange(isNaN(parsed) ? 0 : parsed);
+                          }}
+                          placeholder=""
+                          keyboardType="numeric"
+                          className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-brand-text font-medium text-xs"
+                        />
+                      )}
+                    />
+                    {errors.flight_plan?.emergency?.dinghies_capacity?.total_capacity && (
+                      <ThemedText className="text-red-500 text-xs mt-1">
+                        {errors.flight_plan.emergency.dinghies_capacity.total_capacity.message}
+                      </ThemedText>
+                    )}
+                  </View>
+
+                  {/* Covered (Switch) */}
+                  <View className="flex-row justify-between items-center bg-white border border-slate-200 rounded-lg px-3 py-2">
+                    <ThemedText type="caption" className="font-bold text-xs">¿Tienen cubierta de protección?</ThemedText>
+                    <Controller
+                      control={control}
+                      name="flight_plan.emergency.dinghies_capacity.covered"
+                      render={({ field: { onChange, value } }) => (
+                        <Switch
+                          value={value}
+                          onValueChange={onChange}
+                          trackColor={{ false: "#CBD5E1", true: "#0f1e3d" }}
+                          thumbColor="#F1F5F9"
+                          style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+                        />
+                      )}
+                    />
+                  </View>
+
+                  {/* Raft Color */}
+                  <View>
+                    <ThemedText type="caption" className="font-bold text-xs mb-1">Color de la Balsa</ThemedText>
+                    <Controller
+                      control={control}
+                      name="flight_plan.emergency.dinghies_capacity.color"
+                      render={({ field: { onChange, value } }) => (
+                        <TextInput
+                          value={value}
+                          onChangeText={(val) => onChange(val.toUpperCase())}
+                          placeholder=""
+                          autoCorrect={false}
+                          spellCheck={false}
+                          importantForAutofill="no"
+                          textContentType="none"
+                          className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-brand-text font-medium text-xs"
+                        />
+                      )}
+                    />
+                  </View>
+                </View>
+              )}
             </View>
           )}
 
@@ -961,7 +1273,11 @@ export default function CreateFlightPlanScreen() {
                     <TextInput
                       value={value}
                       onChangeText={onChange}
-                      placeholder="Juan Perez"
+                      placeholder=""
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -983,7 +1299,11 @@ export default function CreateFlightPlanScreen() {
                     <TextInput
                       value={value}
                       onChangeText={onChange}
-                      placeholder="+595981123456"
+                      placeholder=""
+                      autoCorrect={false}
+                      spellCheck={false}
+                      importantForAutofill="no"
+                      textContentType="none"
                       className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
                     />
                   )}
@@ -993,6 +1313,27 @@ export default function CreateFlightPlanScreen() {
                     {errors.flight_plan.pilot.contact_info.message}
                   </ThemedText>
                 )}
+              </View>
+
+              {/* Observaciones */}
+              <View className="mt-2">
+                <ThemedText type="caption" className="font-bold mb-1">Observaciones</ThemedText>
+                <Controller
+                  control={control}
+                  name="flight_plan.pilot.observations"
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput
+                      value={value}
+                      onChangeText={onChange}
+                      placeholder="Agrega notas adicionales aquí..."
+                      placeholderTextColor="#94A3B8"
+                      multiline
+                      numberOfLines={4}
+                      style={{ height: 100, textAlignVertical: "top" }}
+                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
+                    />
+                  )}
+                />
               </View>
             </View>
           )}
@@ -1022,7 +1363,7 @@ export default function CreateFlightPlanScreen() {
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                onPress={handleSubmit(onSubmit)}
+                onPress={handleSubmit(onSubmit as any)}
                 disabled={isSubmitting}
                 className="flex-1 bg-brand-gold py-3.5 rounded-xl items-center justify-center shadow-md flex-row gap-2"
               >
@@ -1032,7 +1373,7 @@ export default function CreateFlightPlanScreen() {
                   <>
                     <Ionicons name="cloud-upload" size={20} color="#FFFFFF" />
                     <ThemedText className="text-white font-bold">
-                      Enviar Plan de Vuelo
+                      Enviar Plan
                     </ThemedText>
                   </>
                 )}
