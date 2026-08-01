@@ -218,6 +218,8 @@ export const DinghiesCapacitySchema = z.object({
     path: ["number"]
 });
 
+export type DinghiesCapacity = z.infer<typeof DinghiesCapacitySchema>;
+
 
 // Declaración del esquema de validación con Zod para especificaciones de aeronaves
 export const AircraftSpecsSchema = z.object({

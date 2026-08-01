@@ -1,3 +1,4 @@
+import { LoadingCard } from "@/components/loading-card";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAircraftDetails } from "@/hooks/useAircraftDetails";
@@ -211,7 +212,6 @@ export default function PilotFlightDetailsScreen() {
         pathname: "/flights/view-flight-plan",
         params: {
           flightPlanId: existingFlightPlan.id,
-          reservationId: targetReservationId,
           aircraftModel: aircraft?.basic_specs.model,
         },
       });
@@ -337,330 +337,325 @@ export default function PilotFlightDetailsScreen() {
       )}
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-        {isLoading ? (
-          <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6 shadow-sm">
-            <ActivityIndicator size="large" color="#0f1e3d" />
-            <ThemedText className="text-slate-500 font-medium mt-3 text-center text-sm">
-              Cargando información del vuelo...
-            </ThemedText>
-          </View>
-        ) : !reservation ? (
-          <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6 shadow-sm">
-            <View className="w-16 h-16 rounded-full bg-rose-50 items-center justify-center mb-4 border border-rose-100">
-              <Ionicons name="alert-circle-outline" size={32} color="#e11d48" />
+        {isLoading
+          ? <LoadingCard message="Cargando información del vuelo..." />
+          : !reservation ? (
+            <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6 shadow-sm">
+              <View className="w-16 h-16 rounded-full bg-rose-50 items-center justify-center mb-4 border border-rose-100">
+                <Ionicons name="alert-circle-outline" size={32} color="#e11d48" />
+              </View>
+              <ThemedText type="subtitle" className="text-center text-slate-800 text-lg">
+                Reserva no encontrada
+              </ThemedText>
+              <ThemedText className="text-slate-500 text-xs text-center mt-1 mb-6 px-4">
+                No fue posible recuperar los detalles de la reservación seleccionada.
+              </ThemedText>
+              <TouchableOpacity
+                onPress={() => {
+                  if (router.canGoBack()) {
+                    router.back();
+                  } else {
+                    router.replace("/(pilot)/flights");
+                  }
+                }}
+                className="bg-brand-blue px-5 py-3 rounded-xl flex-row items-center gap-2 shadow-md"
+                activeOpacity={0.8}
+              >
+                <Ionicons name="arrow-back" size={16} color="#FFFFFF" />
+                <ThemedText className="text-sm font-bold text-white">Volver a Mis Vuelos</ThemedText>
+              </TouchableOpacity>
             </View>
-            <ThemedText type="subtitle" className="text-center text-slate-800 text-lg">
-              Reserva no encontrada
-            </ThemedText>
-            <ThemedText className="text-slate-500 text-xs text-center mt-1 mb-6 px-4">
-              No fue posible recuperar los detalles de la reservación seleccionada.
-            </ThemedText>
-            <TouchableOpacity
-              onPress={() => {
-                if (router.canGoBack()) {
-                  router.back();
-                } else {
-                  router.replace("/(pilot)/flights");
-                }
-              }}
-              className="bg-brand-blue px-5 py-3 rounded-xl flex-row items-center gap-2 shadow-md"
-              activeOpacity={0.8}
-            >
-              <Ionicons name="arrow-back" size={16} color="#FFFFFF" />
-              <ThemedText className="text-sm font-bold text-white">Volver a Mis Vuelos</ThemedText>
-            </TouchableOpacity>
-          </View>
-        ) : (() => {
-          const status = getStatusBadge(reservation.internal_status);
-          const model = reservation.aircraftSpecs?.basic_specs?.model || "Aeronave";
-          const registration = reservation.aircraftSpecs?.basic_specs?.registration || "N/A";
-          const aircraftType = reservation.aircraftSpecs?.basic_specs?.type || "N/A";
-          const distanceKm = reservation.distance_nm ? (reservation.distance_nm * 1.852).toFixed(0) : null;
-          const cruiseSpeed = existingFlightPlan?.flight_plan.route.cruising_speed_knots ? existingFlightPlan?.flight_plan.route.cruising_speed_knots : reservation.aircraftSpecs?.operating_specs?.cruise_speed_knots;
-          const serviceCeilingLabel = existingFlightPlan?.flight_plan.route.cruising_altitude_feet ? "Altitud de vuelo" : "Techo de servicio";
-          const serviceCeiling = existingFlightPlan?.flight_plan.route.cruising_altitude_feet ? existingFlightPlan?.flight_plan.route.cruising_altitude_feet : reservation.aircraftSpecs?.operating_specs?.service_ceiling_feet;
-          const paxCapacity = reservation.aircraftSpecs?.basic_specs?.pax_count;
-          const originAirportLabel = params.originIdent ? getAirportLabel(params.originIdent, reservation) : "";
-          const destinationAirportLabel = params.destinationIdent ? getAirportLabel(params.destinationIdent, reservation) : "";
+          ) : (() => {
+            const status = getStatusBadge(reservation.internal_status);
+            const model = reservation.aircraftSpecs?.basic_specs?.model || "Aeronave";
+            const registration = reservation.aircraftSpecs?.basic_specs?.registration || "N/A";
+            const aircraftType = reservation.aircraftSpecs?.basic_specs?.type || "N/A";
+            const distanceKm = reservation.distance_nm ? (reservation.distance_nm * 1.852).toFixed(0) : null;
+            const cruiseSpeed = existingFlightPlan?.flight_plan.route.cruising_speed_knots ? existingFlightPlan?.flight_plan.route.cruising_speed_knots : reservation.aircraftSpecs?.operating_specs?.cruise_speed_knots;
+            const serviceCeilingLabel = existingFlightPlan?.flight_plan.route.cruising_altitude_feet ? "Altitud de vuelo" : "Techo de servicio";
+            const serviceCeiling = existingFlightPlan?.flight_plan.route.cruising_altitude_feet ? existingFlightPlan?.flight_plan.route.cruising_altitude_feet : reservation.aircraftSpecs?.operating_specs?.service_ceiling_feet;
+            const paxCapacity = reservation.aircraftSpecs?.basic_specs?.pax_count;
+            const originAirportLabel = params.originIdent ? getAirportLabel(params.originIdent, reservation) : "";
+            const destinationAirportLabel = params.destinationIdent ? getAirportLabel(params.destinationIdent, reservation) : "";
 
-          // Flight duration computation
-          let outboundMs = 0;
-          if (existingFlightPlan?.flight_plan.departure.datetime_utc && existingFlightPlan.flight_plan.arrival.datetime_utc) {
-            outboundMs = new Date(existingFlightPlan.flight_plan.arrival.datetime_utc).getTime() - new Date(existingFlightPlan.flight_plan.departure.datetime_utc).getTime();
-          } else {
-            outboundMs = reservation.schedule.outbound_flight_arrival_time.getTime() - reservation.schedule.outbound_flight_departure_time.getTime();
-          }
-          const flightDurationHours = outboundMs > 0
-            ? outboundMs / (3600 * 1000)
-            : (reservation.distance_nm && cruiseSpeed ? reservation.distance_nm / cruiseSpeed : 0);
+            // Flight duration computation
+            let outboundMs = 0;
+            if (existingFlightPlan?.flight_plan.departure.datetime_utc && existingFlightPlan.flight_plan.arrival.datetime_utc) {
+              outboundMs = new Date(existingFlightPlan.flight_plan.arrival.datetime_utc).getTime() - new Date(existingFlightPlan.flight_plan.departure.datetime_utc).getTime();
+            } else {
+              outboundMs = reservation.schedule.outbound_flight_arrival_time.getTime() - reservation.schedule.outbound_flight_departure_time.getTime();
+            }
+            const flightDurationHours = outboundMs > 0
+              ? outboundMs / (3600 * 1000)
+              : (reservation.distance_nm && cruiseSpeed ? reservation.distance_nm / cruiseSpeed : 0);
 
-          const flight_departure_time = existingFlightPlan?.flight_plan.departure.datetime_utc ? new Date(existingFlightPlan.flight_plan.departure.datetime_utc) : (reservation.originAirport?.ident === params.originIdent ? reservation.schedule.outbound_flight_departure_time : reservation.schedule.return_flight_departure_time);
-          const flight_arrival_time = existingFlightPlan?.flight_plan.arrival.datetime_utc ? new Date(existingFlightPlan.flight_plan.arrival.datetime_utc) : (reservation.originAirport?.ident === params.originIdent ? reservation.schedule.outbound_flight_arrival_time : reservation.schedule.return_flight_arrival_time);
+            const flight_departure_time = existingFlightPlan?.flight_plan.departure.datetime_utc ? new Date(existingFlightPlan.flight_plan.departure.datetime_utc) : (reservation.originAirport?.ident === params.originIdent ? reservation.schedule.outbound_flight_departure_time : reservation.schedule.return_flight_departure_time);
+            const flight_arrival_time = existingFlightPlan?.flight_plan.arrival.datetime_utc ? new Date(existingFlightPlan.flight_plan.arrival.datetime_utc) : (reservation.originAirport?.ident === params.originIdent ? reservation.schedule.outbound_flight_arrival_time : reservation.schedule.return_flight_arrival_time);
 
-          return (
-            <View className="gap-4 mb-10">
-              {/* Aircraft Header Card (Without Cambiar Estado button) */}
-              <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
-                <View className="flex-row items-start justify-between mb-3">
-                  <View className="flex-1 mr-2">
-                    <ThemedText type="subtitle" className="text-brand-blue font-bold text-base">
-                      {model}
-                    </ThemedText>
-                    <View className="flex-row items-center gap-3 mt-1">
-                      <View className="bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-                        <ThemedText className="text-xs font-bold text-slate-700">
-                          {aircraftType}
-                        </ThemedText>
-                      </View>
-                      <ThemedText className="text-xs text-slate-500 font-bold">
-                        {registration}
+            return (
+              <View className="gap-4 mb-10">
+                {/* Aircraft Header Card (Without Cambiar Estado button) */}
+                <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
+                  <View className="flex-row items-start justify-between mb-3">
+                    <View className="flex-1 mr-2">
+                      <ThemedText type="subtitle" className="text-brand-blue font-bold text-base">
+                        {model}
                       </ThemedText>
-                    </View>
-                  </View>
-
-                  {/* Status Indicator Badge Only */}
-                  <View className="items-end">
-                    <View className={`${status.bg} border ${status.border} px-2.5 py-1 rounded-full flex-row items-center gap-1`}>
-                      <Ionicons name={status.icon as any} size={12} color={status.iconColor} />
-                      <ThemedText className={`text-xs font-bold ${status.text}`}>
-                        {status.label}
-                      </ThemedText>
-                    </View>
-                  </View>
-                </View>
-
-                {/* Route Card */}
-                <View className="bg-slate-50 rounded-2xl p-4 border border-slate-100 mt-1">
-                  <View className="gap-3">
-                    {/* Origen Row */}
-                    <View className="flex-row items-center gap-2">
-                      <View className="w-2.5 h-2.5 rounded-full bg-brand-gold" />
-                      <View className="flex-1">
-                        <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
-                          Origen
-                        </ThemedText>
-                        <ThemedText className="text-sm font-medium text-brand-blue" numberOfLines={2}>
-                          {originAirportLabel}
+                      <View className="flex-row items-center gap-3 mt-1">
+                        <View className="bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                          <ThemedText className="text-xs font-bold text-slate-700">
+                            {aircraftType}
+                          </ThemedText>
+                        </View>
+                        <ThemedText className="text-xs text-slate-500 font-bold">
+                          {registration}
                         </ThemedText>
                       </View>
                     </View>
 
-                    {/* Connector line & icon */}
-                    <View className="flex-row items-center gap-2 pl-0.5 my-0.5">
-                      <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
-                      <View className="flex-row items-center gap-1.5 ml-3">
-                        <MaterialCommunityIcons name={reservation.originAirport?.ident === params.originIdent ? "airplane-takeoff" : "airplane-landing"} size={14} color="#C5A059" />
-                        <ThemedText className="text-xs font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">{reservation.originAirport?.ident === params.originIdent ? "Ida" : "Vuelta"}</ThemedText>
-                      </View>
-                    </View>
-
-                    {/* Destino Row */}
-                    <View className="flex-row items-center gap-2">
-                      <View className="w-2.5 h-2.5 rounded-full bg-brand-blue" />
-                      <View className="flex-1">
-                        <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
-                          Destino
-                        </ThemedText>
-                        <ThemedText className="text-sm font-medium text-brand-blue" numberOfLines={2}>
-                          {destinationAirportLabel}
+                    {/* Status Indicator Badge Only */}
+                    <View className="items-end">
+                      <View className={`${status.bg} border ${status.border} px-2.5 py-1 rounded-full flex-row items-center gap-1`}>
+                        <Ionicons name={status.icon as any} size={12} color={status.iconColor} />
+                        <ThemedText className={`text-xs font-bold ${status.text}`}>
+                          {status.label}
                         </ThemedText>
                       </View>
                     </View>
                   </View>
-                </View>
-              </View>
 
-              {/* Schedule Card */}
-              <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
-                <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-3">
-                  Itinerario
-                </ThemedText>
-
-                <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 gap-3">
-                  <View>
-                    <ThemedText className="text-xs font-bold text-brand-gold uppercase tracking-wider mb-1.5">
-                      {reservation.originAirport?.ident === params.originIdent ? "Vuelo de Ida" : "Vuelo de Vuelta"}
-                    </ThemedText>
-                    <View className="gap-1 pl-2 border-l-2 border-brand-gold/40">
-                      <View className="flex-row items-center justify-between">
-                        <ThemedText className="text-xs text-slate-500 font-medium">Salida:</ThemedText>
-                        <ThemedText className="text-xs font-bold text-slate-800">
-                          {flight_departure_time
-                            ? `${flight_departure_time.toLocaleString("es-ES", {
-                              dateStyle: "medium",
-                              timeStyle: "short",
-                            })} hs`
-                            : "N/A"}
-                        </ThemedText>
+                  {/* Route Card */}
+                  <View className="bg-slate-50 rounded-2xl p-4 border border-slate-100 mt-1">
+                    <View className="gap-3">
+                      {/* Origen Row */}
+                      <View className="flex-row items-center gap-2">
+                        <View className="w-2.5 h-2.5 rounded-full bg-brand-gold" />
+                        <View className="flex-1">
+                          <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
+                            Origen
+                          </ThemedText>
+                          <ThemedText className="text-sm font-medium text-brand-blue" numberOfLines={2}>
+                            {originAirportLabel}
+                          </ThemedText>
+                        </View>
                       </View>
-                      <View className="flex-row items-center justify-between mt-0.5">
-                        <ThemedText className="text-xs text-slate-500 font-medium">Llegada estimada:</ThemedText>
-                        <ThemedText className="text-xs font-bold text-slate-800">
-                          {flight_arrival_time
-                            ? `${flight_arrival_time.toLocaleString("es-ES", {
-                              dateStyle: "medium",
-                              timeStyle: "short",
-                            })} hs`
-                            : "N/A"}
-                        </ThemedText>
+
+                      {/* Connector line & icon */}
+                      <View className="flex-row items-center gap-2 pl-0.5 my-0.5">
+                        <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
+                        <View className="flex-row items-center gap-1.5 ml-3">
+                          <MaterialCommunityIcons name={reservation.originAirport?.ident === params.originIdent ? "airplane-takeoff" : "airplane-landing"} size={14} color="#C5A059" />
+                          <ThemedText className="text-xs font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">{reservation.originAirport?.ident === params.originIdent ? "Ida" : "Vuelta"}</ThemedText>
+                        </View>
+                      </View>
+
+                      {/* Destino Row */}
+                      <View className="flex-row items-center gap-2">
+                        <View className="w-2.5 h-2.5 rounded-full bg-brand-blue" />
+                        <View className="flex-1">
+                          <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
+                            Destino
+                          </ThemedText>
+                          <ThemedText className="text-sm font-medium text-brand-blue" numberOfLines={2}>
+                            {destinationAirportLabel}
+                          </ThemedText>
+                        </View>
                       </View>
                     </View>
                   </View>
                 </View>
-              </View>
 
-              {/* Card: Pilotos */}
-              <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
-                <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-3">
-                  Pilotos
-                </ThemedText>
+                {/* Schedule Card */}
+                <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
+                  <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-3">
+                    Itinerario
+                  </ThemedText>
 
-                {isLoadingPilots ? (
-                  <View className="py-4 items-center justify-center">
-                    <ActivityIndicator size="small" color="#0f1e3d" />
-                  </View>
-                ) : !assignedPilots || assignedPilots.length === 0 ? (
-                  <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 items-center justify-center">
-                    <ThemedText className="text-xs text-slate-500 font-medium text-center">
-                      Sin pilotos asignados
-                    </ThemedText>
-                  </View>
-                ) : (
                   <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 gap-3">
-                    {assignedPilots.map((pilot, index) => {
-                      const firstName = pilot.basic?.id_first_name || pilot.user?.firstName || "";
-                      const lastName = pilot.basic?.id_last_name || pilot.user?.lastName || "";
-                      const licenceType = pilot.aeronautical?.licence_type || "Sin tipo de licencia";
+                    <View>
+                      <ThemedText className="text-xs font-bold text-brand-gold uppercase tracking-wider mb-1.5">
+                        {reservation.originAirport?.ident === params.originIdent ? "Vuelo de Ida" : "Vuelo de Vuelta"}
+                      </ThemedText>
+                      <View className="gap-1 pl-2 border-l-2 border-brand-gold/40">
+                        <View className="flex-row items-center justify-between">
+                          <ThemedText className="text-xs text-slate-500 font-medium">Salida:</ThemedText>
+                          <ThemedText className="text-xs font-bold text-slate-800">
+                            {flight_departure_time
+                              ? `${flight_departure_time.toLocaleString("es-ES", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              })} hs`
+                              : "N/A"}
+                          </ThemedText>
+                        </View>
+                        <View className="flex-row items-center justify-between mt-0.5">
+                          <ThemedText className="text-xs text-slate-500 font-medium">Llegada estimada:</ThemedText>
+                          <ThemedText className="text-xs font-bold text-slate-800">
+                            {flight_arrival_time
+                              ? `${flight_arrival_time.toLocaleString("es-ES", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              })} hs`
+                              : "N/A"}
+                          </ThemedText>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </View>
 
-                      return (
-                        <View key={pilot.user?.uid || index}>
-                          {index > 0 && <View className="h-px bg-slate-200 my-2" />}
-                          <View className="flex-row items-center justify-between">
-                            <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                              <MaterialCommunityIcons name="account-tie-hat" size={18} color="#0f1e3d" />
-                            </View>
-                            <View className="flex-col items-start gap-1 flex-1 mx-3">
-                              <ThemedText className="text-xs font-bold text-slate-800 flex-1" numberOfLines={1}>
-                                {firstName}
-                              </ThemedText>
-                              <ThemedText className="text-xs font-bold text-slate-800 flex-1" numberOfLines={1}>
-                                {lastName}
-                              </ThemedText>
-                            </View>
-                            <View className="bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
-                              <ThemedText className="text-xs font-semibold text-slate-700">
-                                {licenceType}
-                              </ThemedText>
+                {/* Card: Pilotos */}
+                <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
+                  <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-3">
+                    Pilotos
+                  </ThemedText>
+
+                  {isLoadingPilots ? (
+                    <View className="py-4 items-center justify-center">
+                      <ActivityIndicator size="small" color="#0f1e3d" />
+                    </View>
+                  ) : !assignedPilots || assignedPilots.length === 0 ? (
+                    <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 items-center justify-center">
+                      <ThemedText className="text-xs text-slate-500 font-medium text-center">
+                        Sin pilotos asignados
+                      </ThemedText>
+                    </View>
+                  ) : (
+                    <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 gap-3">
+                      {assignedPilots.map((pilot, index) => {
+                        const firstName = pilot.basic?.id_first_name || pilot.user?.firstName || "";
+                        const lastName = pilot.basic?.id_last_name || pilot.user?.lastName || "";
+                        const licenceType = pilot.aeronautical?.licence_type || "Sin tipo de licencia";
+
+                        return (
+                          <View key={pilot.user?.uid || index}>
+                            {index > 0 && <View className="h-px bg-slate-200 my-2" />}
+                            <View className="flex-row items-center justify-between">
+                              <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
+                                <MaterialCommunityIcons name="account-tie-hat" size={18} color="#0f1e3d" />
+                              </View>
+                              <View className="flex-col items-start gap-1 flex-1 mx-3">
+                                <ThemedText className="text-xs font-bold text-slate-800 flex-1" numberOfLines={1}>
+                                  {firstName}
+                                </ThemedText>
+                                <ThemedText className="text-xs font-bold text-slate-800 flex-1" numberOfLines={1}>
+                                  {lastName}
+                                </ThemedText>
+                              </View>
+                              <View className="bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+                                <ThemedText className="text-xs font-semibold text-slate-700">
+                                  {licenceType}
+                                </ThemedText>
+                              </View>
                             </View>
                           </View>
-                        </View>
-                      );
-                    })}
-                  </View>
-                )}
-              </View>
-
-              {/* Extended Specifications List Rows */}
-              <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm gap-3">
-                <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-1">
-                  Vuelo y Aeronave
-                </ThemedText>
-
-                {/* Pasajeros solicitados */}
-                <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
-                  <View className="flex-row items-center gap-2.5">
-                    <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                      <Ionicons name="people-outline" size={18} color="#0f1e3d" />
+                        );
+                      })}
                     </View>
-                    <ThemedText className="text-xs font-medium text-slate-600">
-                      Pasajeros solicitados
-                    </ThemedText>
-                  </View>
-                  <ThemedText className="text-xs font-bold text-slate-900">
-                    {reservation.capacity.passangers} pasajero(s)
-                  </ThemedText>
+                  )}
                 </View>
 
-                {/* Capacidad de asientos */}
-                <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
-                  <View className="flex-row items-center gap-2.5">
-                    <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                      <MaterialCommunityIcons name="seat-passenger" size={18} color="#0f1e3d" />
-                    </View>
-                    <ThemedText className="text-xs font-medium text-slate-600">
-                      Capacidad de asientos
-                    </ThemedText>
-                  </View>
-                  <ThemedText className="text-xs font-bold text-slate-900">
-                    {paxCapacity !== undefined ? `${paxCapacity} asientos` : "N/A"}
+                {/* Extended Specifications List Rows */}
+                <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm gap-3">
+                  <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-1">
+                    Vuelo y Aeronave
                   </ThemedText>
-                </View>
 
-                {/* Distancia del viaje */}
-                <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
-                  <View className="flex-row items-center gap-2.5">
-                    <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                      <Ionicons name="navigate-outline" size={18} color="#0f1e3d" />
-                    </View>
-                    <ThemedText className="text-xs font-medium text-slate-600">
-                      Distancia del viaje
-                    </ThemedText>
-                  </View>
-                  <ThemedText className="text-xs font-bold text-slate-900">
-                    {distanceKm ? `${distanceKm} km` : "N/A"}
-                  </ThemedText>
-                </View>
-
-                {/* Tiempo de vuelo */}
-                <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
-                  <View className="flex-row items-center gap-2.5">
-                    <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                      <Ionicons name="time-outline" size={18} color="#0f1e3d" />
-                    </View>
-                    <View>
+                  {/* Pasajeros solicitados */}
+                  <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
+                    <View className="flex-row items-center gap-2.5">
+                      <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
+                        <Ionicons name="people-outline" size={18} color="#0f1e3d" />
+                      </View>
                       <ThemedText className="text-xs font-medium text-slate-600">
-                        Tiempo de vuelo
+                        Pasajeros solicitados
                       </ThemedText>
                     </View>
-                  </View>
-                  <ThemedText className="text-xs font-bold text-slate-900">
-                    {formatFlightTime(flightDurationHours)}
-                  </ThemedText>
-                </View>
-
-                {/* Velocidad de crucero */}
-                <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
-                  <View className="flex-row items-center gap-2.5">
-                    <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                      <MaterialCommunityIcons name="speedometer" size={18} color="#0f1e3d" />
-                    </View>
-                    <ThemedText className="text-xs font-medium text-slate-600">
-                      Velocidad de crucero
+                    <ThemedText className="text-xs font-bold text-slate-900">
+                      {reservation.capacity.passangers} pasajero(s)
                     </ThemedText>
                   </View>
-                  <ThemedText className="text-xs font-bold text-slate-900">
-                    {cruiseSpeed ? `${cruiseSpeed} nudos` : "N/A"}
-                  </ThemedText>
-                </View>
 
-                {/* Techo de servicio */}
-                <View className="flex-row items-center justify-between py-2">
-                  <View className="flex-row items-center gap-2.5">
-                    <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                      <MaterialCommunityIcons name="cloud-upload-outline" size={18} color="#0f1e3d" />
+                  {/* Capacidad de asientos */}
+                  <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
+                    <View className="flex-row items-center gap-2.5">
+                      <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
+                        <MaterialCommunityIcons name="seat-passenger" size={18} color="#0f1e3d" />
+                      </View>
+                      <ThemedText className="text-xs font-medium text-slate-600">
+                        Capacidad de asientos
+                      </ThemedText>
                     </View>
-                    <ThemedText className="text-xs font-medium text-slate-600">
-                      {serviceCeilingLabel}
+                    <ThemedText className="text-xs font-bold text-slate-900">
+                      {paxCapacity !== undefined ? `${paxCapacity} asientos` : "N/A"}
                     </ThemedText>
                   </View>
-                  <ThemedText className="text-xs font-bold text-slate-900">
-                    {serviceCeiling ? `${serviceCeiling.toLocaleString("es-ES")} pies` : "N/A"}
-                  </ThemedText>
+
+                  {/* Distancia del viaje */}
+                  <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
+                    <View className="flex-row items-center gap-2.5">
+                      <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
+                        <Ionicons name="navigate-outline" size={18} color="#0f1e3d" />
+                      </View>
+                      <ThemedText className="text-xs font-medium text-slate-600">
+                        Distancia del viaje
+                      </ThemedText>
+                    </View>
+                    <ThemedText className="text-xs font-bold text-slate-900">
+                      {distanceKm ? `${distanceKm} km` : "N/A"}
+                    </ThemedText>
+                  </View>
+
+                  {/* Tiempo de vuelo */}
+                  <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
+                    <View className="flex-row items-center gap-2.5">
+                      <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
+                        <Ionicons name="time-outline" size={18} color="#0f1e3d" />
+                      </View>
+                      <View>
+                        <ThemedText className="text-xs font-medium text-slate-600">
+                          Tiempo de vuelo
+                        </ThemedText>
+                      </View>
+                    </View>
+                    <ThemedText className="text-xs font-bold text-slate-900">
+                      {formatFlightTime(flightDurationHours)}
+                    </ThemedText>
+                  </View>
+
+                  {/* Velocidad de crucero */}
+                  <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
+                    <View className="flex-row items-center gap-2.5">
+                      <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
+                        <MaterialCommunityIcons name="speedometer" size={18} color="#0f1e3d" />
+                      </View>
+                      <ThemedText className="text-xs font-medium text-slate-600">
+                        Velocidad de crucero
+                      </ThemedText>
+                    </View>
+                    <ThemedText className="text-xs font-bold text-slate-900">
+                      {cruiseSpeed ? `${cruiseSpeed} nudos` : "N/A"}
+                    </ThemedText>
+                  </View>
+
+                  {/* Techo de servicio */}
+                  <View className="flex-row items-center justify-between py-2">
+                    <View className="flex-row items-center gap-2.5">
+                      <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
+                        <MaterialCommunityIcons name="cloud-upload-outline" size={18} color="#0f1e3d" />
+                      </View>
+                      <ThemedText className="text-xs font-medium text-slate-600">
+                        {serviceCeilingLabel}
+                      </ThemedText>
+                    </View>
+                    <ThemedText className="text-xs font-bold text-slate-900">
+                      {serviceCeiling ? `${serviceCeiling.toLocaleString("es-ES")} pies` : "N/A"}
+                    </ThemedText>
+                  </View>
                 </View>
               </View>
-            </View>
-          );
-        })()}
+            );
+          })()}
       </ScrollView>
 
       {/* Aircraft Details Modal */}

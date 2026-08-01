@@ -10,11 +10,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
-  View
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function PilotPlansScreen() {
-  const { user, userData } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -23,11 +24,6 @@ export default function PilotPlansScreen() {
     isLoading,
     refetch,
   } = usePilotFlightPlans(user?.uid);
-
-  const displayName =
-    userData?.firstName && userData?.lastName
-      ? `${userData.firstName} ${userData.lastName}`
-      : user?.email?.split("@")[0] || "Piloto";
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -84,6 +80,13 @@ export default function PilotPlansScreen() {
     });
   };
 
+  const handlePlanPress = (planId: string) => {
+    router.push({
+      pathname: "/(pilot)/plans/view-flight-plan",
+      params: { flightPlanId: planId },
+    });
+  };
+
   return (
     <ThemedView className="flex-1 px-4 pt-2">
       {/* Cabecera */}
@@ -128,7 +131,7 @@ export default function PilotPlansScreen() {
             </ThemedText>
           </View>
         ) : (
-          <View className="space-y-4 mb-8">
+          <View className="space-y-4 mb-8 gap-4">
             {flightPlans.map((plan) => {
               const statusStyle = getStatusStyle(plan.status);
               const depIcao = plan.flight_plan?.departure?.icao || "N/A";
@@ -141,15 +144,20 @@ export default function PilotPlansScreen() {
                 : formatDate(plan.created_at);
 
               return (
-                <View
+                <TouchableOpacity
                   key={plan.id}
+                  onPress={() => handlePlanPress(plan.id)}
+                  activeOpacity={0.7}
                   className="bg-brand-white border border-slate-100 rounded-xl p-4 shadow-sm"
                 >
                   <View className="flex-row justify-between items-start mb-3">
-                    <View>
-                      <ThemedText className="font-bold text-base text-brand-blue">
-                        {routeLabel}
-                      </ThemedText>
+                    <View className="flex-1 pr-2">
+                      <View className="flex-row items-center gap-1.5">
+                        <ThemedText className="font-bold text-base text-brand-blue">
+                          {routeLabel}
+                        </ThemedText>
+                        <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
+                      </View>
                       <ThemedText type="caption" className="text-xs mt-0.5">
                         {aircraftReg} {aircraftType ? `(${aircraftType})` : ""}
                       </ThemedText>
@@ -205,7 +213,7 @@ export default function PilotPlansScreen() {
                       </ThemedText>
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>
