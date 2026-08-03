@@ -1,15 +1,20 @@
 import { ThemedText } from "@/components/themed-text";
+import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
 
 
-export const StatusCard = ({ departure_airport_code, arrival_airport_code, aircraft_registration, callsign, aircraft_model, status, status_color }: {
+export const StatusCard = ({ departure_airport_code, arrival_airport_code, aircraft_registration, callsign, aircraft_model, status_badge_label, status_badge_icon, status_badge_icon_color, status_badge_bg, status_badge_border, status_badge_text_color }: {
     departure_airport_code: string;
     arrival_airport_code: string;
     aircraft_registration: string;
     callsign: string;
     aircraft_model: string;
-    status: string;
-    status_color: string;
+    status_badge_label: string;
+    status_badge_icon: string;
+    status_badge_icon_color: string;
+    status_badge_bg: string;
+    status_badge_border: string;
+    status_badge_text_color: string;
 }) => {
     return (
         <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm flex-row items-center justify-between">
@@ -21,11 +26,19 @@ export const StatusCard = ({ departure_airport_code, arrival_airport_code, aircr
                     {aircraft_model || `Callsign: ${callsign}` || `${aircraft_registration}` || "N/A"}
                 </ThemedText>
             </View>
-            <View className={`px-3 py-1 rounded-full border ${status_color}`}>
-                <ThemedText className="text-xs font-bold">
-                    {status}
+            <View
+                className={`flex-row items-center gap-1.5 px-3 py-1 rounded-full border ${status_badge_bg} ${status_badge_border}`}
+            >
+                <Ionicons
+                    name={status_badge_icon as any}
+                    size={14}
+                    color={status_badge_icon_color}
+                />
+                <ThemedText className={`text-xs font-bold ${status_badge_text_color}`}>
+                    {status_badge_label}
                 </ThemedText>
             </View>
         </View>
     );
 }
+

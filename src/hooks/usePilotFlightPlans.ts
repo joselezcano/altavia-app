@@ -32,11 +32,26 @@ export function usePilotFlightPlans(pilotId: string | undefined) {
           });
         });
 
-        // Sort flight plans by creation date (newest first)
+        // Sort flight plans by earliest flight departure UTC time (ascending)
         plans.sort((a, b) => {
-          const timeA = a.created_at instanceof Date ? a.created_at.getTime() : 0;
-          const timeB = b.created_at instanceof Date ? b.created_at.getTime() : 0;
-          return timeB - timeA;
+          const timeA = a.flight_plan?.departure?.datetime_utc
+            ? new Date(a.flight_plan.departure.datetime_utc).getTime()
+            : 0;
+          const timeB = b.flight_plan?.departure?.datetime_utc
+            ? new Date(b.flight_plan.departure.datetime_utc).getTime()
+            : 0;
+
+          const dateA = !isNaN(timeA) && timeA > 0 ? timeA : Infinity;
+          const dateB = !isNaN(timeB) && timeB > 0 ? timeB : Infinity;
+
+          if (dateA !== dateB) {
+            return dateA - dateB;
+          }
+
+          // Fallback to update date if departure dates are equal or missing
+          const updatedA = a.updated_at instanceof Date ? a.updated_at.getTime() : 0;
+          const updatedB = b.updated_at instanceof Date ? b.updated_at.getTime() : 0;
+          return updatedA - updatedB;
         });
 
         return plans;

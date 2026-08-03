@@ -109,8 +109,12 @@ export default function ViewFlightPlanScreen() {
                                     aircraft_registration={ac?.registration}
                                     callsign={fd?.callsign}
                                     aircraft_model={params.aircraftModel}
-                                    status={status.label}
-                                    status_color={status.bg}
+                                    status_badge_label={status.label}
+                                    status_badge_icon={status.icon}
+                                    status_badge_icon_color={status.iconColor}
+                                    status_badge_bg={status.badgeBg}
+                                    status_badge_border={status.badgeBorder}
+                                    status_badge_text_color={status.textColor}
                                 />
 
                                 {/* Aeronave y Detalles del Vuelo */}
