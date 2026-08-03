@@ -29,7 +29,7 @@ export default function ViewFlightPlanScreen() {
     const handleEdit = () => {
         if (!plan) return;
         router.push({
-            pathname: "/flights/create-flight-plan",
+            pathname: "./create-flight-plan",
             params: {
                 flightPlanId: plan.id,
                 reservationId: plan.aircraft_reservation_id,
