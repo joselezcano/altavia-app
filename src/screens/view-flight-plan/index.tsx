@@ -42,13 +42,7 @@ export default function ViewFlightPlanScreen() {
             {/* Header */}
             <View className="flex-row items-center justify-between mb-4 mt-2">
                 <TouchableOpacity
-                    onPress={() => {
-                        if (router.canGoBack()) {
-                            router.back();
-                        } else {
-                            router.replace("/(pilot)/flights");
-                        }
-                    }}
+                    onPress={() => router.back()}
                     className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
                     activeOpacity={0.8}
                 >

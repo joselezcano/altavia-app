@@ -42,7 +42,7 @@ export default function PilotFlightDetailsScreen() {
     paxCount?: string;
   }>();
 
-  const { data: reservations = [], isLoading } = usePilotReservations(user?.uid);
+  const { data: reservations = [], isLoading: isLoadingReservations } = usePilotReservations(user?.uid);
 
   const reservation = useMemo(() => {
     if (!params.reservationId || !reservations.length) return null;
@@ -54,11 +54,13 @@ export default function PilotFlightDetailsScreen() {
   const { data: assignedPilots = [], isLoading: isLoadingPilots } = useReservationPilots(reservation?.pilot_ids);
 
   const targetReservationId = params.reservationId || reservation?.id;
-  const { data: existingFlightPlan } = useFlightPlanByReservation(
+  const { data: existingFlightPlan, isLoading: isLoadingFlightPlan } = useFlightPlanByReservation(
     targetReservationId,
     params.originIdent,
     params.destinationIdent
   );
+
+  const isLoading = isLoadingReservations || isLoadingAircraft || isLoadingPilots || isLoadingFlightPlan;
 
   const formatFlightTime = (hours: number) => {
     if (!hours || isNaN(hours) || hours <= 0) return "N/A";
@@ -148,7 +150,7 @@ export default function PilotFlightDetailsScreen() {
           <TouchableOpacity
             onPress={() => {
               router.push({
-                pathname: "./aircraft-details",
+                pathname: "./aircraft-specs",
                 params: { id: targetAircraftId },
               });
             }}
@@ -366,7 +368,7 @@ export default function PilotFlightDetailsScreen() {
                     Pilotos
                   </ThemedText>
 
-                  {isLoadingPilots ? (
+                  {isLoading ? (
                     <View className="py-4 items-center justify-center">
                       <ActivityIndicator size="small" color="#0f1e3d" />
                     </View>

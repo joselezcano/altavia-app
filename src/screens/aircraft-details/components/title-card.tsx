@@ -1,27 +1,32 @@
 import { ThemedText } from "@/components/themed-text";
-import type { AircraftSpecs } from "@/types/owner";
 import { View } from "react-native";
 
-
-export function TitleCard({
-    basic_specs
+export function AircraftDetailsTitleCard({
+    title,
+    model,
+    registration,
 }: {
-    basic_specs: AircraftSpecs["basic_specs"]
+    title: string;
+    model: string;
+    registration: string;
 }) {
     return (
-        <View className="bg-brand-blue rounded-3xl p-5 mb-4 flex-row justify-between items-center">
-            <View className="flex-1">
-                <View className="mb-2">
-                    <ThemedText className="font-bold text-xl text-white">
-                        {basic_specs.model}
-                    </ThemedText>
-                </View>
-                <View className="self-start bg-brand-gold px-4 py-1.5 rounded-full">
-                    <ThemedText className="text-brand-blue text-xs font-bold uppercase tracking-wider">
-                        {basic_specs.registration}
-                    </ThemedText>
-                </View>
+        <View className="bg-brand-blue rounded-3xl p-5 mb-5 flex-row justify-between items-center shadow-sm">
+            <View className="flex-1 mr-4">
+                <ThemedText className="font-bold text-xl text-white">
+                    {model || "Aeronave"}
+                </ThemedText>
+                <ThemedText type="caption" className="text-slate-300 text-md mt-1 font-semibold">
+                    {title}
+                </ThemedText>
             </View>
+            {registration && (
+                <View className="bg-brand-gold px-4 py-1.5 rounded-full">
+                    <ThemedText className="text-brand-blue text-xs font-bold uppercase tracking-wider">
+                        {registration}
+                    </ThemedText>
+                </View>
+            )}
         </View>
     );
 }

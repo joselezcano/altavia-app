@@ -5,13 +5,14 @@ export default function AircraftsLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="add-aircraft" />
-      <Stack.Screen name="aircraft-details" />
       <Stack.Screen name="aircraft-calendar" />
+      <Stack.Screen name="aircraft-details" />
+      <Stack.Screen name="aircraft-specs" />
+      <Stack.Screen name="assign-pilots" />
       <Stack.Screen name="base-airport" />
       <Stack.Screen name="day-schedule" />
-      <Stack.Screen name="event-recurrence" />
       <Stack.Screen name="edit-event-recurrence" />
-      <Stack.Screen name="assign-pilots" />
+      <Stack.Screen name="event-recurrence" />
       <Stack.Screen name="pilot-details" />
     </Stack>
   );

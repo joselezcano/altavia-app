@@ -1,8 +1,13 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAircraftDetails } from "@/hooks/useAircraftDetails";
-import { AircraftDetailsTitleCard } from "@/screens/aircraft-details/components/aircraft-details-title-card";
-import { AircraftToolBar } from "@/screens/aircraft-details/components/tool-bar";
+import { AircraftDetailsHeader } from "@/screens/aircraft-details/components/header";
+import { AircraftDetailsTitleCard } from "@/screens/aircraft-details/components/title-card";
+import { BasicSpecsCard } from "@/screens/aircraft-specs/components/basic-specs";
+import { NotesCard } from "@/screens/aircraft-specs/components/notes-card";
+import { OperatingPerformanceCard } from "@/screens/aircraft-specs/components/operating-performance-card";
+import { SecurityEmergencyCard } from "@/screens/aircraft-specs/components/security-emergency-card";
+import { TechnicalSpecsCard } from "@/screens/aircraft-specs/components/technical-specs-card";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -11,10 +16,9 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
-import { AircraftDetailsHeader } from "./components/header";
 
 
-export default function AircraftDetailsScreen() {
+export default function AircraftSpecsScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -54,22 +58,40 @@ export default function AircraftDetailsScreen() {
         );
     }
 
-    const { basic_specs } = aircraft;
+    const { basic_specs, technical_specs, operating_specs, emergency, notes } =
+        aircraft;
 
     return (
         <ThemedView className="flex-1 px-4 pt-2">
             {/* Header */}
-            <AircraftDetailsHeader header="Aeronave" />
+            <AircraftDetailsHeader header="Especificaciones" />
 
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
                 {/* Title Section Card */}
-                <AircraftDetailsTitleCard basic_specs={basic_specs} />
+                <AircraftDetailsTitleCard
+                    title="Especificaciones de la Aeronave"
+                    model={basic_specs.model}
+                    registration={basic_specs.registration}
+                />
 
-                {/* Tool Bar */}
-                <AircraftToolBar
-                    id={id}
+                {/* 1. Basic Specs Card */}
+                <BasicSpecsCard
+                    airport={aircraft.base_airport}
                     basic_specs={basic_specs}
                 />
+
+                {/* 2. Technical Specs Card */}
+                <TechnicalSpecsCard technical_specs={technical_specs} />
+
+                {/* 3. Operating/Performance Specs Card */}
+                <OperatingPerformanceCard operating_specs={operating_specs} />
+
+                {/* 4. Emergency Card */}
+                <SecurityEmergencyCard emergency={emergency} />
+
+                {/* 5. Notes/Observations Card */}
+                <NotesCard notes={notes} />
+
             </ScrollView>
         </ThemedView>
     );
