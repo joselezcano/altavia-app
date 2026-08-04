@@ -2,7 +2,9 @@ import { LoadingCard } from "@/components/loading-card";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
+import { useAircraftDetails } from "@/hooks/useAircraftDetails";
 import { useAuth } from "@/hooks/useAuth";
+import { useFlightPlanByReservation } from "@/hooks/useFlightPlanByReservation";
 import { useOwnerReservations } from "@/hooks/useOwnerReservations";
 import { getStatusBadge, INTERNAL_STATUS_DEFINITIONS } from "@/utils/flight-status";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -34,13 +36,23 @@ export default function FlightDetailsScreen() {
 
   const {
     data: reservations = [],
-    isLoading,
+    isLoading: isLoadingReservation,
   } = useOwnerReservations(user?.uid);
 
   const reservation = useMemo(() => {
     if (!reservationId || !reservations.length) return null;
     return reservations.find((r) => r.id === reservationId) || null;
   }, [reservationId, reservations]);
+
+  const { data: existingFlightPlan, isLoading: isLoadingFlightPlan } = useFlightPlanByReservation(
+    reservationId,
+    reservation?.trip.origin_airport_ident,
+    reservation?.trip.destination_airport_ident
+  );
+
+  const { data: aircraft, isLoading: isLoadingAircraft } = useAircraftDetails(reservation?.aircraftId);
+
+  let isLoading = isLoadingReservation || isLoadingFlightPlan || isLoadingAircraft;
 
   const openStatusModal = () => {
     if (reservation) {
@@ -116,7 +128,7 @@ export default function FlightDetailsScreen() {
           <TouchableOpacity
             onPress={() =>
               router.push({
-                pathname: "/flights/assign-pilots",
+                pathname: "./assign-pilots",
                 params: {
                   reservationId: reservation.id,
                 },
@@ -126,19 +138,27 @@ export default function FlightDetailsScreen() {
             activeOpacity={0.8}
           >
             <MaterialCommunityIcons name="account-tie-hat" size={20} color="#FFFFFF" />
-            <ThemedText className="text-[9.5px] font-bold text-white text-center" numberOfLines={1}>
+            <ThemedText className="text-sm font-bold text-white text-center" numberOfLines={1}>
               Tripulación{reservation.pilot_ids && reservation.pilot_ids.length > 0 ? ` (${reservation.pilot_ids.length})` : ""}
             </ThemedText>
           </TouchableOpacity>
 
           {/* Plan de Vuelo Button (Dummy) */}
           <TouchableOpacity
-            onPress={() => { }}
+            onPress={() =>
+              router.push({
+                pathname: "./view-flight-plan",
+                params: {
+                  flightPlanId: existingFlightPlan?.id,
+                  aircraftModel: aircraft?.basic_specs.model,
+                },
+              })
+            }
             className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
             activeOpacity={0.8}
           >
             <Ionicons name="document-text-outline" size={20} color="#FFFFFF" />
-            <ThemedText className="text-[9.5px] font-bold text-white text-center" numberOfLines={1}>
+            <ThemedText className="text-sm font-bold text-white text-center" numberOfLines={1}>
               Plan de Vuelo
             </ThemedText>
           </TouchableOpacity>
@@ -147,7 +167,7 @@ export default function FlightDetailsScreen() {
           <TouchableOpacity
             onPress={() =>
               router.push({
-                pathname: "/flights/flight-tracker",
+                pathname: "./flight-tracker",
                 params: { fa_flight_id: reservation.fa_flight_id ?? "" },
               })
             }
@@ -155,7 +175,7 @@ export default function FlightDetailsScreen() {
             activeOpacity={0.8}
           >
             <Ionicons name="location-outline" size={20} color="#FFFFFF" />
-            <ThemedText className="text-[9.5px] font-bold text-white text-center" numberOfLines={1}>
+            <ThemedText className="text-sm font-bold text-white text-center" numberOfLines={1}>
               Tracking
             </ThemedText>
           </TouchableOpacity>

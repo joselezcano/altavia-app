@@ -209,7 +209,7 @@ export default function PilotFlightDetailsScreen() {
 
     if (existingFlightPlan) {
       router.push({
-        pathname: "/flights/view-flight-plan",
+        pathname: "./view-flight-plan",
         params: {
           flightPlanId: existingFlightPlan.id,
           aircraftModel: aircraft?.basic_specs.model,
