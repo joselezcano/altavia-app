@@ -1,69 +1,35 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
+import { useManagedAircrafts } from "@/hooks/useManagedAircrafts";
 import { AircraftSpecs } from "@/types/owner";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRouter } from "expo-router";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
   FlatList,
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface AircraftSpecsDoc extends AircraftSpecs {
   id: string;
 }
 
-export default function ListAircraftsScreen() {
-  const { user } = useAuth();
+export default function ManagerAircraftsScreen() {
+  const { profileData } = useAuth();
   const router = useRouter();
-  const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets();
-  const [aircrafts, setAircrafts] = useState<AircraftSpecsDoc[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user) return;
+  // TanStack Queries (fetching aircrafts and owner pilots)
+  const isEncargado = profileData?.isEncargado === true;
+  const managedAircraftsList = profileData?.managed_aircrafts || [];
 
-    // Real-time listener for the user's aircraft specifications
-    const q = query(
-      collection(db, "AircraftSpecs"),
-      where("ownerId", "==", user.uid)
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const specsList: AircraftSpecsDoc[] = [];
-        snapshot.forEach((doc) => {
-          specsList.push({
-            id: doc.id,
-            ...(doc.data() as AircraftSpecs),
-          });
-        });
-        setAircrafts(specsList);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching aircrafts:", error);
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user]);
-
-  const handleAddAircraft = () => {
-    router.push("/aircrafts/add-aircraft");
-  };
+  const { data: aircrafts = [], isLoading } = useManagedAircrafts(
+    isEncargado ? managedAircraftsList : []
+  );
 
   const renderAircraftItem = ({ item }: { item: AircraftSpecsDoc }) => {
-    const { model, type, registration, pax_count } = item.basic_specs;
+    const { model, registration, pax_count } = item.basic_specs;
 
     return (
       <View className="bg-brand-white border border-slate-100 rounded-2xl p-5 mb-4 shadow-sm">
@@ -110,34 +76,35 @@ export default function ListAircraftsScreen() {
     );
   };
 
+  if (!isEncargado) {
+    return (
+      <ThemedView className="flex-1 justify-center items-center px-6">
+        <Ionicons name="lock-closed-outline" size={48} color="#94A3B8" />
+        <ThemedText type="subtitle" className="text-center mt-4 text-slate-700">
+          Acceso Restringido
+        </ThemedText>
+        <ThemedText type="caption" className="text-center text-slate-500 mt-2">
+          Esta sección está disponible únicamente para pilotos con rango de Encargado.
+        </ThemedText>
+      </ThemedView>
+    );
+  }
+
   return (
-    <ThemedView className="flex-1 px-4 pt-2" style={{ paddingTop: insets.top }}>
+    <ThemedView className="flex-1 px-4 pt-2">
       {/* Header */}
-      <View className="flex-row items-center mb-6 mt-2">
-        <TouchableOpacity
-          onPress={() => navigation.openDrawer()}
-          className="p-2 mr-3 bg-white rounded-xl shadow-sm border border-slate-100 active:bg-slate-50"
-        >
-          <Ionicons name="menu" size={24} color="#0f1e3d" />
-        </TouchableOpacity>
-        <View className="flex-1">
+      <View className="flex-row justify-between items-center mb-6 mt-2">
+        <View>
           <ThemedText
             type="caption"
             className="uppercase font-bold text-brand-gold tracking-widest text-xs"
           >
-            Aeronaves Registradas
+            Gestión de Flota
           </ThemedText>
-          <ThemedText type="title" className="text-2xl font-bold mt-0.5 text-brand-blue">
-            Mis Aviones
+          <ThemedText type="title" className="text-2xl font-bold mt-0.5">
+            Aviones a mi Cargo
           </ThemedText>
         </View>
-
-        <TouchableOpacity
-          onPress={handleAddAircraft}
-          className="bg-brand-blue w-10 h-10 rounded-full items-center justify-center shadow-sm"
-        >
-          <Ionicons name="add" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
       </View>
 
       {/* Main content */}
@@ -147,25 +114,16 @@ export default function ListAircraftsScreen() {
           <ThemedText className="text-slate-500 mt-2">Cargando flota...</ThemedText>
         </View>
       ) : aircrafts.length === 0 ? (
-        <View className="flex-1 justify-center items-center px-6">
-          <View className="w-20 h-20 bg-slate-100 rounded-full items-center justify-center mb-4">
-            <Ionicons name="airplane" size={40} color="#94A3B8" />
+        <View className="flex-1 justify-center items-center px-6 pb-12">
+          <View className="w-16 h-16 bg-slate-100 rounded-full items-center justify-center mb-4">
+            <Ionicons name="airplane-outline" size={32} color="#94A3B8" />
           </View>
           <ThemedText type="subtitle" className="text-center mb-2 text-slate-700">
-            No tienes aeronaves registradas
+            Sin aeronaves asignadas
           </ThemedText>
-          <ThemedText type="caption" className="text-center text-slate-500 mb-6">
-            Registra los datos técnicos, de performance y seguridad de tus aviones para poder generar planes de vuelo.
+          <ThemedText type="caption" className="text-center text-slate-500">
+            El propietario aún no ha puesto aeronaves a tu cargo.
           </ThemedText>
-          <TouchableOpacity
-            onPress={handleAddAircraft}
-            className="bg-brand-blue px-6 py-3 rounded-xl flex-row items-center gap-2 shadow-sm"
-          >
-            <Ionicons name="add" size={20} color="#FFFFFF" />
-            <ThemedText className="text-white font-semibold">
-              Agregar Primera Aeronave
-            </ThemedText>
-          </TouchableOpacity>
         </View>
       ) : (
         <FlatList

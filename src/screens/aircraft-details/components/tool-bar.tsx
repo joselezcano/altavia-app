@@ -19,7 +19,7 @@ export function AircraftToolBar({
                 <TouchableOpacity
                     onPress={() => {
                         router.push({
-                            pathname: "./aircraft-calendar",
+                            pathname: "./details/calendar",
                             params: {
                                 id,
                                 model: basic_specs.model,
@@ -42,7 +42,7 @@ export function AircraftToolBar({
                 <TouchableOpacity
                     onPress={() => {
                         router.push({
-                            pathname: "./base-airport",
+                            pathname: "./details/base-airport",
                             params: {
                                 id,
                                 model: basic_specs.model,
@@ -66,7 +66,7 @@ export function AircraftToolBar({
                 <TouchableOpacity
                     onPress={() => {
                         router.push({
-                            pathname: "./assign-pilots",
+                            pathname: "./details/pilots",
                             params: {
                                 id,
                                 model: basic_specs.model,
@@ -89,7 +89,7 @@ export function AircraftToolBar({
                 <TouchableOpacity
                     onPress={() => {
                         router.push({
-                            pathname: "./aircraft-specs",
+                            pathname: "./details/aircraft-specs",
                             params: {
                                 id,
                                 model: basic_specs.model,

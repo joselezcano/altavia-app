@@ -137,7 +137,7 @@ export default function AssignFlightPilotsScreen() {
             onPress={() => {
               if (pilotUid) {
                 router.push({
-                  pathname: "/aircrafts/pilot-details",
+                  pathname: "./pilot-details",
                   params: { pilotUid },
                 });
               }

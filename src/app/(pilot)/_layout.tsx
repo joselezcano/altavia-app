@@ -49,7 +49,7 @@ export default function PilotLayout() {
                 />
 
                 <Tabs.Screen
-                    name="manage-fleet"
+                    name="aircrafts"
                     options={{
                         title: "Mi Flota",
                         // href: isEncargado ? undefined : null,

@@ -1,10 +1,10 @@
 import { Stack } from "expo-router";
 
-export default function AircraftsLayout() {
+export default function AircraftPilotsLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="add-aircraft" />
+      <Stack.Screen name="pilot-details" />
     </Stack>
   );
 }
