@@ -1,7 +1,7 @@
+import { DetailRow } from "@/components/detail-row";
 import { ThemedText } from "@/components/themed-text";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { View } from "react-native";
-import { DetailRow } from "./detail-row";
 
 
 export const PilotCard = ({ name, telephone, observations }: { name: string; telephone: string; observations: string; }) => {

@@ -1,5 +1,5 @@
+import { DetailRow } from "@/components/detail-row";
 import { ThemedText } from "@/components/themed-text";
-import { DetailRow } from "@/screens/view-flight-plan/components/detail-row";
 import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
 

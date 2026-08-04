@@ -1,8 +1,8 @@
+import { BadgesList } from "@/components/badges-list";
+import { DetailRow } from "@/components/detail-row";
 import { ThemedText } from "@/components/themed-text";
 import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
-import { BadgesList } from "./badges-list";
-import { DetailRow } from "./detail-row";
 
 export const RoutePerformanceCard = ({ cruising_speed_knots, cruising_altitude_feet, waypoints, encoded_route, eet_hours, eet_minutes, fuel_hours, fuel_minutes }: {
     cruising_speed_knots: number;

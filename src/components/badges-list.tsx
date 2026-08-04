@@ -5,9 +5,11 @@ import { View } from "react-native";
 export const BadgesList = ({
     label,
     items,
+    map,
 }: {
     label: string;
     items: string[] | string | undefined | null;
+    map?: Record<string, string>;
 }) => {
     const list = Array.isArray(items)
         ? items
@@ -29,7 +31,7 @@ export const BadgesList = ({
                             className="bg-slate-100 border border-slate-200/65 px-2.5 py-1 rounded-md"
                         >
                             <ThemedText className="text-xs font-semibold text-slate-700">
-                                {String(item)}
+                                {map && map[item] ? `${item} - ${map[item]}` : String(item)}
                             </ThemedText>
                         </View>
                     ))}

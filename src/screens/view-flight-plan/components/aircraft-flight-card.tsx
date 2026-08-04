@@ -1,6 +1,6 @@
+import { BadgesList } from "@/components/badges-list";
+import { DetailRow } from "@/components/detail-row";
 import { ThemedText } from "@/components/themed-text";
-import { BadgesList } from "@/screens/view-flight-plan/components/badges-list";
-import { DetailRow } from "@/screens/view-flight-plan/components/detail-row";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { View } from "react-native";
 

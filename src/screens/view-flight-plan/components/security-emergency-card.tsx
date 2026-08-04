@@ -1,9 +1,9 @@
+import { BadgesList } from "@/components/badges-list";
+import { DetailRow } from "@/components/detail-row";
 import { ThemedText } from "@/components/themed-text";
 import { DinghiesCapacity, EmergencyRadioArray, LifeJacketArray, SurvivalEquipmentArray } from "@/types/owner";
 import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
-import { BadgesList } from "./badges-list";
-import { DetailRow } from "./detail-row";
 
 
 export const SecurityEmergencyCard = ({
