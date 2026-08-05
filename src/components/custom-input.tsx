@@ -1,14 +1,13 @@
 import { ThemedText } from "@/components/themed-text";
-import { FlightPlan } from "@/types/pilot";
-import { Control, Controller, FieldErrors, Path } from "react-hook-form";
+import { Control, Controller, FieldErrors, FieldValues, Path } from "react-hook-form";
 import { TextInput, View } from "react-native";
 import { z } from "zod";
 
 
-interface CustomInputProps {
-    control: Control<FlightPlan>;
+interface CustomInputProps<T extends FieldValues> {
+    control: Control<T>;
     label?: string;
-    name: Path<FlightPlan>;
+    name: Path<T>;
     integer?: boolean;
     uppercase?: boolean;
     enumSchema?: z.ZodEnum<any>;
@@ -21,7 +20,7 @@ interface CustomInputProps {
     keyboardType?: "default" | "numeric";
     enableKeyboardSuggestions?: boolean;
     textContentType?: "username" | "password" | "emailAddress" | "name" | "telephoneNumber" | "none";
-    errors: FieldErrors<FlightPlan>;
+    errors: FieldErrors<T>;
 }
 
 function getErrorMessage(errors: Record<string, any>, path: string): string | undefined {
@@ -35,7 +34,7 @@ function getErrorMessage(errors: Record<string, any>, path: string): string | un
 }
 
 
-export function CustomInput({ control, name, placeholder, maxLength, errors, label, integer, uppercase, enumSchema, enumSeparator, route, keyboardType = "default", enableKeyboardSuggestions = true, textContentType = "none", multiline = false, numberOfLines = 1 }: CustomInputProps) {
+export function CustomInput<T extends FieldValues>({ control, name, placeholder, maxLength, errors, label, integer, uppercase, enumSchema, enumSeparator, route, keyboardType = "default", enableKeyboardSuggestions = true, textContentType = "none", multiline = false, numberOfLines = 1 }: CustomInputProps<T>) {
 
     const getDisplayValue = (value: any): string => {
         const separator = route ? " " : ", ";

@@ -1,10 +1,10 @@
+import { CustomInput } from "@/components/custom-input";
 import { ThemedText } from "@/components/themed-text";
 import { FlightPlan } from "@/types/pilot";
 import { Control, FieldErrors } from "react-hook-form";
 import {
     View
 } from "react-native";
-import { CustomInput } from "./custom-input";
 
 
 export const fieldsToValidate2 = [

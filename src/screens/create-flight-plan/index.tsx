@@ -1,3 +1,4 @@
+import { FormNavigationButtons } from "@/components/form-navigation-buttons";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
@@ -16,7 +17,6 @@ import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from "fir
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
-    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
@@ -24,6 +24,7 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 
@@ -36,6 +37,7 @@ const normalizeArray = (val: any): string[] => {
 
 export default function CreateFlightPlanScreen() {
     const { user, userData, profileData } = useAuth();
+    const insets = useSafeAreaInsets();
     const router = useRouter();
     const queryClient = useQueryClient();
     const params = useLocalSearchParams<{
@@ -359,32 +361,17 @@ export default function CreateFlightPlanScreen() {
     };
 
 
-    // Helper to validate current step before proceeding
-    const handleNext = async () => {
-        let fieldsToValidate: string[] = [];
-
-        if (currentStep === 1) {
-            fieldsToValidate = fieldsToValidate1;
-        } else if (currentStep === 2) {
-            fieldsToValidate = fieldsToValidate2;
-        } else if (currentStep === 3) {
-            fieldsToValidate = fieldsToValidate3;
-        }
-
-        const isValid = await trigger(fieldsToValidate as any);
-        if (isValid) {
-            setCurrentStep((prev) => prev + 1);
-        } else {
-            Alert.alert("Campos requeridos", "Por favor corrige los errores antes de continuar.");
-        }
-    };
+    // Always fill fieldsToValidate for all steps, except the last one.
+    // Verify that fieldsToValidate.length + 1 = number of form steps
+    const fieldsToValidate = [fieldsToValidate1, fieldsToValidate2, fieldsToValidate3];
 
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             className="flex-1 bg-brand-light"
+            style={{ paddingTop: insets.top }}
         >
-            <ThemedView className="flex-1 px-4 pt-2">
+            <ThemedView className="flex-1 px-4">
                 {/* Cabecera con botón de retroceso */}
                 <View className="flex-row items-center justify-between mb-4 mt-2">
                     <TouchableOpacity
@@ -436,53 +423,22 @@ export default function CreateFlightPlanScreen() {
                     {currentStep === 2 && <FormStep2 control={control} errors={errors} />}
 
                     {/* PASO 3: Rendimiento y Equipamiento de Emergencia */}
-                    {currentStep === 3 && <FormStep3 control={control} errors={errors} watch={watch} />}
+                    {currentStep === 3 && <FormStep3 control={control} errors={errors} />}
 
                     {/* PASO 4: Datos del Piloto y Envío */}
                     {currentStep === 4 && <FormStep4 control={control} errors={errors} />}
 
                     {/* Botones de Navegación del Formulario */}
-                    <View className="flex-row gap-3 mt-4 mb-10">
-                        {currentStep > 1 && (
-                            <TouchableOpacity
-                                onPress={() => setCurrentStep((prev) => prev - 1)}
-                                disabled={isSubmitting}
-                                className="flex-1 bg-slate-100 py-3.5 rounded-xl items-center justify-center border border-slate-200"
-                            >
-                                <ThemedText className="text-slate-700 font-bold">
-                                    Anterior
-                                </ThemedText>
-                            </TouchableOpacity>
-                        )}
-
-                        {currentStep < 4 ? (
-                            <TouchableOpacity
-                                onPress={handleNext}
-                                className="flex-1 bg-brand-blue py-3.5 rounded-xl items-center justify-center shadow-sm"
-                            >
-                                <ThemedText className="text-white font-bold">
-                                    Siguiente
-                                </ThemedText>
-                            </TouchableOpacity>
-                        ) : (
-                            <TouchableOpacity
-                                onPress={handleSubmit(onSubmit as any)}
-                                disabled={isSubmitting}
-                                className="flex-1 bg-brand-gold py-3.5 rounded-xl items-center justify-center shadow-md flex-row gap-2"
-                            >
-                                {isSubmitting ? (
-                                    <ActivityIndicator size="small" color="#FFFFFF" />
-                                ) : (
-                                    <>
-                                        <Ionicons name="cloud-upload" size={20} color="#FFFFFF" />
-                                        <ThemedText className="text-white font-bold">
-                                            {params.flightPlanId ? "Guardar Cambios" : "Enviar Plan"}
-                                        </ThemedText>
-                                    </>
-                                )}
-                            </TouchableOpacity>
-                        )}
-                    </View>
+                    <FormNavigationButtons
+                        currentStep={currentStep}
+                        setCurrentStep={setCurrentStep}
+                        isSubmitting={isSubmitting}
+                        handleSubmit={handleSubmit(onSubmit)}
+                        submitLabel={params.flightPlanId ? "Guardar Cambios" : "Enviar Plan"}
+                        submitIcon="cloud-upload"
+                        fieldsToValidate={fieldsToValidate}
+                        trigger={trigger}
+                    />
                 </ScrollView>
             </ThemedView>
         </KeyboardAvoidingView>

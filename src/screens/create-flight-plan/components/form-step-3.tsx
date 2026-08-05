@@ -1,12 +1,12 @@
+import { CustomInput } from "@/components/custom-input";
 import { ThemedText } from "@/components/themed-text";
 import { EmergencyRadioSchema, LifeJacketSchema, SurvivalEquipmentSchema } from "@/types/owner";
 import { FlightPlan } from "@/types/pilot";
-import { Control, Controller, FieldErrors, UseFormWatch } from "react-hook-form";
+import { Control, Controller, FieldErrors, useWatch } from "react-hook-form";
 import {
     Switch,
     View
 } from "react-native";
-import { CustomInput } from "./custom-input";
 
 
 export const fieldsToValidate3 = [
@@ -24,14 +24,15 @@ export const fieldsToValidate3 = [
 
 export function FormStep3({
     control,
-    watch,
     errors
 }: {
     control: Control<FlightPlan>;
-    watch: UseFormWatch<FlightPlan>;
     errors: FieldErrors<FlightPlan>;
 }) {
-    const dinghiesCarried = watch("flight_plan.emergency.dinghies_capacity.carried");
+    const dinghiesCarried = useWatch({
+        control,
+        name: "flight_plan.emergency.dinghies_capacity.carried",
+    });
 
     return (<View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
         <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-2">
@@ -103,7 +104,7 @@ export function FormStep3({
         {/* Radio de Emergencia */}
         <CustomInput
             control={control}
-            label="Equipamiento Radio de Emergencia"
+            label="Radio de Emergencia"
             name="flight_plan.emergency.radio_equipment"
             enumSchema={EmergencyRadioSchema}
             enumSeparator=", "
@@ -160,7 +161,7 @@ export function FormStep3({
 
         {/* Detalles de Balsas */}
         {dinghiesCarried && (
-            <View className="bg-slate-50 rounded-xl p-4 border border-slate-200 gap-3 mt-2">
+            <View className="bg-white rounded-xl p-4 border border-slate-200 gap-3 mt-2">
                 <ThemedText className="font-bold text-xs text-brand-blue uppercase tracking-wider">
                     Detalles de Balsas
                 </ThemedText>
@@ -190,7 +191,7 @@ export function FormStep3({
                 />
 
                 {/* ¿Tienen cubierta de protección? */}
-                <View className="flex-row justify-between items-center bg-white border border-slate-200 rounded-lg px-3 py-2">
+                <View className="flex-row justify-between items-center bg-white border border-slate-200 rounded-lg px-3 py-2 mt-2 mb-1">
                     <ThemedText type="caption" className="font-bold text-xs">¿Tienen cubierta de protección?</ThemedText>
                     <Controller
                         control={control}
@@ -207,10 +208,10 @@ export function FormStep3({
                     />
                 </View>
 
-                {/* Color de la Balsa */}
+                {/* Color de Balsas */}
                 <CustomInput
                     control={control}
-                    label="Color de la Balsa"
+                    label="Color de Balsas"
                     name="flight_plan.emergency.dinghies_capacity.color"
                     uppercase={true}
                     placeholder=""

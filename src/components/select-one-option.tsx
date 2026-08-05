@@ -1,22 +1,32 @@
 import { ThemedText } from "@/components/themed-text";
-import { FlightPlan } from "@/types/pilot";
-import { Control, Controller, FieldErrors, Path } from "react-hook-form";
+import { Control, Controller, FieldErrors, FieldValues, Path } from "react-hook-form";
 import {
     TouchableOpacity,
     View
 } from "react-native";
 
 
-interface SelectOneOptionProps {
-    control: Control<FlightPlan>
-    errors: FieldErrors<FlightPlan>
+interface SelectOneOptionProps<T extends FieldValues> {
+    control: Control<T>
+    errors: FieldErrors<T>
     label: string
-    name: Path<FlightPlan>
+    name: Path<T>
     options: string[]
 }
 
+function getErrorMessage(errors: Record<string, any>, path: string): string | undefined {
+    const keys = path.split(".");
+    let current: any = errors;
+    for (const key of keys) {
+        if (!current) return undefined;
+        current = current[key];
+    }
+    return current?.message as string | undefined;
+}
 
-export function SelectOneOption({ control, errors, label, name, options }: SelectOneOptionProps) {
+
+export function SelectOneOption<T extends FieldValues>({ control, errors, label, name, options }: SelectOneOptionProps<T>) {
+    const errorMessage = getErrorMessage(errors, name);
     return (
         <View>
             <ThemedText type="caption" className="font-bold mb-1.5">{label}</ThemedText>
@@ -45,9 +55,9 @@ export function SelectOneOption({ control, errors, label, name, options }: Selec
                     </View>
                 )}
             />
-            {errors.flight_plan?.aircraft?.wake_turbulence && (
+            {errorMessage && (
                 <ThemedText className="text-red-500 text-xs mt-1">
-                    {errors.flight_plan.aircraft.wake_turbulence.message}
+                    {errorMessage}
                 </ThemedText>
             )}
         </View>

@@ -1,3 +1,5 @@
+import { CustomInput } from "@/components/custom-input";
+import { SelectOneOption } from "@/components/select-one-option";
 import { ThemedText } from "@/components/themed-text";
 import { EquipmentSchema, FlightRulesSchema, WakeTurbulenceCategorySchema } from "@/types/owner";
 import { FlightPlan, FlightTypesSchema } from "@/types/pilot";
@@ -5,8 +7,6 @@ import { Control, FieldErrors } from "react-hook-form";
 import {
     View
 } from "react-native";
-import { CustomInput } from "./custom-input";
-import { SelectOneOption } from "./select-one-option";
 
 
 export const fieldsToValidate1 = [

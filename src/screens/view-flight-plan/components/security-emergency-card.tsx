@@ -28,7 +28,7 @@ export const SecurityEmergencyCard = ({
                 </ThemedText>
             </View>
             <DetailRow label="Personas a Bordo (POB)" value={String(pax_count)} />
-            <BadgesList label="Equipamiento Radio Emergencia" items={radio_equipment} />
+            <BadgesList label="Radio de Emergencia" items={radio_equipment} />
             <BadgesList label="Equipos de Supervivencia" items={survival_equipment} />
             <BadgesList label="Chalecos Salvavidas" items={life_jacket_equipment} />
             <DetailRow

@@ -30,7 +30,7 @@ export const AircraftTypeSchema = z
     .trim()
     // Enforces ICAO Doc 8643 length limit: 2 to 4 characters, alphanumeric only
     .regex(/^[A-Z0-9]{2,4}$/, {
-        message: "El tipo de aeronave debe ser una designación ICAO alfanumérica de 2 a 4 caracteres (ej. B738, C172)"
+        message: "El tipo de aeronave debe ser una designación OACI alfanumérica de 2 a 4 caracteres (ej. B738, C172)"
     });
 
 
@@ -277,7 +277,7 @@ export const AircraftSpecsSchema = z.object({
         landing_distance_feet: z.number().int().positive("La distancia de aterrizaje debe ser un entero positivo"),
 
         // Régimen o tasa de ascenso en pies por minuto
-        rate_of_climb_fpm: z.number().int().nonnegative("El régimen de ascenso no puede ser negativo"),
+        rate_of_climb_fpm: z.number().int().positive("El régimen de ascenso debe ser un entero positivo"),
     }),
 
     // Equipo de emergencia

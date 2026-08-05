@@ -38,7 +38,7 @@ export default function ViewFlightPlanScreen() {
     };
 
     return (
-        <ThemedView className="flex-1 bg-brand-light px-4 pt-2" style={{ paddingTop: insets.top }}>
+        <ThemedView className="flex-1 bg-brand-light px-4" style={{ paddingTop: insets.top }}>
             {/* Header */}
             <View className="flex-row items-center justify-between mb-4 mt-2">
                 <TouchableOpacity
