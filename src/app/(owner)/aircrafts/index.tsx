@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -65,49 +66,97 @@ export default function ListAircraftsScreen() {
 
   const renderAircraftItem = ({ item }: { item: AircraftSpecsDoc }) => {
     const { model, type, registration, pax_count } = item.basic_specs;
+    const coverPhoto = item.profile_photo || (item.photos && item.photos.length > 0 ? item.photos[0] : null);
 
     return (
-      <View className="bg-brand-white border border-slate-100 rounded-2xl p-5 mb-4 shadow-sm">
-        <View className="flex-row justify-between items-start mb-3">
-          <View className="flex-1">
-            <ThemedText className="font-bold text-lg text-brand-blue">
-              {model}
-            </ThemedText>
-          </View>
-          <View className="bg-brand-gold/15 px-3 py-1 rounded-full border border-brand-gold/20">
-            <ThemedText className="text-brand-gold text-xs font-bold uppercase tracking-wider">
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => {
+          router.push({
+            pathname: "/aircrafts/details",
+            params: { id: item.id },
+          });
+        }}
+        className="bg-brand-white border border-slate-100 rounded-3xl mb-5 overflow-hidden shadow-sm"
+      >
+        {/* Cover Photo / Header Banner */}
+        <View className="h-44 w-full bg-slate-900 relative justify-center items-center overflow-hidden">
+          {coverPhoto ? (
+            <Image
+              source={{ uri: coverPhoto }}
+              style={{ width: "100%", height: "100%" }}
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="w-full h-full bg-brand-blue/95 justify-center items-center relative">
+              <View className="w-20 h-20 rounded-full bg-white/10 items-center justify-center">
+                <Ionicons name="airplane" size={40} color="#DAA520" />
+              </View>
+            </View>
+          )}
+
+          {/* Registration Badge Pill */}
+          <View className="absolute top-3 right-3 bg-black/60 px-3 py-1 rounded-full">
+            <ThemedText className="text-white text-xs font-bold tracking-wide uppercase">
               {registration}
             </ThemedText>
           </View>
+
+          {/* Type Badge Pill */}
+          {type && (
+            <View className="absolute top-3 left-3 bg-black/60 px-3 py-1 rounded-full">
+              <ThemedText className="text-white text-xs font-bold tracking-wide uppercase">
+                {type}
+              </ThemedText>
+            </View>
+          )}
         </View>
 
-        <View className="border-t border-slate-100 pt-3 flex-row justify-between items-center">
-          <View className="flex-row items-center gap-1">
-            <Ionicons name="people" size={16} color="#64748B" />
-            <ThemedText type="caption" className="text-xs text-slate-500 font-medium">
-              Capacidad:
-            </ThemedText>
-            <ThemedText className="text-xs font-bold text-slate-700">
-              {pax_count} {pax_count === 1 ? "Persona" : "Personas"} (POB)
+        {/* Card Body & Details */}
+        <View className="p-5">
+          <View className="flex-row justify-between items-center mb-3">
+            <ThemedText className="font-extrabold text-xl text-brand-blue flex-1 mr-2" numberOfLines={1}>
+              {model}
             </ThemedText>
           </View>
 
-          <TouchableOpacity
-            onPress={() => {
-              router.push({
-                pathname: "/aircrafts/details",
-                params: { id: item.id },
-              });
-            }}
-            className="flex-row items-center gap-0.5"
-          >
-            <ThemedText type="accent" className="text-xs font-semibold text-brand-gold">
-              Detalles
-            </ThemedText>
-            <Ionicons name="chevron-forward" size={14} color="#b89c50" />
-          </TouchableOpacity>
+          {/* Key Specs Pills */}
+          <View className="flex-row flex-wrap items-center gap-2 mb-4">
+            <View className="flex-row items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl">
+              <Ionicons name="people" size={14} color="#64748B" />
+              <ThemedText className="text-xs font-semibold text-slate-700">
+                {pax_count} {pax_count === 1 ? "Persona" : "Personas"} (POB)
+              </ThemedText>
+            </View>
+
+            {item.base_airport && (
+              <View className="flex-row items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl">
+                <Ionicons name="location" size={14} color="#0f1e3d" />
+                <ThemedText className="text-xs font-semibold text-slate-700">
+                  {item.base_airport.icao_code || item.base_airport.iata_code || item.base_airport.name}
+                </ThemedText>
+              </View>
+            )}
+          </View>
+
+          {/* Card Footer Action */}
+          <View className="border-t border-slate-100 pt-3 flex-row justify-between items-center">
+            <View className="flex-row items-center gap-1">
+              <Ionicons name="images-outline" size={15} color="#94A3B8" />
+              <ThemedText className="text-xs text-slate-400 font-medium">
+                {item.photos?.length || 0} {item.photos?.length === 1 ? "foto" : "fotos"}
+              </ThemedText>
+            </View>
+
+            <View className="flex-row items-center gap-1 bg-brand-gold/10 px-3 py-2 rounded-xl">
+              <ThemedText className="text-xs font-bold text-brand-gold">
+                Ver Detalles
+              </ThemedText>
+              <Ionicons name="chevron-forward" size={14} color="#b89c50" />
+            </View>
+          </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

@@ -155,7 +155,7 @@ export default function OwnerFlightsScreen() {
         {isLoading
           ? <LoadingCard message="Cargando las reservas de su flota..." />
           : reservations.length === 0 ? (
-            <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6 shadow-sm">
+            <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6">
               <View className="w-16 h-16 rounded-full bg-slate-100 items-center justify-center mb-4 border border-slate-200">
                 <Ionicons name="airplane-outline" size={32} color="#94a3b8" />
               </View>
@@ -164,7 +164,7 @@ export default function OwnerFlightsScreen() {
               </ThemedText>
             </View>
           ) : filteredReservations.length === 0 ? (
-            <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6 shadow-sm">
+            <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6">
               <View className="w-16 h-16 rounded-full bg-slate-100 items-center justify-center mb-4 border border-slate-200">
                 <Ionicons name="calendar-outline" size={32} color="#94a3b8" />
               </View>

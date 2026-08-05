@@ -4,7 +4,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   arrayRemove,
   arrayUnion,
+  deleteField,
   doc,
+  getDoc,
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
@@ -58,7 +60,7 @@ export function useUploadAircraftPhoto(aircraftId: string | undefined) {
 
         // Abrir selector de imágenes (Etapa: Selección en la galería)
         const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ["images"],
           allowsEditing: true,
           quality: 0.8,
         });
@@ -93,8 +95,14 @@ export function useUploadAircraftPhoto(aircraftId: string | undefined) {
 
         // Actualizar documento en Firestore
         const aircraftDocRef = doc(db, "AircraftSpecs", aircraftId);
+        
+        // Si la aeronave no tiene foto de perfil asignada, usar esta foto recién subida como foto de perfil por defecto
+        const docSnap = await getDoc(aircraftDocRef);
+        const currentProfilePhoto = docSnap.exists() ? docSnap.data().profile_photo : null;
+
         await updateDoc(aircraftDocRef, {
           photos: arrayUnion(downloadUrl),
+          ...(!currentProfilePhoto && { profile_photo: downloadUrl }),
           updatedAt: serverTimestamp(),
         });
 
@@ -126,6 +134,40 @@ export function useUploadAircraftPhoto(aircraftId: string | undefined) {
   };
 }
 
+export function useSetAircraftProfilePhoto(aircraftId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (photoUrl: string) => {
+      if (!aircraftId) throw new Error("ID de aeronave no proporcionado.");
+
+      try {
+        const aircraftDocRef = doc(db, "AircraftSpecs", aircraftId);
+        await updateDoc(aircraftDocRef, {
+          profile_photo: photoUrl,
+          updatedAt: serverTimestamp(),
+        });
+        return photoUrl;
+      } catch (error: any) {
+        console.error("Error al establecer foto de perfil de la aeronave:", error);
+        throw new Error(
+          error.message || "No se pudo actualizar la foto principal."
+        );
+      }
+    },
+    onSuccess: () => {
+      if (aircraftId) {
+        queryClient.invalidateQueries({
+          queryKey: ["aircraft-details", aircraftId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["owner-aircrafts"],
+        });
+      }
+    },
+  });
+}
+
 export function useDeleteAircraftPhoto(aircraftId: string | undefined) {
   const queryClient = useQueryClient();
 
@@ -142,10 +184,14 @@ export function useDeleteAircraftPhoto(aircraftId: string | undefined) {
           console.warn("No se pudo eliminar el archivo en Storage:", storageErr);
         }
 
-        // Remover URL de la lista en Firestore
+        // Remover URL de la lista en Firestore y limpiar profile_photo si coincide
         const aircraftDocRef = doc(db, "AircraftSpecs", aircraftId);
+        const docSnap = await getDoc(aircraftDocRef);
+        const isCurrentProfile = docSnap.exists() && docSnap.data().profile_photo === photoUrl;
+
         await updateDoc(aircraftDocRef, {
           photos: arrayRemove(photoUrl),
+          ...(isCurrentProfile && { profile_photo: deleteField() }),
           updatedAt: serverTimestamp(),
         });
 

@@ -303,6 +303,9 @@ export const AircraftSpecsSchema = z.object({
 
     // Fotos de la aeronave
     photos: z.array(z.string()).optional(),
+
+    // Foto de perfil principal de la aeronave
+    profile_photo: z.string().optional(),
 });
 
 // Extracción del tipo de TypeScript basado en el esquema de Zod

@@ -3,6 +3,7 @@ import { ThemedView } from "@/components/themed-view";
 import { useAircraftDetails } from "@/hooks/useAircraftDetails";
 import {
   useDeleteAircraftPhoto,
+  useSetAircraftProfilePhoto,
   useUploadAircraftPhoto,
 } from "@/hooks/useAircraftPhotos";
 import { AircraftDetailsHeader } from "@/screens/aircraft-details/components/header";
@@ -32,6 +33,7 @@ export default function AircraftPhotosScreen() {
 
   const { data: aircraft, isLoading, error } = useAircraftDetails(id);
   const uploadPhotoMutation = useUploadAircraftPhoto(id);
+  const setProfilePhotoMutation = useSetAircraftProfilePhoto(id);
   const deletePhotoMutation = useDeleteAircraftPhoto(id);
 
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -50,6 +52,22 @@ export default function AircraftPhotosScreen() {
       Alert.alert(
         "Error",
         err.message || "No se pudo subir la fotografía seleccionada."
+      );
+    }
+  };
+
+  const handleSetProfilePhoto = async (photoUrl: string) => {
+    try {
+      await setProfilePhotoMutation.mutateAsync(photoUrl);
+      Toast.show({
+        type: "success",
+        text1: "Foto de perfil actualizada",
+        text2: "Se ha asignado la imagen como foto principal de la aeronave.",
+      });
+    } catch (err: any) {
+      Alert.alert(
+        "Error",
+        err.message || "No se pudo establecer la foto de perfil."
       );
     }
   };
@@ -117,7 +135,7 @@ export default function AircraftPhotosScreen() {
     );
   }
 
-  const { basic_specs, photos = [] } = aircraft;
+  const { basic_specs, photos = [], profile_photo } = aircraft;
   const { uploadStage, isPending: isUploading } = uploadPhotoMutation;
 
   return (
@@ -204,35 +222,62 @@ export default function AircraftPhotosScreen() {
             </View>
 
             <View className="flex-row flex-wrap gap-3">
-              {photos.map((photoUrl, index) => (
-                <View
-                  key={`${photoUrl}-${index}`}
-                  style={{ width: TILE_SIZE, height: TILE_SIZE }}
-                  className="rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/80 relative"
-                >
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    onPress={() => setSelectedPhoto(photoUrl)}
-                    className="w-full h-full"
-                  >
-                    <Image
-                      source={{ uri: photoUrl }}
-                      style={{ width: "100%", height: "100%" }}
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
+              {photos.map((photoUrl, index) => {
+                const isProfile = profile_photo === photoUrl;
 
-                  {/* Delete Badge Button */}
-                  <TouchableOpacity
-                    onPress={() => handleDeletePhoto(photoUrl)}
-                    disabled={deletePhotoMutation.isPending}
-                    className="absolute top-2 right-2 bg-black/60 p-2 rounded-full"
-                    activeOpacity={0.7}
+                return (
+                  <View
+                    key={`${photoUrl}-${index}`}
+                    style={{ width: TILE_SIZE, height: TILE_SIZE }}
+                    className={`rounded-2xl overflow-hidden bg-slate-100 border relative ${isProfile ? "border-amber-500 border-2" : "border-slate-200/80"
+                      }`}
                   >
-                    <Ionicons name="trash-outline" size={16} color="#FFFFFF" />
-                  </TouchableOpacity>
-                </View>
-              ))}
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => setSelectedPhoto(photoUrl)}
+                      className="w-full h-full"
+                    >
+                      <Image
+                        source={{ uri: photoUrl }}
+                        style={{ width: "100%", height: "100%" }}
+                        resizeMode="cover"
+                      />
+                    </TouchableOpacity>
+
+                    {/* Star / Profile Picture Action Badge */}
+                    <TouchableOpacity
+                      onPress={() => handleSetProfilePhoto(photoUrl)}
+                      disabled={setProfilePhotoMutation.isPending}
+                      className={`absolute top-2 left-2 flex-row items-center gap-1 px-2.5 py-1 rounded-full ${isProfile
+                        ? "bg-amber-500"
+                        : "bg-black/60"
+                        }`}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={isProfile ? "star" : "star-outline"}
+                        size={14}
+                        color="#FFFFFF"
+                      />
+                      {isProfile && (
+                        <ThemedText className="text-white text-xs font-bold">
+                          Principal
+                        </ThemedText>
+                      )}
+                    </TouchableOpacity>
+
+                    {/* Delete Badge Button */}
+                    <TouchableOpacity
+                      onPress={() => handleDeletePhoto(photoUrl)}
+                      disabled={deletePhotoMutation.isPending}
+                      className="absolute top-2 right-2 bg-black/60 p-2 rounded-full"
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="trash-outline" size={16} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
             </View>
           </View>
         )}
@@ -258,16 +303,38 @@ export default function AircraftPhotosScreen() {
             <Ionicons name="close" size={26} color="#FFFFFF" />
           </TouchableOpacity>
 
-          {/* Delete Button inside Lightbox */}
+          {/* Delete & Profile Picture Header Actions inside Lightbox */}
           {selectedPhoto && (
-            <TouchableOpacity
-              onPress={() => handleDeletePhoto(selectedPhoto)}
-              className="absolute top-12 left-6 z-10 bg-red-600/80 p-3 rounded-full flex-row items-center gap-1 px-4"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
-              <ThemedText className="text-white text-xs font-bold">Eliminar</ThemedText>
-            </TouchableOpacity>
+            <View className="absolute top-12 left-6 z-10 flex-row items-center gap-2">
+              <TouchableOpacity
+                onPress={() => handleDeletePhoto(selectedPhoto)}
+                className="bg-red-600/80 p-3 rounded-full flex-row items-center gap-1 px-4"
+                activeOpacity={0.7}
+              >
+                <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+                <ThemedText className="text-white text-xs font-bold">Eliminar</ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handleSetProfilePhoto(selectedPhoto)}
+                className={`p-3 rounded-full flex-row items-center gap-1 px-4 ${profile_photo === selectedPhoto
+                  ? "bg-amber-500"
+                  : "bg-white/20"
+                  }`}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={profile_photo === selectedPhoto ? "star" : "star-outline"}
+                  size={18}
+                  color="#FFFFFF"
+                />
+                <ThemedText className="text-white text-xs font-bold">
+                  {profile_photo === selectedPhoto
+                    ? "Foto Principal"
+                    : "Usar como Principal"}
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
           )}
 
           {selectedPhoto && (
