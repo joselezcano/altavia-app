@@ -1,3 +1,4 @@
+import { PilotHeader } from "@/components/pilot-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,14 +12,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 interface AircraftSpecsDoc extends AircraftSpecs {
   id: string;
 }
 
+
 export default function ManagerAircraftsScreen() {
   const { profileData } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   // TanStack Queries (fetching aircrafts and owner pilots)
   const isEncargado = profileData?.isEncargado === true;
@@ -91,21 +96,12 @@ export default function ManagerAircraftsScreen() {
   }
 
   return (
-    <ThemedView className="flex-1 px-4 pt-2">
+    <ThemedView className="flex-1 px-4" style={{ paddingTop: insets.top }}>
       {/* Header */}
-      <View className="flex-row justify-between items-center mb-6 mt-2">
-        <View>
-          <ThemedText
-            type="caption"
-            className="uppercase font-bold text-brand-gold tracking-widest text-xs"
-          >
-            Gestión de Flota
-          </ThemedText>
-          <ThemedText type="title" className="text-2xl font-bold mt-0.5">
-            Aviones a mi Cargo
-          </ThemedText>
-        </View>
-      </View>
+      <PilotHeader
+        title="Gestión de Flota"
+        subtitle="Aviones a mi Cargo"
+      />
 
       {/* Main content */}
       {isLoading ? (

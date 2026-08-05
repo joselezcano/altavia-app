@@ -1,6 +1,6 @@
+import { PilotHeader } from "@/components/pilot-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import UserAvatar from "@/components/user-avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { usePilotFlightPlans } from "@/hooks/usePilotFlightPlans";
 import { getStatusBadge } from "@/utils/flight-plan";
@@ -14,11 +14,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 export default function PilotPlansScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const {
     data: flightPlans = [],
@@ -64,23 +67,12 @@ export default function PilotPlansScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 px-4 pt-2">
+    <ThemedView className="flex-1 px-4" style={{ paddingTop: insets.top }}>
       {/* Cabecera */}
-      <View className="flex-row justify-between items-center mb-6 mt-2">
-        <View>
-          <ThemedText
-            type="caption"
-            className="uppercase font-bold text-brand-gold tracking-widest text-xs"
-          >
-            Panel de Piloto
-          </ThemedText>
-          <ThemedText type="title" className="text-2xl font-bold mt-0.5">
-            Mis Planes de Vuelo
-          </ThemedText>
-        </View>
-
-        <UserAvatar size={44} />
-      </View>
+      <PilotHeader
+        title="Panel de Piloto"
+        subtitle="Mis Planes de Vuelo"
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

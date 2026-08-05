@@ -1,4 +1,5 @@
 import { LoadingCard } from "@/components/loading-card";
+import { OwnerHeader } from "@/components/owner-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { UserModal } from "@/components/UserModal";
@@ -7,7 +8,7 @@ import { useOwnerAircrafts } from "@/hooks/useOwnerAircrafts";
 import { useOwnerReservations } from "@/hooks/useOwnerReservations";
 import { getStatusBadge } from "@/utils/flight-status";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   RefreshControl,
@@ -21,6 +22,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function OwnerFlightsScreen() {
   const { user, role } = useAuth();
   const router = useRouter();
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
 
   // Filter states
@@ -69,30 +71,15 @@ export default function OwnerFlightsScreen() {
   ];
 
   return (
-    <ThemedView className="flex-1 bg-brand-light px-4 pt-2" style={{ paddingTop: insets.top }}>
+    <ThemedView className="flex-1 px-4" style={{ paddingTop: insets.top }}>
       {/* Top Header */}
-      <View className="flex-row items-center justify-between mb-4 mt-2">
-        <View>
-          <ThemedText
-            type="caption"
-            className="uppercase font-bold text-brand-gold tracking-widest text-xs"
-          >
-            Historial de Reservas
-          </ThemedText>
-          <ThemedText type="title" className="text-2xl font-bold mt-0.5 text-brand-blue">
-            Vuelos de mi Flota
-          </ThemedText>
-        </View>
-        <TouchableOpacity
-          onPress={() => setModalVisible(true)}
-          className="w-11 h-11 rounded-full bg-brand-blue items-center justify-center shadow-sm"
-          activeOpacity={0.8}
-        >
-          <ThemedText className="text-white font-bold text-base">
-            {userInitial}
-          </ThemedText>
-        </TouchableOpacity>
-      </View>
+      <OwnerHeader
+        title="Historial de Reservas"
+        subtitle="Vuelos de mi Flota"
+        onMenuPress={() => navigation.openDrawer()}
+        onActionButtonPress={() => setModalVisible(true)}
+        userInitial={userInitial}
+      />
 
       {/* Filters Section */}
       <View className="mb-4 gap-3">

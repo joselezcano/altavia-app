@@ -1,3 +1,4 @@
+import { OwnerHeader } from "@/components/owner-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
@@ -111,34 +112,15 @@ export default function ListAircraftsScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 px-4 pt-2" style={{ paddingTop: insets.top }}>
+    <ThemedView className="flex-1 px-4" style={{ paddingTop: insets.top }}>
       {/* Header */}
-      <View className="flex-row items-center mb-6 mt-2">
-        <TouchableOpacity
-          onPress={() => navigation.openDrawer()}
-          className="p-2 mr-3 bg-white rounded-xl shadow-sm border border-slate-100 active:bg-slate-50"
-        >
-          <Ionicons name="menu" size={24} color="#0f1e3d" />
-        </TouchableOpacity>
-        <View className="flex-1">
-          <ThemedText
-            type="caption"
-            className="uppercase font-bold text-brand-gold tracking-widest text-xs"
-          >
-            Aeronaves Registradas
-          </ThemedText>
-          <ThemedText type="title" className="text-2xl font-bold mt-0.5 text-brand-blue">
-            Mis Aviones
-          </ThemedText>
-        </View>
-
-        <TouchableOpacity
-          onPress={handleAddAircraft}
-          className="bg-brand-blue w-10 h-10 rounded-full items-center justify-center shadow-sm"
-        >
-          <Ionicons name="add" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
+      <OwnerHeader
+        title="Aeronaves Registradas"
+        subtitle="Mis Aviones"
+        onMenuPress={() => navigation.openDrawer()}
+        onActionButtonPress={handleAddAircraft}
+        iconName="add"
+      />
 
       {/* Main content */}
       {isLoading ? (

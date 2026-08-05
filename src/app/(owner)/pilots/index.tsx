@@ -1,3 +1,4 @@
+import { OwnerHeader } from "@/components/owner-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
@@ -7,7 +8,7 @@ import { useOwnerPilots } from "@/hooks/useOwnerPilots";
 import { PilotProfile } from "@/types/pilot";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import {
   arrayRemove,
   arrayUnion,
@@ -22,8 +23,6 @@ import {
   where
 } from "firebase/firestore";
 import { useState } from "react";
-import { useNavigation } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   Alert,
@@ -34,6 +33,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PilotsScreen() {
   const router = useRouter();
@@ -302,27 +302,13 @@ export default function PilotsScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 px-4 pt-2" style={{ paddingTop: insets.top }}>
+    <ThemedView className="flex-1 px-4" style={{ paddingTop: insets.top }}>
       {/* Header */}
-      <View className="flex-row items-center mb-6 mt-2">
-        <TouchableOpacity
-          onPress={() => navigation.openDrawer()}
-          className="p-2 mr-3 bg-white rounded-xl shadow-sm border border-slate-100 active:bg-slate-50"
-        >
-          <Ionicons name="menu" size={24} color="#0f1e3d" />
-        </TouchableOpacity>
-        <View className="flex-1">
-          <ThemedText
-            type="caption"
-            className="uppercase font-bold text-brand-gold tracking-widest text-xs"
-          >
-            Tripulación Privada
-          </ThemedText>
-          <ThemedText type="title" className="text-2xl font-bold mt-0.5 text-brand-blue">
-            Mis Pilotos
-          </ThemedText>
-        </View>
-      </View>
+      <OwnerHeader
+        title="Tripulación Privada"
+        subtitle="Mis Pilotos"
+        onMenuPress={() => navigation.openDrawer()}
+      />
 
       {/* Formulario Vincular Piloto */}
       <View className="bg-brand-white border border-slate-100 rounded-2xl p-4 mb-6 shadow-sm">

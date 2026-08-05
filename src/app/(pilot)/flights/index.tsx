@@ -1,6 +1,6 @@
+import { PilotHeader } from "@/components/pilot-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import UserAvatar from "@/components/user-avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { usePilotReservations } from "@/hooks/usePilotReservations";
 import { PilotFlightLeg } from "@/types/pilot";
@@ -14,11 +14,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 export default function FlightPlanScreen() {
   const { user, userData } = useAuth();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const {
     data: reservations = [],
@@ -130,23 +133,12 @@ export default function FlightPlanScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 px-4 pt-2">
+    <ThemedView className="flex-1 px-4" style={{ paddingTop: insets.top }}>
       {/* Cabecera con Saludo y Avatar */}
-      <View className="flex-row justify-between items-center mb-6 mt-2">
-        <View>
-          <ThemedText
-            type="caption"
-            className="uppercase font-bold text-brand-gold tracking-widest text-xs"
-          >
-            Panel de Piloto
-          </ThemedText>
-          <ThemedText type="title" className="text-2xl font-bold mt-0.5">
-            Hola, {displayName.split(" ")[0]}
-          </ThemedText>
-        </View>
-
-        <UserAvatar size={44} />
-      </View>
+      <PilotHeader
+        title="Panel de Piloto"
+        subtitle={`Hola, ${displayName.split(" ")[0]}`}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
