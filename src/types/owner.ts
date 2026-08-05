@@ -300,10 +300,15 @@ export const AircraftSpecsSchema = z.object({
 
     // Observaciones
     notes: z.string().optional(),
+
+    // Fotos de la aeronave
+    photos: z.array(z.string()).optional(),
 });
 
 // Extracción del tipo de TypeScript basado en el esquema de Zod
 export type AircraftSpecs = z.infer<typeof AircraftSpecsSchema>;
+
+export type UploadStage = "idle" | "selecting" | "uploading";
 
 
 // Default values matching the Zod schema structure for AircraftSpecs

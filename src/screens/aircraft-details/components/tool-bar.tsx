@@ -111,7 +111,16 @@ export function AircraftToolBar({
             <View className="flex-row flex gap-8 px-4 mb-6">
                 {/* 5. Fotos */}
                 <TouchableOpacity
-                    onPress={() => { }}
+                    onPress={() => {
+                        router.push({
+                            pathname: "./details/photos",
+                            params: {
+                                id,
+                                model: basic_specs.model,
+                                registration: basic_specs.registration,
+                            },
+                        });
+                    }}
                     className="flex-1 bg-white p-3.5 rounded-2xl border border-slate-100 items-center justify-center shadow-sm"
                     activeOpacity={0.7}
                 >

@@ -28,6 +28,7 @@ import Toast from "react-native-toast-message";
 import { AircraftTypeSuggestions } from "./components/suggestions";
 
 
+// TODO: Guardar tipos nuevos de aeronaves para autocompletar en el futuro
 export default function AddAircraftScreen() {
     const { user } = useAuth();
     const router = useRouter();

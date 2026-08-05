@@ -6,6 +6,7 @@ export default function AircraftDetailsLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="aircraft-specs" />
       <Stack.Screen name="base-airport" />
+      <Stack.Screen name="photos" />
     </Stack>
   );
 }
