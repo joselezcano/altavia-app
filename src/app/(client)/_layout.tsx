@@ -1,14 +1,13 @@
 import { ThemedView } from "@/components/themed-view";
 import { Ionicons } from "@expo/vector-icons";
-import { usePathname } from "expo-router";
-import { Tabs } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Tabs, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ClientLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
-  
+
   // Identify if we are on the home tab
   // pathname can be '/' when it is the default route
   const isHome = pathname === "/" || pathname === "/(client)" || pathname === "/(client)/" || pathname === "/(client)/index";
@@ -78,22 +77,6 @@ export default function ClientLayout() {
         {/* Pantalla de resultados de búsqueda */}
         <Tabs.Screen
           name="search-results"
-          options={{
-            href: null,
-            tabBarStyle: { display: "none" },
-          }}
-        />
-        {/* Pantalla de detalles de vuelo */}
-        <Tabs.Screen
-          name="flight-details"
-          options={{
-            href: null,
-            tabBarStyle: { display: "none" },
-          }}
-        />
-        {/* Pantalla de seguimiento de vuelo */}
-        <Tabs.Screen
-          name="flight-tracker"
           options={{
             href: null,
             tabBarStyle: { display: "none" },

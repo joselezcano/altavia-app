@@ -1,6 +1,7 @@
 import { LoadingCard } from "@/components/loading-card";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { useAuth } from "@/hooks/useAuth";
 import { useFlightPlanDetails } from "@/hooks/useFlightPlanDetails";
 import { AircraftFlightCard } from "@/screens/view-flight-plan/components/aircraft-flight-card";
 import { AirportScheduleCard } from '@/screens/view-flight-plan/components/airports-schedule-card';
@@ -17,6 +18,7 @@ import { EditButton } from "./components/edit-button";
 
 
 export default function ViewFlightPlanScreen() {
+    const { role } = useAuth();
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const params = useLocalSearchParams<{
@@ -166,7 +168,7 @@ export default function ViewFlightPlanScreen() {
             </ScrollView>
 
             {/* Footer / Editar Plan Button */}
-            {plan && <EditButton handleEdit={handleEdit} />}
+            {plan && role === "PILOT" && <EditButton handleEdit={handleEdit} />}
         </ThemedView>
     );
 }
