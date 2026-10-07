@@ -23,6 +23,7 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ThemedText } from "./themed-text";
 
 
 // Define props to match what React Hook Form provides
@@ -31,6 +32,7 @@ interface AirportPickerProps {
     onChange: (airport: Airport | null) => void;
     error?: string;
     allowedTypes?: string[];
+    title?: string;
 }
 
 // Build search result string for display in input
@@ -76,7 +78,7 @@ const orderAirports = (items: Airport[]): Airport[] => {
 };
 
 
-export default function AirportPicker({ value, onChange, error, allowedTypes }: AirportPickerProps) {
+export default function AirportPicker({ value, onChange, error, allowedTypes, title }: AirportPickerProps) {
     const insets = useSafeAreaInsets();
     const [modalVisible, setModalVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -294,8 +296,13 @@ export default function AirportPicker({ value, onChange, error, allowedTypes }: 
             {error && <Text style={styles.errorText}>{error}</Text>}
 
             <Modal visible={modalVisible} animationType="slide" transparent={false}>
-                <SafeAreaView style={[styles.modalContainer, { paddingTop: insets.top }]}>
+                <ThemedText type="caption" className="font-bold ml-4" style={{ paddingTop: insets.top + 8 }}>
+                    {title || "Seleccione un Aeropuerto"}
+                </ThemedText>
+                <SafeAreaView style={[styles.modalContainer]}>
+
                     <View style={styles.header}>
+
                         <TextInput
                             autoComplete="off"
                             autoCorrect={false}

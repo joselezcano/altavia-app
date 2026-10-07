@@ -30,6 +30,6 @@ const auth = initializeAuth(app, {
 
 const db = getFirestore(app);
 const storage = getStorage(app);
-const functions = getFunctions(app, "southamerica-east1");
+const functions = getFunctions(app, "us-central1");
 
 export { app, auth, db, functions, storage };

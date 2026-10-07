@@ -35,7 +35,7 @@
 *(Nota: Fase para agrupar el desarrollo de las interfaces faltantes)*
 - [x] App Cliente: Formulario de Solicitud de Vuelo y Checkout (parcial: reserva sin pasarela).
 - [x] App Propietario: Registro de aeronaves reales (basadas en plantillas).
-- [ ] App Piloto: Dashboard de operaciones y vuelos asignados.
+- [x] App Piloto: Dashboard de operaciones y vuelos asignados.
 
 ## FASE 4 — Ecosistema Financiero y Tracking
 - [ ] Pasarela de pagos: integración con Bancard (flujo de pago fraccionado 50/50).

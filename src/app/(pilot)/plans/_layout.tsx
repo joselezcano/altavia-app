@@ -5,6 +5,7 @@ export default function PlansLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="view-flight-plan" />
+      <Stack.Screen name="create-flight-plan" />
     </Stack>
   );
 }

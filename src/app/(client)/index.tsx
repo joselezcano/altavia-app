@@ -2,8 +2,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import UserAvatar from "@/components/user-avatar";
 import { useAuth } from "@/hooks/useAuth";
-import AltaviaLogo from "@/utils/altavia-logo";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { usePathname, useRouter } from "expo-router";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,7 +20,9 @@ export default function ClientHomeScreen() {
 
   return (
     <ThemedView className="flex-1 bg-brand-light">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} bounces={false}>
+      <ScrollView
+        scrollEnabled={false}
+        showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} bounces={false}>
         {/* HERO SECTION / BANNER */}
         <View
           className="bg-brand-blue rounded-b-[40px] px-6 shadow-md overflow-hidden relative"
@@ -33,19 +35,18 @@ export default function ClientHomeScreen() {
 
           <View className="flex-row justify-between items-center mb-8">
             <View className="flex-1">
-              <View className="mb-6">
-                <AltaviaLogo width={140} color="#FFFFFF" />
+              <View className="mb-2">
+                {/* <AltaviaLogo width={140} color="#FFFFFF" /> */}
+                {/* <ThemedText type="title" className="text-brand-gold">ALTA GO</ThemedText> */}
               </View>
-              <ThemedText className="text-white text-4xl font-extrabold mb-1">
+              <ThemedText type="title" className="text-white font-extrabold mb-1">
                 Hola, {firstName} 👋
               </ThemedText>
-              <ThemedText className="text-brand-gold text-lg font-medium">
+              <ThemedText className="text-white text-lg font-medium">
                 Bienvenido de nuevo
               </ThemedText>
             </View>
-            <View className="mt-[-40px]">
-              <UserAvatar size={56} />
-            </View>
+            <UserAvatar size={44} bgClassName="bg-slate-200" textClassName="text-brand-blue" />
           </View>
 
           <View className="mt-2">
@@ -66,7 +67,7 @@ export default function ClientHomeScreen() {
         </View>
 
         {/* QUICK ACTIONS / CARDS */}
-        <View className="px-6 -mt-6">
+        <View className="px-5 -mt-4">
           <TouchableOpacity
             onPress={() => router.push("/(client)/flights")}
             className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex-row items-center justify-between mb-4"
@@ -106,25 +107,31 @@ export default function ClientHomeScreen() {
           </View>
 
           {/* INSPIRATION / PROMO SECTION */}
-          <ThemedText className="font-bold text-brand-blue text-lg mb-3 mt-2">
+          <ThemedText className="font-bold text-brand-blue text-lg mb-3">
             Destinos Destacados
           </ThemedText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="overflow-visible">
-            <View className="w-64 bg-white rounded-2xl p-4 mr-4 shadow-sm border border-slate-100">
-              <View className="w-full h-32 bg-slate-200 rounded-xl mb-3 overflow-hidden justify-center items-center">
-                <Ionicons name="image-outline" size={32} color="#94A3B8" />
-                <ThemedText className="text-slate-400 text-xs mt-2">Punta del Este</ThemedText>
+            <View className="w-64 bg-white rounded-2xl p-2 mr-4 shadow-sm border border-slate-100">
+              <View className="w-full h-32 rounded-xl mb-3 overflow-hidden">
+                <Image
+                  source={require("../../../assets/images/Chapa-PY-WRC-2026PNG.webp")}
+                  style={{ width: "100%", height: "100%" }}
+                  contentFit="cover"
+                />
               </View>
-              <ThemedText className="font-bold text-brand-blue">Uruguay</ThemedText>
-              <ThemedText className="text-xs text-slate-500 mt-1">Conexiones directas en <ThemedText className="text-brand-gold font-bold text-xs">90 min</ThemedText></ThemedText>
+              <ThemedText className="font-bold text-brand-blue">WRC Paraguay 2026</ThemedText>
+              <ThemedText className="text-xs text-slate-500 mt-1">Vuelos nacionales para no perderse ningún detalle del <ThemedText className="text-brand-gold font-bold text-xs">Rally Mundial</ThemedText></ThemedText>
             </View>
-            <View className="w-64 bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-              <View className="w-full h-32 bg-slate-200 rounded-xl mb-3 overflow-hidden justify-center items-center">
-                <Ionicons name="image-outline" size={32} color="#94A3B8" />
-                <ThemedText className="text-slate-400 text-xs mt-2">Asunción</ThemedText>
+            <View className="w-64 bg-white rounded-2xl p-2 shadow-sm border border-slate-100">
+              <View className="w-full h-32 rounded-xl mb-3 overflow-hidden">
+                <Image
+                  source={require("../../../assets/images/punta-del-este-visit-casapueblo-hero-1920x890.avif")}
+                  style={{ width: "100%", height: "100%" }}
+                  contentFit="cover"
+                />
               </View>
-              <ThemedText className="font-bold text-brand-blue">Paraguay</ThemedText>
-              <ThemedText className="text-xs text-slate-500 mt-1">Base de operaciones <ThemedText className="text-brand-gold font-bold text-xs">Premium</ThemedText></ThemedText>
+              <ThemedText className="font-bold text-brand-blue">Punta del Este</ThemedText>
+              <ThemedText className="text-xs text-slate-500 mt-1">Tus vacaciones están <ThemedText className="text-brand-gold font-bold text-xs">cada vez más cerca de vos</ThemedText></ThemedText>
             </View>
           </ScrollView>
         </View>

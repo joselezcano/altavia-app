@@ -1,8 +1,8 @@
 import AirportPicker from "@/components/airport-picker";
 import { CustomDatePicker } from "@/components/custom-date-picker";
-import UserAvatar from "@/components/user-avatar";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import UserAvatar from "@/components/user-avatar";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { FlightSearchForm, FlightSearchFormSchema } from "@/types/client";
@@ -16,13 +16,12 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   Switch,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 const CURRENT_CONTRACT_VERSION = "1.0";
@@ -230,6 +229,7 @@ export default function ClientDashboard() {
                         setValue("trip.origin_airport_ident", airport?.ident || "");
                         setValue("trip.origin_timezone", airport?.timezone || "");
                       }}
+                      title="Aeropuerto Origen"
                     />
                   )}
                 />
@@ -256,6 +256,7 @@ export default function ClientDashboard() {
                         setValue("trip.destination_airport_ident", airport?.ident || "");
                         setValue("trip.destination_timezone", airport?.timezone || "");
                       }}
+                      title="Aeropuerto Destino"
                     />
                   )}
                 />

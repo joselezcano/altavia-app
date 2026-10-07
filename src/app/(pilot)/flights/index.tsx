@@ -29,6 +29,7 @@ export default function FlightPlanScreen() {
     refetch,
   } = usePilotReservations(user?.uid);
 
+
   // Fallback to email username if names are not loaded
   const displayName =
     userData?.firstName && userData?.lastName

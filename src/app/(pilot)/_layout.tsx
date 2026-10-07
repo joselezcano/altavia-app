@@ -13,8 +13,8 @@ export default function PilotLayout() {
         <ThemedView
             style={{
                 flex: 1,
-                paddingTop: insets.top,
-                paddingBottom: insets.bottom,
+                // paddingTop: insets.top,
+                // paddingBottom: insets.bottom,
             }}
         >
             <Tabs
