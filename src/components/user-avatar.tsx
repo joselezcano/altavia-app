@@ -8,9 +8,16 @@ import SignOutButton from "./sign-out-button";
 interface UserAvatarProps {
   size?: number;
   showDetails?: boolean;
+  bgClassName?: string;
+  textClassName?: string;
 }
 
-export default function UserAvatar({ size = 44, showDetails = false }: UserAvatarProps) {
+export default function UserAvatar({
+  size = 44,
+  showDetails = false,
+  bgClassName = "bg-brand-blue",
+  textClassName = "text-white",
+}: UserAvatarProps) {
   const { user, userData, role, roles, selectRole } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -44,9 +51,9 @@ export default function UserAvatar({ size = 44, showDetails = false }: UserAvata
       >
         <View
           style={{ width: size, height: size }}
-          className="rounded-full bg-brand-blue items-center justify-center shadow-sm"
+          className={`rounded-full items-center justify-center shadow-sm ${bgClassName}`}
         >
-          <ThemedText className="text-white font-semibold text-base">
+          <ThemedText className={`font-semibold text-base ${textClassName}`}>
             {userInitial}
           </ThemedText>
         </View>

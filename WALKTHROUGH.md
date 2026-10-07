@@ -6,8 +6,10 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
 - **Enrutamiento (Expo Router):** Se estableció la estructura de carpetas protegidas `/(admin)`, `/(client)`, `/(owner)`, `/(pilot)`.
 - **Zod Schemas (`src/types`):** 
   - `templates.ts`: Definición de `AircraftTemplateSchema`.
-  - `owner.ts`: Definición de `AircraftSpecsSchema`, `DinghiesCapacitySchema`, etc.
+  - `owner.ts`: Definición de `AircraftSpecsSchema` (ahora incluye campos `photos` y `profile_photo` para fotos del avión), `DinghiesCapacitySchema`, y el tipo `UploadStage`.
   - Regla aplicada: Todos los tipos deben residir estrictamente en `src/types/`.
+- **Headers Personalizados (`owner-header.tsx`, `pilot-header.tsx`):** Componentes visuales reutilizables para estandarizar la barra superior en los paneles de propietario y piloto.
+- **Componentes de Formulario Reutilizables:** Se modularizaron campos y botones (`custom-input.tsx`, `select-one-option.tsx`, `form-navigation-buttons.tsx`) para ser compartidos entre formularios de alta complejidad.
 - **Autenticación, Registro y Selector de Roles (`login.tsx`, `register.tsx`, `src/app/_layout.tsx`, `src/components/role-selection.tsx`):** UI para inicio de sesión, registro de usuarios y redirección por roles. Si un usuario posee múltiples roles en Firestore, la app intercepta el enrutamiento en el `_layout` raíz mediante `isRoleSelectorRequired` y le muestra el componente de selección de rol (`role-selection.tsx`) antes de permitir el ingreso a las carpetas protegidas.
 - **Botón de Cierre de Sesión Estilizado (`sign-out-button.tsx`):** Rediseñado para verse secundario y estilizado. Tiene un diseño de fila centrado con un borde sutil rojo e incorpora el icono `log-out-outline` de Ionicons.
 - **Avatar Reutilizable y Selector Multirrol de Perfil (`user-avatar.tsx`):** Componente que unifica el círculo del perfil y el modal inferior. En caso de que el usuario tenga múltiples roles asignados, el modal muestra chips interactivos para cambiar de rol al instante a través del método `selectRole` de `useAuth`.
@@ -39,12 +41,17 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
   - Se implementaron filtros interactivos mediante chips horizontales para filtrar vuelos por **Aeronave/Matrícula** y por **Estado de Vuelo** (Pendiente, Aprobado, Completado, Cancelado).
 - **Gestión de Disponibilidad (Calendario):** Se implementó la visualización de la agenda de aeronaves (`day-schedule.tsx`) y el editor de eventos/bloqueos recurrentes (`edit-event-recurrence.tsx`).
 - **Base de Operaciones:** Funcionalidad para establecer la base (aeropuerto/pista) de la aeronave mediante un selector de aeropuertos (`base-airport.tsx`).
-- **Registro de Aeronaves Reales (`add-aircraft.tsx`):** Se implementó un formulario por pasos (wizard de 4 pasos: Básicas, Técnicas, Operación, Seguridad) para que el propietario registre aeronaves reales. El formulario incluye autocompletado para buscar y aplicar una plantilla base creada por el Administrador, o cargar los datos manualmente, validado estrictamente con `AircraftSpecsSchema` y guardado en Firestore vinculando el `ownerId`.
+- **Registro de Aeronaves Reales (`add-aircraft.tsx`):** Refactorizado y mejorado con un flujo de autocompletado/sugerencias más fluido (`suggestions.tsx`) y dividido en subcomponentes (`form-step-1` a `form-step-4` en `src/screens/aircraft-add/`).
+- **Unificación y Reorganización de Vistas de Flota (`aircrafts/`):** Se unificó la pantalla de visualización y detalle de aviones (`aircraft-details` e `aircraft-specs`) compartiendo vistas comunes entre el propietario y el piloto. La navegación interna se organizó en rutas dedicadas `/details/...` (especificaciones, base de operaciones, calendario, pilotos).
+- **Carga de Fotos de Aviones (`photos.tsx`):** Se habilitó el hook `useAircraftPhotos` y la pantalla de carga de imágenes para asociar fotos del avión e indicar cuál es la foto de perfil principal.
+- **Plan de Vuelo en Reservas:** Ahora los propietarios pueden visualizar los detalles del plan de vuelo de la aeronave directamente desde las reservas (`view-flight-plan.tsx`).
 - **Cargador Dev Oculto (`dev-loader.tsx`):** Se migró y preservó toda la lógica previa de carga masiva de aeropuertos y plantillas de prueba del otro desarrollador en este archivo, configurándolo con `drawerItemStyle: { display: "none" }` en la navegación del Drawer para que no afecte la UI del cliente pero permanezca accesible en el enrutamiento de desarrollo.
 
 ## 4. Rol: PILOT
+- **Panel de Control (Dashboard de Vuelos):** Implementación de la vista principal `flights/index.tsx` que muestra cronológicamente los vuelos y piernas de vuelo asignadas al piloto (ida/vuelta), conectada a Firestore mediante `usePilotReservations`.
+- **Creación y Simplificación del Plan de Vuelo (`create-flight-plan`):** Formulario modular en 4 pasos para que el piloto cree planes de vuelo que quedan registrados en el sistema y se listan de forma cronológica por fecha en `plans/index.tsx`.
+- **Navegación Unificada de Flota ("Mi Flota"):** Se habilitaron las pantallas de visualización de la flota técnica asignada para Pilotos y Encargados, compartiendo la misma lógica que el Propietario.
 - **Seguimiento de Vuelos (Fase 4 - Parcial):** Se encuentra disponible la API Key de Tracking (FlightAware), pero queda pendiente la implementación de la lógica/interfaz para generar y compartir el enlace de rastreo del vuelo en tiempo real.
-- *(Pendiente de inicio)*: Dashboard de visualización de vuelos asignados.
 
 ## 5. Rol: CLIENT
 - **Motor de Búsqueda:** Formulario de búsqueda avanzado (`index.tsx`) y visualización detallada de resultados (`search-results.tsx`).

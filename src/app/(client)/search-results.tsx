@@ -7,6 +7,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo } from "react";
 import {
   ActivityIndicator,
+  Image,
   ScrollView,
   TouchableOpacity,
   View,
@@ -167,63 +168,95 @@ export default function SearchResultsScreen() {
               </View>
             ) : (
               <View className="gap-4">
-                {searchResults.map(({ aircraft, flightDurationHours, distanceNm }) => (
-                  <View
-                    key={aircraft.id}
-                    className="bg-brand-white rounded-2xl p-5 border border-slate-200 shadow-sm"
-                  >
-                    {/* Card Top Header */}
-                    <View className="flex-row justify-between items-start mb-3">
-                      <View className="flex-1 pr-2">
-                        <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg">
-                          {aircraft.basic_specs.model}
-                        </ThemedText>
-                        <ThemedText className="text-xs text-slate-500 font-medium mt-0.5">
-                          Matrícula: {aircraft.basic_specs.registration}
-                        </ThemedText>
-                      </View>
-                    </View>
-
-                    {/* Specs Summary Grid */}
-                    <View className="bg-slate-50 rounded-xl p-3 flex-row flex-wrap justify-between gap-y-2 mb-4 border border-slate-100">
-                      <View className="w-[48%]">
-                        <ThemedText className="text-[11px] text-slate-500">Capacidad</ThemedText>
-                        <ThemedText className="font-bold text-slate-800 text-sm">
-                          {aircraft.basic_specs.pax_count} personas
-                        </ThemedText>
-                      </View>
-
-                      <View className="w-[48%]">
-                        <ThemedText className="text-[11px] text-slate-500">Tiempo de Vuelo</ThemedText>
-                        <ThemedText className="font-bold text-brand-gold text-sm">
-                          {flightDurationHours < 1
-                            ? `${Math.round(flightDurationHours * 60)} minutos`
-                            : `${flightDurationHours.toFixed(1)} horas`}
-                        </ThemedText>
-                      </View>
-                    </View>
-
-                    {/* Detail Screen Button */}
-                    <TouchableOpacity
-                      onPress={() => {
-                        router.push({
-                          pathname: "/(client)/aircraft-details",
-                          params: {
-                            aircraftJson: JSON.stringify(aircraft),
-                            searchData: params.searchData,
-                            flightDurationHours: JSON.stringify(flightDurationHours),
-                            distanceNm: JSON.stringify(distanceNm),
-                          },
-                        });
-                      }}
-                      className="bg-brand-blue py-3 rounded-xl items-center justify-center flex-row gap-2 shadow-sm"
-                      activeOpacity={0.8}
+                {searchResults.map(({ aircraft, flightDurationHours, distanceNm }) => {
+                  const coverPhoto = aircraft.profile_photo || (aircraft.photos && aircraft.photos.length > 0 ? aircraft.photos[0] : null);
+                  return (
+                    <View
+                      key={aircraft.id}
+                      className="bg-brand-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
                     >
-                      <ThemedText className="text-white font-bold text-sm">Ver Información y Reservar</ThemedText>
-                      <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
+                      {/* Cover Photo Banner */}
+                      <View className="h-40 w-full bg-slate-900 relative justify-center items-center overflow-hidden">
+                        {coverPhoto ? (
+                          <Image
+                            source={{ uri: coverPhoto }}
+                            style={{ width: "100%", height: "100%" }}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View className="w-full h-full bg-brand-blue/95 justify-center items-center">
+                            <View className="w-16 h-16 rounded-full bg-white/10 items-center justify-center">
+                              <Ionicons name="airplane" size={32} color="#DAA520" />
+                            </View>
+                          </View>
+                        )}
+
+                        {/* Type Badge Pill */}
+                        {aircraft.basic_specs.type && (
+                          <View className="absolute top-3 left-3 bg-black/60 px-2.5 py-0.5 rounded-full">
+                            <ThemedText className="text-white text-[10px] font-bold tracking-wide uppercase">
+                              {aircraft.basic_specs.type}
+                            </ThemedText>
+                          </View>
+                        )}
+                      </View>
+
+                      {/* Card Content Details */}
+                      <View className="p-4">
+                        {/* Card Top Header */}
+                        <View className="flex-row justify-between items-start mb-3">
+                          <View className="flex-1 pr-2">
+                            <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg">
+                              {aircraft.basic_specs.model}
+                            </ThemedText>
+                            <ThemedText className="text-xs text-slate-500 font-medium mt-0.5">
+                              Matrícula: {aircraft.basic_specs.registration}
+                            </ThemedText>
+                          </View>
+                        </View>
+
+                        {/* Specs Summary Grid */}
+                        <View className="bg-slate-50 rounded-xl p-3 flex-row flex-wrap justify-between gap-y-2 mb-4 border border-slate-100">
+                          <View className="w-[48%]">
+                            <ThemedText className="text-[11px] text-slate-500">Capacidad</ThemedText>
+                            <ThemedText className="font-bold text-slate-800 text-sm">
+                              {aircraft.basic_specs.pax_count} personas
+                            </ThemedText>
+                          </View>
+
+                          <View className="w-[48%]">
+                            <ThemedText className="text-[11px] text-slate-500">Tiempo de Vuelo</ThemedText>
+                            <ThemedText className="font-bold text-brand-gold text-sm">
+                              {flightDurationHours < 1
+                                ? `${Math.round(flightDurationHours * 60)} minutos`
+                                : `${flightDurationHours.toFixed(1)} horas`}
+                            </ThemedText>
+                          </View>
+                        </View>
+
+                        {/* Detail Screen Button */}
+                        <TouchableOpacity
+                          onPress={() => {
+                            router.push({
+                              pathname: "/(client)/aircraft-details",
+                              params: {
+                                aircraftJson: JSON.stringify(aircraft),
+                                searchData: params.searchData,
+                                flightDurationHours: JSON.stringify(flightDurationHours),
+                                distanceNm: JSON.stringify(distanceNm),
+                              },
+                            });
+                          }}
+                          className="bg-brand-blue py-3 rounded-xl items-center justify-center flex-row gap-2 shadow-sm"
+                          activeOpacity={0.8}
+                        >
+                          <ThemedText className="text-white font-bold text-sm">Ver Información y Reservar</ThemedText>
+                          <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
             )}
           </View>

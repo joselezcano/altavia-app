@@ -1,7 +1,7 @@
 import { LoadingCard } from "@/components/loading-card";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { UserModal } from "@/components/UserModal";
+import UserAvatar from "@/components/user-avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useClientReservations } from "@/hooks/useClientReservations";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -23,7 +23,6 @@ export default function ClientFlightsScreen() {
         isRefetching,
         refetch,
     } = useClientReservations(user?.uid);
-    const [modalVisible, setModalVisible] = useState(false);
 
     const getStatusBadge = (internalStatus: string) => {
         if (internalStatus === "canceled") {
@@ -59,15 +58,7 @@ export default function ClientFlightsScreen() {
                         Mis Vuelos
                     </ThemedText>
                 </View>
-                <TouchableOpacity
-                    onPress={() => setModalVisible(true)}
-                    className="w-11 h-11 rounded-full bg-brand-blue items-center justify-center shadow-sm"
-                    activeOpacity={0.8}
-                >
-                    <ThemedText className="text-white font-bold text-base">
-                        {userInitial}
-                    </ThemedText>
-                </TouchableOpacity>
+                <UserAvatar size={44} />
             </View>
 
             <ScrollView
@@ -301,9 +292,7 @@ export default function ClientFlightsScreen() {
                         </View>
                     )}
             </ScrollView>
-
-            {/* Profile Bottom Sheet Modal */}
-            <UserModal modalVisible={modalVisible} setModalVisible={setModalVisible} user={user} role={role} userInitial={userInitial} />
         </ThemedView>
     );
 }
+

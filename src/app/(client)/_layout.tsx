@@ -58,6 +58,15 @@ export default function ClientLayout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: "Perfil",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person" size={size} color={color} />
+            ),
+          }}
+        />
         {/* Ocultamos la pantalla de TyC del menú de pestañas */}
         <Tabs.Screen
           name="terms"
