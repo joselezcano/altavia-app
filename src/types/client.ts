@@ -1,4 +1,5 @@
 import { AirportSchema } from '@/types/all-roles';
+import type { BaseUser } from '@/types/user';
 import { z } from 'zod';
 
 
@@ -26,7 +27,8 @@ export type FlightSearchForm = z.infer<typeof FlightSearchFormSchema>;
 export const QuickClientFormSchema = z.object({
     firstName: z.string().min(1, "El nombre es obligatorio"),
     lastName: z.string().min(1, "El apellido es obligatorio"),
-    email: z.string().email("Correo electrónico inválido"),
+    // Opcional: algunos clientes de la encargada no tienen correo (se cargan solo con teléfono).
+    email: z.union([z.literal(""), z.string().email("Correo electrónico inválido")]).optional(),
     phone: z.string().min(6, "Teléfono o WhatsApp obligatorio"),
     documentNumber: z.string().min(3, "C.I. o RUC obligatorio"),
     personType: z.enum(["individual", "company"]).default("individual"),
@@ -34,6 +36,16 @@ export const QuickClientFormSchema = z.object({
 });
 
 export type QuickClientForm = z.infer<typeof QuickClientFormSchema>;
+
+/**
+ * Resultado del alta rápida de cliente.
+ * matchedBy indica si se reutilizó un usuario existente (por documento o por email)
+ * en lugar de crear uno nuevo.
+ */
+export interface QuickClientResult {
+    client: BaseUser;
+    matchedBy: "document" | "email" | null;
+}
 
 export const ConciergeBookingSchema = z.object({
     clientId: z.string().min(1, "Seleccione o cree un cliente"),

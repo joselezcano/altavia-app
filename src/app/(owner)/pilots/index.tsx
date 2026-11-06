@@ -74,7 +74,7 @@ export default function PilotsScreen() {
       if (querySnapshot.empty) {
         Alert.alert(
           "No encontrado",
-          "No se encontró ningún piloto registrado con ese correo electrónico."
+          "No se encontró ningún piloto registrado con ese correo electrónico. Si es piloto, el administrador de AltaGo debe asignarle el rol de piloto."
         );
         setEmailInput("");
         setIsAdding(false);
@@ -110,7 +110,10 @@ export default function PilotsScreen() {
         Alert.alert("Éxito", "Piloto vinculado correctamente a tu flota.");
         setEmailInput("");
       } else {
-        Alert.alert("Información", "La persona aún no ha creado su perfil de piloto.");
+        Alert.alert(
+          "Información",
+          "Este piloto todavía no tiene su perfil habilitado. Pedile al administrador de AltaGo que cree su perfil de piloto desde \"Usuarios\"."
+        );
         setEmailInput("");
       }
 

@@ -200,3 +200,14 @@ export interface PilotDetailsSearchParams {
     pilotUid: string;
     from?: string;
 }
+/** Propietario con el que trabaja un piloto (sección "Mis propietarios"). */
+export interface PilotOwnerItem {
+    uid: string;
+    displayName: string;
+    email: string;
+}
+
+export interface UnlinkFromOwnerInput {
+    pilotUid: string;
+    ownerUid: string;
+}

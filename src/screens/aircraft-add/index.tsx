@@ -3,12 +3,14 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
 import { useAircraftTemplates } from "@/hooks/useAircraftTemplates";
-import { useAuth } from "@/hooks/useAuth";
+import { USER_ROLE, useAuth } from "@/hooks/useAuth";
+import { usePilotOwners } from "@/hooks/usePilotOwners";
 import { FormStep1, fieldsToValidate1 } from "@/screens/aircraft-add/components/form-step-1";
 import { FormStep2, fieldsToValidate2 } from "@/screens/aircraft-add/components/form-step-2";
 import { FormStep3, fieldsToValidate3 } from "@/screens/aircraft-add/components/form-step-3";
 import { FormStep4 } from "@/screens/aircraft-add/components/form-step-4";
 import { AircraftSpecs, AircraftSpecsSchema } from "@/types/owner";
+import { showNotice } from "@/utils/dialogs";
 import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,6 +23,8 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    StyleSheet,
+    Text,
     TouchableOpacity,
     View
 } from "react-native";
@@ -31,7 +35,7 @@ import { AircraftTypeSuggestions } from "./components/suggestions";
 
 // TODO: Guardar tipos nuevos de aeronaves para autocompletar en el futuro
 export default function AddAircraftScreen() {
-    const { user } = useAuth();
+    const { user, role, profileData } = useAuth();
     const router = useRouter();
     const queryClient = useQueryClient();
     const insets = useSafeAreaInsets();
@@ -43,6 +47,19 @@ export default function AddAircraftScreen() {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedTemplateName, setSelectedTemplateName] = useState("");
     const [isManualInput, setIsManualInput] = useState(false);
+
+    // Alta por la encargada (rol PILOT): la aeronave se registra a nombre de uno de
+    // sus propietarios (profileData.owner_ids), no a su nombre.
+    const isEncargadaFlow = role === USER_ROLE.PILOT;
+    const encargadaOwnerIds: string[] =
+        isEncargadaFlow && Array.isArray(profileData?.owner_ids) ? profileData.owner_ids : [];
+    const { data: encargadaOwners = [] } = usePilotOwners(encargadaOwnerIds);
+    const [selectedOwnerId, setSelectedOwnerId] = useState<string | null>(null);
+    const targetOwnerId: string | null = isEncargadaFlow
+        ? selectedOwnerId ?? (encargadaOwnerIds.length === 1 ? encargadaOwnerIds[0] : null)
+        : user?.uid ?? null;
+    const ownerName = (uid: string) =>
+        encargadaOwners.find((o) => o.uid === uid)?.displayName || "Propietario";
 
     const defaultValues: AircraftSpecs = {
         basic_specs: {
@@ -101,6 +118,28 @@ export default function AddAircraftScreen() {
             return;
         }
 
+        if (isEncargadaFlow) {
+            if (profileData?.isEncargado !== true) {
+                Alert.alert("Sin permiso", "Solo un piloto encargado puede registrar aeronaves.");
+                return;
+            }
+            if (!targetOwnerId) {
+                Alert.alert(
+                    "Propietario requerido",
+                    encargadaOwnerIds.length === 0
+                        ? "No estás vinculado a ningún propietario."
+                        : "Elegí a nombre de qué propietario se registra la aeronave."
+                );
+                setCurrentStep(1);
+                return;
+            }
+        }
+
+        if (!targetOwnerId) {
+            Alert.alert("Error", "No se pudo determinar el propietario de la aeronave.");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             // Remove undefined values to prevent Firestore serialization crashes
@@ -109,11 +148,24 @@ export default function AddAircraftScreen() {
             // Save specifications into 'AircraftSpecs' collection with owner ID
             const newDocRef = await addDoc(collection(db, "AircraftSpecs"), {
                 ...cleanData,
-                ownerId: user.uid,
+                ownerId: targetOwnerId,
                 createdAt: serverTimestamp(),
             });
 
-            queryClient.invalidateQueries({ queryKey: ["owner-aircrafts", user.uid] });
+            queryClient.invalidateQueries({ queryKey: ["owner-aircrafts", targetOwnerId] });
+
+            if (isEncargadaFlow) {
+                // Las reglas no permiten que la encargada se agregue la aeronave a
+                // managed_aircrafts (solo puede renunciar): se la asigna el propietario.
+                await showNotice(
+                    "Aeronave registrada",
+                    `${data.basic_specs.registration} quedó registrada a nombre de ${ownerName(targetOwnerId)}. ` +
+                    "Para que aparezca en tu flota y puedas gestionarla, el propietario debe asignártela " +
+                    "desde \"Mis Pilotos\" > \"Aviones a su cargo\"."
+                );
+                router.back();
+                return;
+            }
 
             Toast.show({
                 type: "success",
@@ -189,6 +241,41 @@ export default function AddAircraftScreen() {
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+                    {/* Propietario de la aeronave (solo alta por la encargada) */}
+                    {currentStep === 1 && isEncargadaFlow && (
+                        <View style={ownerStyles.card}>
+                            <Text style={ownerStyles.label}>Propietario de la aeronave</Text>
+                            {encargadaOwnerIds.length === 0 ? (
+                                <Text style={ownerStyles.warning}>
+                                    No estás vinculado a ningún propietario: no podés registrar aeronaves.
+                                </Text>
+                            ) : encargadaOwnerIds.length === 1 ? (
+                                <Text style={ownerStyles.value}>{ownerName(encargadaOwnerIds[0])}</Text>
+                            ) : (
+                                <View style={ownerStyles.chipsRow}>
+                                    {encargadaOwnerIds.map((uid) => {
+                                        const isSelected = targetOwnerId === uid;
+                                        return (
+                                            <TouchableOpacity
+                                                key={uid}
+                                                onPress={() => setSelectedOwnerId(uid)}
+                                                style={[ownerStyles.chip, isSelected && ownerStyles.chipSelected]}
+                                                activeOpacity={0.7}
+                                            >
+                                                <Text style={[ownerStyles.chipText, isSelected && ownerStyles.chipTextSelected]}>
+                                                    {ownerName(uid)}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
+                            )}
+                            <Text style={ownerStyles.hint}>
+                                Después de guardarla, el propietario debe asignártela para que puedas gestionarla.
+                            </Text>
+                        </View>
+                    )}
+
                     {/* Autocomplete Search Input */}
                     {currentStep === 1 && <AircraftTypeSuggestions
                         searchQuery={searchQuery}
@@ -232,3 +319,61 @@ export default function AddAircraftScreen() {
         </KeyboardAvoidingView>
     );
 }
+
+const ownerStyles = StyleSheet.create({
+    card: {
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#F1F5F9",
+        borderRadius: 16,
+        padding: 14,
+        marginBottom: 16,
+        gap: 8,
+    },
+    label: {
+        fontSize: 12,
+        fontWeight: "700",
+        color: "#64748B",
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
+    },
+    value: {
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#0f1e3d",
+    },
+    warning: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#B91C1C",
+    },
+    hint: {
+        fontSize: 12,
+        color: "#64748B",
+    },
+    chipsRow: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 8,
+    },
+    chip: {
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
+        backgroundColor: "#F8FAFC",
+    },
+    chipSelected: {
+        backgroundColor: "#0f1e3d",
+        borderColor: "#0f1e3d",
+    },
+    chipText: {
+        fontSize: 13,
+        fontWeight: "600",
+        color: "#334155",
+    },
+    chipTextSelected: {
+        color: "#FFFFFF",
+    },
+});

@@ -19,3 +19,12 @@ export interface ScreenContainerProps {
 }
 
 
+
+/** Opciones de confirmAction (src/utils/dialogs.ts / dialogs.web.ts). */
+export interface ConfirmOptions {
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  destructive?: boolean;
+}

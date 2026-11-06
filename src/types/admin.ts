@@ -46,3 +46,21 @@ export const FlightRequestSchema = z.object({
 });
 
 export type FlightRequest = z.infer<typeof FlightRequestSchema>;
+/** Roles que el ADMIN puede agregar o quitar desde "Usuarios". */
+export type AdminManagedRole = "OWNER" | "PILOT";
+
+export interface ToggleUserRoleInput {
+    uid: string;
+    role: AdminManagedRole;
+    /** true = agregar el rol; false = quitarlo. */
+    add: boolean;
+}
+
+/** Filtro de rol del listado de usuarios del ADMIN. */
+export type AdminUsersRoleFilter = "ALL" | "OWNER" | "PILOT" | "CLIENT" | "ADMIN";
+
+/** Ids de los documentos de rol existentes (pilots / owners), para detectar perfiles faltantes. */
+export interface RoleProfileIds {
+    pilotIds: string[];
+    ownerIds: string[];
+}

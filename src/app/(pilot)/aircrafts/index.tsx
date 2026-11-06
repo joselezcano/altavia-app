@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -29,6 +31,7 @@ export default function ManagerAircraftsScreen() {
   // TanStack Queries (fetching aircrafts and owner pilots)
   const isEncargado = profileData?.isEncargado === true;
   const managedAircraftsList = profileData?.managed_aircrafts || [];
+  const ownerIds: string[] = Array.isArray(profileData?.owner_ids) ? profileData.owner_ids : [];
 
   const { data: aircrafts = [], isLoading } = useManagedAircrafts(
     isEncargado ? managedAircraftsList : []
@@ -152,6 +155,18 @@ export default function ManagerAircraftsScreen() {
         subtitle="Aviones a mi Cargo"
       />
 
+      {/* Alta de aeronave a nombre de un propietario de la encargada */}
+      {ownerIds.length > 0 && (
+        <TouchableOpacity
+          onPress={() => router.push("/aircrafts/add-aircraft")}
+          style={styles.addButton}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={18} color="#FFFFFF" />
+          <Text style={styles.addButtonText}>Registrar aeronave</Text>
+        </TouchableOpacity>
+      )}
+
       {/* Main content */}
       {isLoading ? (
         <View className="flex-1 justify-center items-center">
@@ -182,3 +197,21 @@ export default function ManagerAircraftsScreen() {
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#0f1e3d",
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  addButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+});

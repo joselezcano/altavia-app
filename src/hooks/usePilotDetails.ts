@@ -10,18 +10,25 @@ export function usePilotDetails(pilotUid: string | undefined) {
     queryFn: async () => {
       if (!pilotUid) return null;
 
-      // 1. Fetch pilot doc from 'pilots' collection
-      const pilotRef = doc(db, "pilots", pilotUid);
-      const pilotSnap = await getDoc(pilotRef);
+      let data: any;
+      let userData: BaseUser | null;
+      try {
+        // 1. Fetch pilot doc from 'pilots' collection
+        const pilotRef = doc(db, "pilots", pilotUid);
+        const pilotSnap = await getDoc(pilotRef);
 
-      if (!pilotSnap.exists()) return null;
+        if (!pilotSnap.exists()) return null;
 
-      const data = pilotSnap.data();
+        data = pilotSnap.data();
 
-      // 2. Fetch corresponding base user info from 'users' collection
-      const userRef = doc(db, "users", pilotUid);
-      const userSnap = await getDoc(userRef);
-      const userData = userSnap.exists() ? (userSnap.data() as BaseUser) : null;
+        // 2. Fetch corresponding base user info from 'users' collection
+        const userRef = doc(db, "users", pilotUid);
+        const userSnap = await getDoc(userRef);
+        userData = userSnap.exists() ? (userSnap.data() as BaseUser) : null;
+      } catch (error) {
+        console.error("Error al obtener el perfil del piloto en usePilotDetails:", error);
+        throw error;
+      }
 
       // Helper function to safely parse timestamps or dates
       const parseDate = (val: any): Date => {

@@ -1,6 +1,7 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
+import { useAircraftDetails } from "@/hooks/useAircraftDetails";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerPilots } from "@/hooks/useOwnerPilots";
 import { AircraftDetailsHeader } from "@/screens/aircraft-details/components/header";
@@ -34,7 +35,12 @@ export default function AssignPilotsScreen() {
         ? registration[0]
         : registration;
 
-    const { data: pilots = [], isLoading } = useOwnerPilots(user?.uid);
+    // Los pilotos se buscan por el propietario de la aeronave (no por el usuario actual):
+    // para la encargada, su propio uid no tiene pilotos vinculados.
+    const { data: aircraft, isLoading: isLoadingAircraft } = useAircraftDetails(aircraftId);
+    const ownerId = aircraft?.ownerId || (isLoadingAircraft ? undefined : user?.uid);
+    const { data: pilots = [], isLoading: isLoadingPilots } = useOwnerPilots(ownerId);
+    const isLoading = isLoadingAircraft || isLoadingPilots;
     const [updatingPilotId, setUpdatingPilotId] = useState<string | null>(null);
 
     const togglePilotAssignment = async (pilot: PilotProfile) => {
@@ -52,7 +58,7 @@ export default function AssignPilotsScreen() {
                     : arrayUnion(aircraftId),
             });
 
-            queryClient.invalidateQueries({ queryKey: ["owner-pilots", user?.uid] });
+            queryClient.invalidateQueries({ queryKey: ["owner-pilots", ownerId] });
             queryClient.invalidateQueries({ queryKey: ["pilot-details", pilotUid] });
         } catch (error) {
             console.error("Error al actualizar asignación de piloto:", error);

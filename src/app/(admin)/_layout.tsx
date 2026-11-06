@@ -148,6 +148,22 @@ export default function AdminLayout() {
                 }}
             />
             <Drawer.Screen
+                name="users"
+                options={{
+                    drawerLabel: "Usuarios",
+                    title: "Usuarios",
+                    drawerIcon: ({ color, size }) => (
+                        <Ionicons name="people-outline" size={size} color={color} />
+                    ),
+                    headerTitle: () => (
+                        <View style={styles.headerTitleRow}>
+                            <Ionicons name="people-outline" size={20} color="#FFFFFF" />
+                            <Text style={styles.headerTitleText}>Usuarios</Text>
+                        </View>
+                    )
+                }}
+            />
+            <Drawer.Screen
                 name="fleet-pricing"
                 options={{
                     drawerLabel: "Control de Flota",
@@ -173,5 +189,15 @@ const styles = StyleSheet.create({
         padding: 20,
         borderTopWidth: 1,
         borderTopColor: "#e2e8f0",
+    },
+    headerTitleRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+    },
+    headerTitleText: {
+        color: "#FFFFFF",
+        fontWeight: "bold",
+        fontSize: 18,
     },
 });

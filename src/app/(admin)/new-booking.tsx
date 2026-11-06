@@ -9,6 +9,7 @@ import { computeFlightQuote, DEFAULT_CRUISE_SPEED_KNOTS } from "@/utils/flight-p
 import { Airport, AircraftAvailability, AircraftReservation } from "@/types/all-roles";
 import { QuickClientForm, QuickClientFormSchema } from "@/types/client";
 import { BaseUser } from "@/types/user";
+import { showNotice } from "@/utils/dialogs";
 import { getDistanceBetweenAirports } from "@/utils/flight-distance";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
@@ -153,7 +154,7 @@ export default function NewBookingScreen() {
       firstName: quickFirstName,
       lastName: quickLastName,
       phone: quickPhone,
-      email: quickEmail,
+      email: quickEmail.trim(),
       documentNumber: quickDoc,
       personType: quickPersonType,
       businessName: quickPersonType === "company" ? quickBusinessName : undefined,
@@ -167,14 +168,22 @@ export default function NewBookingScreen() {
     }
 
     try {
-      const created = await createQuickClientMutation.mutateAsync(validation.data);
+      const { client: created, matchedBy } = await createQuickClientMutation.mutateAsync(validation.data);
       setSelectedClient(created);
       setIsQuickClientModalVisible(false);
-      Toast.show({
-        type: "success",
-        text1: "Cliente Registrado",
-        text2: `${created.firstName} ${created.lastName} fue dado de alta con éxito.`,
-      });
+      if (matchedBy === "document") {
+        // No se creó un duplicado: se reutilizó la ficha que ya tenía ese documento.
+        showNotice(
+          "Cliente existente",
+          `Ya existe un cliente con ese documento: se usó el existente (${created.firstName} ${created.lastName}).`
+        );
+      } else {
+        Toast.show({
+          type: "success",
+          text1: "Cliente Registrado",
+          text2: `${created.firstName} ${created.lastName} fue dado de alta con éxito.`,
+        });
+      }
       // Clear quick form
       setQuickFirstName("");
       setQuickLastName("");
@@ -477,7 +486,7 @@ export default function NewBookingScreen() {
                           {selectedClient.firstName} {selectedClient.lastName}
                         </Text>
                         <Text style={styles.clientSubText}>
-                          {selectedClient.phone || "Sin teléfono"} • {selectedClient.email}
+                          {selectedClient.phone || "Sin teléfono"}{selectedClient.email ? ` • ${selectedClient.email}` : ""}
                         </Text>
                         {selectedClient.documentNumber && (
                           <Text style={styles.clientDocText}>
@@ -1009,7 +1018,7 @@ export default function NewBookingScreen() {
                 </View>
 
                 <View>
-                  <Text style={styles.modalInputLabel}>Correo Electrónico *</Text>
+                  <Text style={styles.modalInputLabel}>Correo Electrónico (opcional)</Text>
                   <TextInput
                     value={quickEmail}
                     onChangeText={setQuickEmail}

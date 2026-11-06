@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { View, TouchableOpacity, Modal } from "react-native";
+import { View, TouchableOpacity, Modal, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemedText } from "./themed-text";
 import SignOutButton from "./sign-out-button";
@@ -19,6 +20,7 @@ export default function UserAvatar({
   textClassName = "text-white",
 }: UserAvatarProps) {
   const { user, userData, role, roles, selectRole } = useAuth();
+  const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
 
   const displayName =
@@ -152,6 +154,21 @@ export default function UserAvatar({
                 </View>
               )}
 
+              {/* Mis propietarios (solo piloto): abre la ruta oculta /my-owners */}
+              {role === "PILOT" && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setModalVisible(false);
+                    router.push("/my-owners");
+                  }}
+                  style={avatarStyles.ownersButton}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="briefcase-outline" size={18} color="#0f1e3d" />
+                  <Text style={avatarStyles.ownersButtonText}>Mis propietarios</Text>
+                </TouchableOpacity>
+              )}
+
               {/* Botón de Cierre de Sesión */}
               <View className="mb-4">
                 <SignOutButton />
@@ -173,3 +190,23 @@ export default function UserAvatar({
     </>
   );
 }
+
+const avatarStyles = StyleSheet.create({
+  ownersButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  ownersButtonText: {
+    color: "#0f1e3d",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+});

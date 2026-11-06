@@ -10,17 +10,22 @@ export function useAircraftDetails(id: string | undefined) {
     queryFn: async () => {
       if (!id) return null;
 
-      const docRef = doc(db, "AircraftSpecs", id);
-      const docSnap = await getDoc(docRef);
+      try {
+        const docRef = doc(db, "AircraftSpecs", id);
+        const docSnap = await getDoc(docRef);
 
-      if (!docSnap.exists()) return null;
+        if (!docSnap.exists()) return null;
 
-      const data = docSnap.data();
+        const data = docSnap.data();
 
-      return {
-        id: docSnap.id,
-        ...(data as AircraftSpecs),
-      } as AircraftSpecsDoc;
+        return {
+          id: docSnap.id,
+          ...(data as AircraftSpecs),
+        } as AircraftSpecsDoc;
+      } catch (error) {
+        console.error("Error al obtener la aeronave en useAircraftDetails:", error);
+        throw error;
+      }
     },
     enabled: !!id,
   });

@@ -70,6 +70,15 @@ export default function PilotLayout() {
                         ),
                     }}
                 />
+
+                {/* Mis propietarios: ruta oculta, se abre desde el avatar */}
+                <Tabs.Screen
+                    name="my-owners"
+                    options={{
+                        title: "Mis propietarios",
+                        href: null,
+                    }}
+                />
             </Tabs>
         </ThemedView>
     );

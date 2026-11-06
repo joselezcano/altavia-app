@@ -35,6 +35,8 @@ interface AuthContextType {
   registrationMetadata: RegistrationMetadata;
   setRegistrationMetadata: (meta: RegistrationMetadata) => void;
   refreshUserData: () => Promise<void>;
+  // Vuelve a leer solo el perfil del rol activo (sin loader global ni selector de rol).
+  refreshProfileData: () => Promise<void>;
   selectRole: (role: Role) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -51,6 +53,7 @@ const AuthContext = createContext<AuthContextType>({
   registrationMetadata: { termsAccepted: false, referralSource: null },
   setRegistrationMetadata: () => { },
   refreshUserData: async () => { },
+  refreshProfileData: async () => { },
   selectRole: async () => { },
   signOut: async () => { },
 });
@@ -216,6 +219,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return unsubscribe;
   }, []);
 
+  const refreshProfileData = async () => {
+    if (!user || !role) return;
+    const profile = await fetchProfileData(user.uid, role);
+    setProfileData(profile);
+  };
+
   const selectRole = async (selectedRole: Role) => {
     if (!user) return;
     setIsLoading(true);
@@ -249,6 +258,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         registrationMetadata,
         setRegistrationMetadata,
         refreshUserData,
+        refreshProfileData,
         selectRole,
         signOut,
       }}
