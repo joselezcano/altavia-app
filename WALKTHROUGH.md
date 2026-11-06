@@ -55,6 +55,13 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
   - la lógica de acceso no cambió.
 - **Dependencias nativas de la fase 3:** `expo-camera` (escáner de boarding pass, con el permiso en `app.json`) y `expo-linear-gradient`. Requieren un build de desarrollo nuevo.
 
+- **Cards de vuelos colapsables (`src/components/flight-summary-card.tsx`):** las listas de cliente, piloto/encargada, owner y reservas usan una card compacta (ruta, fecha, estado, matrícula, pasajeros y precio) que se despliega con `LayoutAnimation` y muestra el resto de los datos y todas las acciones. Hay una sola abierta por lista. En el cliente se abre sola la primera reserva que espera pago.
+- **Pronóstico del tiempo (`useFlightWeather.ts`, `flight-weather.tsx`):** Open-Meteo (gratis, sin clave), para vuelos `confirmed`/`delayed` de los próximos 7 días.
+  - **Qué muestra:** origen a la hora de salida y destino a la de llegada; temperatura, condición, viento en km/h y nudos con dirección, ráfagas y probabilidad de lluvia.
+  - **Por rol:** versión completa para el staff (en la card y en el detalle) y resumida para el cliente.
+  - **Aviso en pantalla:** es una referencia, no reemplaza METAR/TAF.
+- **Tipo de cambio:** la lista de reservas y el modal de Bancard usan `useExchangeRate()` en vez de la tasa fija.
+
 ## 2. Rol: ADMIN
 - **Dashboard e Index (`index.tsx`, `_layout.tsx`):** Navegación por Drawer configurada con iconos (`Ionicons`), logotipo superior y safe areas. El dashboard cuenta con:
   - Consumo en tiempo real de la base de datos para la cantidad de Modelos Base, Flota Activa y **Vuelos Reservados** (consultando la colección `aircraft-reservation` en Firestore mediante TanStack Query).

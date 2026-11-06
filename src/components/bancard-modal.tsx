@@ -1,3 +1,4 @@
+import { useExchangeRate } from "@/hooks/useExchangeRate";
 import {
     BANCARD_CONFIG,
     BANCARD_TEST_CARDS,
@@ -5,7 +6,6 @@ import {
     getBancardBaseUrl,
     getBancardIframeHtml,
     initiateSingleBuy,
-    USD_TO_PYG_RATE
 } from "@/services/bancard";
 import { ClientReservationItem } from "@/types/all-roles";
 import { BancardSingleBuyResult, BancardTestCard } from "@/types/bancard";
@@ -58,8 +58,9 @@ export function BancardPaymentModal({
     const [autofillSuccess, setAutofillSuccess] = useState<boolean>(false);
 
     const priceUsd = reservation?.price || 0;
-    // Monto real calculado por el servidor; mientras tanto, referencia local.
-    const amountPyg = buy?.amountPyg ?? Math.round(priceUsd * USD_TO_PYG_RATE);
+    // Monto real calculado por el servidor; mientras tanto, referencia con el cambio del día.
+    const { data: exchangeRate } = useExchangeRate();
+    const amountPyg = buy?.amountPyg ?? Math.round(priceUsd * (exchangeRate?.dolar ?? 0));
     const formattedGs = amountPyg.toLocaleString("es-PY");
     const originIdent =
         reservation?.originAirport?.iata_code ||

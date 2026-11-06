@@ -2,7 +2,8 @@ import { FlightSummaryCard } from "@/components/flight-summary-card";
 import { PassengerManifestModal } from "@/components/passenger-manifest-modal";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
-import { createPaymentLink, USD_TO_PYG_RATE } from "@/services/bancard";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { createPaymentLink } from "@/services/bancard";
 import { Airport, ClientReservationItem } from "@/types/all-roles";
 import { AircraftSpecs } from "@/types/owner";
 import { BaseUser } from "@/types/user";
@@ -38,6 +39,9 @@ export default function AdminReservationsScreen() {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const { user, role, profileData } = useAuth();
+  // Tipo de cambio del día (Contadores/cambioDelDia); nunca una tasa fija.
+  const { data: exchangeRate } = useExchangeRate();
+  const usdToPyg = exchangeRate?.dolar ?? 0;
   const deleteReservation = useDeleteReservation();
 
   // Rutas del grupo del rol activo (esta pantalla se re-exporta en (pilot)/flights para la encargada).
@@ -332,7 +336,7 @@ export default function AdminReservationsScreen() {
             <Text style={styles.priceLabel}>Precio del Vuelo</Text>
             <Text style={styles.priceValue}>USD ${item.price.toLocaleString("en-US")}</Text>
             <Text style={styles.pricePyg}>
-              ₲ {Math.round(item.price * USD_TO_PYG_RATE).toLocaleString("es-PY")}
+              ₲ {Math.round(item.price * usdToPyg).toLocaleString("es-PY")}
             </Text>
           </View>
 
