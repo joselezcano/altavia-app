@@ -33,6 +33,15 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
 - **Borrar aeronave (owner):** se hace desde la toolbar del detalle, con doble confirmación, y se bloquea si la aeronave tiene reservas (`useDeleteAircraft`).
 - **Diálogos multiplataforma (`src/utils/dialogs.ts` / `.web.ts`):** `confirmAction` y `showNotice`. En web usan los diálogos del navegador, porque `Alert.alert` con botones no se muestra.
 
+- **Editar y eliminar reservas (`src/screens/edit-reservation`, `useReservationEditing.ts`):** el owner y la encargada editan desde el detalle o la lista.
+  - **Sin pagar:** se cambian ruta, fechas, ida/vuelta y pasajeros. Recotiza por hora y el precio se puede mantener, tomar el sugerido o escribir a mano.
+  - **Pagada:** solo se reprograma, y el precio queda fijo.
+  - **Calendario:** se recrean los bloqueos de `aircraft-availability` y se valida que no choquen con otras reservas.
+  - **Eliminar:** solo reservas sin ningún cobro. Primero se borran los bloqueos y después la reserva.
+- **Navegación por rol (`src/utils/role-routes.ts`):** las pantallas compartidas (reservas, nueva reserva) navegan al grupo del rol activo. Antes llevaban a rutas protegidas de otro rol.
+- **Foto del plan de vuelo por tramo:** se adjunta en `create-flight-plan`, se guarda en `flight_plan_photos/{reservationId}/` (Storage) y en `flight-plans.photoUrl`, y se ve en `view-flight-plan`.
+- **ID de FlightAware (`flight-aware-card.tsx`):** el owner, la encargada o el piloto asignado cargan `fa_flight_id` en vuelos confirmados. La regla del piloto asignado ahora incluye ese campo.
+
 ## 2. Rol: ADMIN
 - **Dashboard e Index (`index.tsx`, `_layout.tsx`):** Navegación por Drawer configurada con iconos (`Ionicons`), logotipo superior y safe areas. El dashboard cuenta con:
   - Consumo en tiempo real de la base de datos para la cantidad de Modelos Base, Flota Activa y **Vuelos Reservados** (consultando la colección `aircraft-reservation` en Firestore mediante TanStack Query).
@@ -45,6 +54,17 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
 - **Control de Flota y Tarifas (`fleet-pricing.tsx`):** tarifa **por hora** de cada aeronave (IVA incluido), pernocte, hangaraje por noche y factor de bloque. Se guardan en los Ajustes de GIO de la aeronave. La tarifa por milla (`pricePerMileOverride`, `model-pricing`) quedó obsoleta.
 - **Gestión de usuarios (`users.tsx`, `useAdminUsers.ts`):** busca por nombre, email o documento y filtra por rol. Agrega o quita los roles OWNER y PILOT: al agregar, crea `owners/{uid}` o `pilots/{uid}` si no existen; al quitar, solo saca el rol y conserva los documentos. Si un usuario tiene el rol pero le falta el documento, aparece el botón "Crear perfil".
 
+- **Facturación (`billing.tsx`):** tablero mensual por aeronave.
+  - **Totales:** vuelos, facturado con IVA y neto (USD y Gs), IVA, ticket promedio, horas (de GIO o `billable_hours`), ingreso por hora y margen sobre los costos directos de GIO.
+  - **Lista:** solo datos reales. No usa `mapReservationToAccountingItem`, que inventa datos.
+  - **Período:** el mes se toma por fecha de cobro o de vuelo.
+- **Plan de negocio (`business-plan.tsx`, `src/utils/business-plan.ts`, colección `business-plans/{aircraftId}`, solo ADMIN):** integra la planilla de rentabilidad.
+  - **Pestañas:** Situación actual (real de GIO contra el plan), Escenarios con y sin CESA, Simulador en vivo, Terceros (fee CESA + plataforma) y ROI real acumulado.
+  - **Costos:** los operativos se leen de GIO; el plan solo guarda seguros, inspecciones, inversión, metas de horas, tarifas y parámetros de terceros.
+  - **Correcciones a la planilla:** la reserva de overhaul es por hora, se trabaja con el ingreso neto de IVA y hay opciones para descontar Bancard (2,5 %) e IRE (10 %).
+  - **Verificación:** `node tests/business-plan/verify-spreadsheet.mjs` reproduce la planilla (128 chequeos).
+  - **IA:** el botón "Preguntale a la IA" queda para más adelante.
+
 ## 3. Rol: OWNER
 - **Navegación por Drawer (`_layout.tsx`):** Se migró de un Bottom Tab a un Drawer idéntico al del administrador (ancho de `280px`, logo de Altavia en cabecera y `UserAvatar` con modal en el pie de página). Se configuró `headerShown: false` de forma global para respetar las cabeceras transparentes y personalizadas que ya existían en cada pantalla, y se configuró `<StatusBar style="dark" />` para un contraste óptimo.
 - **Cabeceras Transparentes e Insets:** Se integró `useSafeAreaInsets` en las vistas principales (**Vuelos**, **Aeronaves** y **Pilotos**) aplicando `paddingTop: insets.top`. Esto corrige la colisión de los encabezados con la barra de estado.
@@ -53,6 +73,8 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
   - Se eliminaron los botones de carga para desarrollo y se añadió una cabecera de título transparente consistente con el resto de la aplicación.
   - Se consume la base de datos de manera reactiva: obtiene las aeronaves del propietario con `useOwnerAircrafts` y todas las reservas con `useQuery`, filtrándolas localmente para mostrar solo las asociadas a su flota.
   - Se implementaron filtros interactivos mediante chips horizontales para filtrar vuelos por **Aeronave/Matrícula** y por **Estado de Vuelo** (Pendiente, Aprobado, Completado, Cancelado).
+- **Nueva reserva del owner (`(owner)/flights/new-booking.tsx`):** botón "+ Nueva Reserva" en Vuelos. `new-booking` filtra las aeronaves por rol: el admin ve todas, el owner las suyas y la encargada sus `managed_aircrafts`.
+- **Plan de vuelo del owner (`(owner)/flights/create-flight-plan.tsx`):** ruta que faltaba; el botón ya existía.
 - **Gestión de Disponibilidad (Calendario):** Se implementó la visualización de la agenda de aeronaves (`day-schedule.tsx`) y el editor de eventos/bloqueos recurrentes (`edit-event-recurrence.tsx`).
 - **Base de Operaciones:** Funcionalidad para establecer la base (aeropuerto/pista) de la aeronave mediante un selector de aeropuertos (`base-airport.tsx`).
 - **Registro de Aeronaves Reales (`add-aircraft.tsx`):** Refactorizado y mejorado con un flujo de autocompletado/sugerencias más fluido (`suggestions.tsx`) y dividido en subcomponentes (`form-step-1` a `form-step-4` en `src/screens/aircraft-add/`).
