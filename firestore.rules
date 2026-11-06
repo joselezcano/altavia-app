@@ -351,6 +351,14 @@ service cloud.firestore {
         && !changedKeys().hasAny(['ownerId', 'aircraftId']);
     }
 
+    // ------------------------------------------- plan de negocio (solo ADMIN)
+    // Supuestos del plan y simulador por aeronave. Los costos operativos se leen de GIO.
+    match /business-plans/{aircraftId} {
+      allow read, delete: if isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.get('aircraftId', '') == aircraftId;
+    }
+
     // Todo lo demás: denegado (comportamiento por defecto).
   }
 }

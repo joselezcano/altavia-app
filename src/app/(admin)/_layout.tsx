@@ -179,6 +179,26 @@ export default function AdminLayout() {
                     )
                 }}
             />
+            <Drawer.Screen
+                name="billing"
+                options={{
+                    drawerLabel: "Facturación",
+                    title: "Facturación",
+                    drawerIcon: ({ color, size }) => (
+                        <Ionicons name="receipt-outline" size={size} color={color} />
+                    ),
+                }}
+            />
+            <Drawer.Screen
+                name="business-plan"
+                options={{
+                    drawerLabel: "Plan de negocio",
+                    title: "Plan de negocio",
+                    drawerIcon: ({ color, size }) => (
+                        <Ionicons name="trending-up-outline" size={size} color={color} />
+                    ),
+                }}
+            />
         </Drawer>
         </>
     );

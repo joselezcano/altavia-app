@@ -404,3 +404,43 @@ describe("catálogos", () => {
         await assertSucceeds(setDoc(doc(as(UIDS.admin), "model-pricing", "C414"), { model: "C414", defaultPricePerMile: 5 }));
     });
 });
+
+describe("Facturación y plan de negocio (ADMIN)", () => {
+    const plan = { aircraftId: "ac1", ownerId: UIDS.owner, horasHoyMin: 7, horasHoyMax: 10 };
+
+    test("el admin lee y escribe el plan de negocio de una aeronave", async () => {
+        const db = as(UIDS.admin);
+        await assertSucceeds(setDoc(doc(db, "business-plans", "ac1"), plan));
+        await assertSucceeds(getDoc(doc(db, "business-plans", "ac1")));
+        await assertSucceeds(updateDoc(doc(db, "business-plans", "ac1"), { horasHoyMax: 12 }));
+        await assertSucceeds(getDocs(collection(db, "business-plans")));
+    });
+    test("el plan debe llevar el aircraftId del documento", async () => {
+        await assertFails(setDoc(doc(as(UIDS.admin), "business-plans", "ac1"), { ...plan, aircraftId: "ac2" }));
+    });
+    test("nadie más que el admin accede al plan de negocio", async () => {
+        await env.withSecurityRulesDisabled(async (ctx) => {
+            await setDoc(doc(ctx.firestore(), "business-plans", "ac1"), plan);
+        });
+        for (const uid of [UIDS.owner, UIDS.encargada, UIDS.pilot, UIDS.client]) {
+            await assertFails(getDoc(doc(as(uid), "business-plans", "ac1")));
+            await assertFails(setDoc(doc(as(uid), "business-plans", "ac1"), plan));
+        }
+        await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), "business-plans", "ac1")));
+    });
+    test("el admin lista las reservas pagadas para Facturación", async () => {
+        await assertSucceeds(getDocs(query(collection(as(UIDS.admin), "aircraft-reservation"), where("client_status", "==", "confirmed"))));
+        await assertFails(getDocs(query(collection(as(UIDS.client), "aircraft-reservation"), where("client_status", "==", "confirmed"))));
+    });
+    test("el admin lee GIO filtrando por el dueño real y la aeronave", async () => {
+        const db = as(UIDS.admin);
+        await assertSucceeds(getDocs(query(collection(db, "owner_operational_flights"),
+            where("ownerId", "==", UIDS.owner), where("aircraftId", "==", "ac1"))));
+        await assertSucceeds(getDocs(query(collection(db, "owner_operational_expenses"),
+            where("ownerId", "==", UIDS.owner), where("aircraftId", "==", "ac1"))));
+        await assertSucceeds(getDoc(doc(db, "owner_aircraft_operations_config", `${UIDS.owner}_ac1`)));
+        // ownerId que no es el dueño de la aeronave: denegado.
+        await assertFails(getDocs(query(collection(db, "owner_operational_flights"),
+            where("ownerId", "==", UIDS.otherOwner), where("aircraftId", "==", "ac1"))));
+    });
+});
