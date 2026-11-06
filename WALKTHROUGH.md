@@ -29,6 +29,10 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
 - **Link de pago por WhatsApp:** `createPaymentLink` genera `https://altavia-app.web.app/pagar/?t=<token>` (un solo uso, 48 h). La página pública en `hosting/public/pagar/` muestra el resumen del vuelo, carga el iframe oficial de Bancard y verifica el pago al volver.
 - **Webhook KYC Didit con firma verificada:** `functions/src/didit.ts` valida `X-Signature-V2`/`X-Signature` con un timestamp de ±300 s y rechaza con 401. `kycVerified` solo cambia con `Approved` (true) o `Declined`/`Kyc Expired` (false).
 
+- **Clientes sin duplicar (`useClients.ts`):** el alta rápida busca primero por documento (`documentNumber` y, para empresas, `taxId`; también sin puntos ni espacios) y después por email. Si encuentra al cliente, lo reutiliza y avisa "Ya existe un cliente con ese documento". El email es opcional.
+- **Borrar aeronave (owner):** se hace desde la toolbar del detalle, con doble confirmación, y se bloquea si la aeronave tiene reservas (`useDeleteAircraft`).
+- **Diálogos multiplataforma (`src/utils/dialogs.ts` / `.web.ts`):** `confirmAction` y `showNotice`. En web usan los diálogos del navegador, porque `Alert.alert` con botones no se muestra.
+
 ## 2. Rol: ADMIN
 - **Dashboard e Index (`index.tsx`, `_layout.tsx`):** Navegación por Drawer configurada con iconos (`Ionicons`), logotipo superior y safe areas. El dashboard cuenta con:
   - Consumo en tiempo real de la base de datos para la cantidad de Modelos Base, Flota Activa y **Vuelos Reservados** (consultando la colección `aircraft-reservation` en Firestore mediante TanStack Query).
@@ -38,9 +42,8 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
   - Pantalla `index.tsx`: Listado de plantillas con `FlatList` obtenidas desde Firestore mediante TanStack Query (`useAircraftTemplates`). Capacidad de eliminar con confirmación de seguridad. Botón flotante (FAB) para agregar nueva plantilla.
   - Pantalla `add.tsx`: Formulario de alta complejidad protegido con React Hook Form + Zod. Se consolidó el manejo de arrays y objetos anidados (ej. `dinghies_capacity` consolidado en un solo Controller con campos dinámicos). Se implementó validación estricta y se añadió `returnKeyType="done"` en todos los campos para facilitar la ocultación del teclado, además de un `keyboardVerticalOffset` ajustado en el `KeyboardAvoidingView` para iOS.
   - Configuración de la navegación para que `templates/add` no aparezca en el menú del Drawer, y la sección de plantillas se denomine unificadamente "Aeronaves".
-- **Control de Flota y Tarifas (`fleet-pricing.tsx`):**
-  - Implementación inicial para leer aeronaves y sobreescribir tarifas individuales (`pricePerMileOverride`).
-  - Configuración de tarifas base por modelo (`model-pricing`).
+- **Control de Flota y Tarifas (`fleet-pricing.tsx`):** tarifa **por hora** de cada aeronave (IVA incluido), pernocte, hangaraje por noche y factor de bloque. Se guardan en los Ajustes de GIO de la aeronave. La tarifa por milla (`pricePerMileOverride`, `model-pricing`) quedó obsoleta.
+- **Gestión de usuarios (`users.tsx`, `useAdminUsers.ts`):** busca por nombre, email o documento y filtra por rol. Agrega o quita los roles OWNER y PILOT: al agregar, crea `owners/{uid}` o `pilots/{uid}` si no existen; al quitar, solo saca el rol y conserva los documentos. Si un usuario tiene el rol pero le falta el documento, aparece el botón "Crear perfil".
 
 ## 3. Rol: OWNER
 - **Navegación por Drawer (`_layout.tsx`):** Se migró de un Bottom Tab a un Drawer idéntico al del administrador (ancho de `280px`, logo de Altavia en cabecera y `UserAvatar` con modal en el pie de página). Se configuró `headerShown: false` de forma global para respetar las cabeceras transparentes y personalizadas que ya existían en cada pantalla, y se configuró `<StatusBar style="dark" />` para un contraste óptimo.
@@ -66,6 +69,9 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
 
 - **Módulo Contable para la encargada (`(pilot)/finances`):** pestaña "Contable", visible solo si `isEncargado`. Reutiliza `OwnerOperationalControlView` sobre sus `managed_aircrafts`; los registros quedan a nombre del dueño de cada aeronave. `useOperationalFlights` y `useOperationalExpenses` filtran por `aircraftId` en Firestore para cumplir las reglas.
 - **Cambio de estado por el piloto asignado:** en el detalle del vuelo, el piloto asignado puede mover solo los estados operativos de un vuelo confirmado (`FlightStatusModal` acepta `allowedStatuses`).
+- **Mis propietarios (`(pilot)/my-owners.tsx`, oculta, se abre desde el avatar):** el piloto ve con qué propietarios está vinculado y puede desvincularse (`useUnlinkFromOwner`). Al hacerlo pierde las aeronaves de ese propietario y, si no le queda ninguno, deja de ser encargado.
+- **Alta de aeronaves por la encargada (`(pilot)/aircrafts/add-aircraft.tsx`):** la aeronave se registra a nombre de su propietario (`owner_ids`, con selector si tiene varios). Después el propietario se la asigna desde "Mis Pilotos".
+- **Asignar pilotos (encargada):** `screens/assign-pilots` usa el `ownerId` de la aeronave. Antes la lista salía vacía. `useOwnerPilots` ahora tiene try-catch, tolera perfiles incompletos y consulta en tandas de 30.
 
 ## 5. Rol: CLIENT
 - **Motor de Búsqueda:** Formulario de búsqueda avanzado (`index.tsx`) y visualización detallada de resultados (`search-results.tsx`).
