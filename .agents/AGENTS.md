@@ -22,3 +22,15 @@
 ## 4. Manejo de Errores y Consultas Firebase (Índices)
 - En todas las consultas de lectura o escritura de Firebase (como `getDoc`, `getDocs`, `setDoc`, `updateDoc`, `deleteDoc`) que no sean suscripciones reactivas (`onSnapshot`), se debe implementar obligatoriamente un bloque `try-catch`.
 - Esto asegura la captura de errores específicos de Firebase, especialmente aquellos que indican la necesidad de crear un índice compuesto (que proveen el enlace directo para su generación automática en la consola de Firebase).
+
+## 5. Prevención de Error de Navegación por NativeWind v4 (`Couldn't find a navigation context`)
+- **Causa Raíz:** En NativeWind v4 junto con React 19 y Expo 52, el motor `react-native-css-interop` genera un error falso-positivo de navegación (`Couldn't find a navigation context. Have you wrapped your app with 'NavigationContainer'?`) debido a un fallo en la resolución de estilos reactivos durante re-renders o transiciones de pantalla bajo las siguientes condiciones:
+  1. Interpolaciones de template string dinámicas en `className` (ej. `className={`... ${cond ? 'bg-white' : ''}`}`).
+  2. Modificadores de opacidad en utilidades de color (ej. `bg-brand-blue/90`, `bg-white/10`, `bg-black/60`).
+  3. Utilidades de sombra de Tailwind (`shadow-sm`, `shadow-md`, `shadow-2xl`).
+  4. Utilidades de espaciado `gap-*` en contenedores `<View>` de NativeWind.
+  5. Uso de `ThemedText` o `ThemedView` dentro de componentes `<Modal>` nativos de React Native.
+- **Regla Obligatoria:**
+  - **Para estilos condicionales y dinámicos:** NUNCA usar plantillas de texto en `className`. Usar `style={[styles.base, isActive ? styles.active : styles.inactive]}` o estilos inline con `StyleSheet.create`.
+  - **Dentro de Modales (`<Modal>`):** Usar `<Text>` y `<View>` nativos de React Native con estilos basados en `StyleSheet` o inline, evitando `ThemedText` y clases `className` complejas dentro de modales.
+  - **Para gaps y sombras:** Usar la propiedad de estilo nativa `style={{ gap: 16 }}` y propiedades de sombra nativas (`elevation`, `shadowColor`, etc.) en lugar de las clases Tailwind `gap-*` y `shadow-*`.
