@@ -43,6 +43,18 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
 - **Foto del plan de vuelo por tramo:** se adjunta en `create-flight-plan`, se guarda en `flight_plan_photos/{reservationId}/` (Storage) y en `flight-plans.photoUrl`, y se ve en `view-flight-plan`.
 - **ID de FlightAware (`flight-aware-card.tsx`):** el owner, la encargada o el piloto asignado cargan `fa_flight_id` en vuelos confirmados. La regla del piloto asignado ahora incluye ese campo.
 
+- **Rediseño con la marca AltaGo (fase 3, en curso):**
+  - **Colores:** `brand.blue` pasó a Dark Navy #030436 y `brand.gold` a Azur #0165FF, en tailwind y en los colores escritos a mano.
+  - **Tipografía:** Noto Sans (`@expo-google-fonts/noto-sans`) se carga en el layout raíz; la splash espera a la fuente. `ThemedText` aplica la familia según el peso (`src/utils/brand-fonts.ts`).
+  - **Ícono, ícono adaptativo, favicon y splash** con el isotipo y el logo AltaGo.
+  - **Drawers de admin y owner** con el logo horizontal local.
+- **Login (`login.tsx`), según el manual (pág. 15):**
+  - foto CC0 de un Gulfstream (MarcusWoeckel / Pixabay, vía Wikimedia Commons) en `assets/images/brand/login-background.jpg`, con degradado navy en SVG;
+  - logo blanco y la frase "Vuelos privados a tu medida.";
+  - Google como acción principal, Apple, y correo/contraseña desplegable;
+  - la lógica de acceso no cambió.
+- **Dependencias nativas de la fase 3:** `expo-camera` (escáner de boarding pass, con el permiso en `app.json`) y `expo-linear-gradient`. Requieren un build de desarrollo nuevo.
+
 ## 2. Rol: ADMIN
 - **Dashboard e Index (`index.tsx`, `_layout.tsx`):** Navegación por Drawer configurada con iconos (`Ionicons`), logotipo superior y safe areas. El dashboard cuenta con:
   - Consumo en tiempo real de la base de datos para la cantidad de Modelos Base, Flota Activa y **Vuelos Reservados** (consultando la colección `aircraft-reservation` en Firestore mediante TanStack Query).

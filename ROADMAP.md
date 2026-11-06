@@ -8,6 +8,7 @@
 - [x] Registro inmutable en BD de aceptación legal (Timestamp, IP, version de contrato).
 - [x] Selector Multicuenta en Login (para usuarios con múltiples roles).
 - [x] Integración de API KYC con Didit.me (Biometría y verificación de identidad/Pasaporte completada vía Cloud Functions `startKycSession` y webhook seguro `diditWebhook`).
+- [ ] **Pendiente:** KYC obligatorio. El cliente no puede cotizar ni reservar por su cuenta sin `kycVerified` (en la UI de búsqueda y reserva y en la regla de create de `aircraft-reservation`). La verificación ya está implementada; falta exigirla.
 - [ ] Autenticación social exclusiva con Google y Apple (utilizando librerías oficiales de Expo).
 - [ ] Flujo de Onboarding en 2 pasos:
   - Paso 1: Aceptación de Términos y Condiciones y selección de referencia (origen/recomendación) previo a la creación de cuenta.
