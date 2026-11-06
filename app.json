@@ -4,11 +4,11 @@
     "slug": "altavia-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon-altavia.png",
+    "icon": "./assets/images/brand/app-icon.png",
     "scheme": "altaviaapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/icon-altavia.png",
+      "icon": "./assets/images/brand/app-icon.png",
       "bundleIdentifier": "com.migueldeveloper.altaviaapp",
       "supportsTablet": true,
       "requireFullScreen": true,
@@ -33,26 +33,26 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#000000",
-        "foregroundImage": "./assets/images/icon-altavia.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/brand/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/brand/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.migueldeveloper.altaviaapp"
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/brand/favicon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0f1e3d",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#030436",
+          "image": "./assets/images/brand/splash-logo.png",
+          "imageWidth": 180,
+          "resizeMode": "contain"
         }
       ],
       "expo-web-browser",
