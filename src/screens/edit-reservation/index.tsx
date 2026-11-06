@@ -242,6 +242,15 @@ function EditReservationForm({
                 text1: "Reserva actualizada",
                 text2: isPaid ? "Se reprogramaron las fechas del vuelo." : "Se guardaron los cambios de la reserva.",
             });
+            // Si ya se había enviado el link de pago, ahora cobra el precio nuevo: conviene avisar al cliente.
+            const priceChanged = !isPaid && Math.round(priceNumber) !== Math.round(Number(reservation.price) || 0);
+            if (priceChanged && reservation.internal_status === "awaiting_payment") {
+                Alert.alert(
+                    "Precio actualizado",
+                    `El link de pago va a cobrar el precio nuevo (USD ${Math.round(priceNumber).toLocaleString("es-PY")}). ` +
+                        "Si ya se lo enviaste al cliente, reenviáselo por WhatsApp para que vea el monto correcto."
+                );
+            }
             onSaved();
         } catch (error: any) {
             Alert.alert("No se pudo guardar", error?.message || "Intentá nuevamente.");

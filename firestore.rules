@@ -198,11 +198,13 @@ service cloud.firestore {
     // --------------------------------------------------------------- aeronaves
     match /AircraftSpecs/{aircraftId} {
       allow read: if signedIn();
-      allow create: if isAdmin()
-        || (isOwner() && request.resource.data.get('ownerId', '') == uid())
-        // La encargada da de alta aeronaves a nombre de un propietario con el que trabaja.
-        || (isEncargado()
-            && request.resource.data.get('ownerId', '') in pilotData().get('owner_ids', []));
+      // createdBy (si viene) debe ser quien crea: lo usa assignAircraftToCreator.
+      allow create: if request.resource.data.get('createdBy', uid()) == uid()
+        && (isAdmin()
+          || (isOwner() && request.resource.data.get('ownerId', '') == uid())
+          // La encargada da de alta aeronaves a nombre de un propietario con el que trabaja.
+          || (isEncargado()
+              && request.resource.data.get('ownerId', '') in pilotData().get('owner_ids', [])));
       // La tarifa publicada (pricing) la escribe el servidor desde los Ajustes de GIO.
       allow update: if isAdmin()
         || ((ownsAircraft(aircraftId) || managesAircraft(aircraftId))

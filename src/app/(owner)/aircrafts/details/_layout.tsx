@@ -9,6 +9,7 @@ export default function AircraftDetailsLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="aircraft-specs" />
+        <Stack.Screen name="edit-specs" />
         <Stack.Screen name="base-airport" />
         <Stack.Screen name="photos" />
       </Stack>

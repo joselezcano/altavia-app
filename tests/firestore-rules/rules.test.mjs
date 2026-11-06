@@ -347,6 +347,9 @@ describe("AircraftSpecs", () => {
         await assertSucceeds(updateDoc(doc(db, "AircraftSpecs", "ac1"), { base_airport: "SGAS" }));
         await assertFails(updateDoc(doc(db, "AircraftSpecs", "ac2"), { base_airport: "SGAS" }));
         await assertSucceeds(addDoc(collection(db, "AircraftSpecs"), { ownerId: UIDS.owner }));
+        await assertSucceeds(addDoc(collection(db, "AircraftSpecs"), { ownerId: UIDS.owner, createdBy: UIDS.encargada }));
+        // No puede hacerse pasar por otra persona en createdBy.
+        await assertFails(addDoc(collection(db, "AircraftSpecs"), { ownerId: UIDS.owner, createdBy: UIDS.pilot }));
         await assertFails(addDoc(collection(db, "AircraftSpecs"), { ownerId: UIDS.otherOwner }));
         await assertFails(updateDoc(doc(as(UIDS.pilot), "AircraftSpecs", "ac1"), { base_airport: "SGES" }));
     });

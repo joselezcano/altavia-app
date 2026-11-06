@@ -36,8 +36,10 @@ export const BusinessPlanSchema = z.object({
     horasCesaConservador: montoSchema,
     horasCesaObjetivo: montoSchema,
 
-    // Tarifas a evaluar con CESA (USD por hora, IVA incluido). La tarifa de hoy sale de GIO (tarifaHora).
+    // Tarifas a evaluar con CESA (USD por hora). La tarifa de hoy sale de GIO (tarifaHora, IVA incluido).
     tarifasCesa: z.array(montoSchema).length(3),
+    // Las tarifas con CESA se cargan SIN IVA (decisión del 06/11/2026); el IVA se suma al cobrar.
+    tarifasCesaIncluyenIva: z.boolean().optional(),
 
     // Gastos fijos que define el plan (reemplazan las líneas equivalentes de GIO)
     seguroAnualSinCesa: montoSchema,
@@ -140,7 +142,9 @@ export interface PlanScenarioInput {
     id: string;
     etiqueta: string;
     horasMes: number;
-    tarifaHora: number; // USD por hora, IVA incluido (si ivaPct = 0, es neta)
+    tarifaHora: number; // USD por hora
+    /** true (por defecto): la tarifa ya incluye IVA. false: es neta y el cliente paga tarifa × (1 + IVA). */
+    tarifaIncluyeIva?: boolean;
     conCesa: boolean;
     descontarBancard: boolean;
     descontarIre: boolean;

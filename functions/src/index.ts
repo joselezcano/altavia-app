@@ -10,6 +10,7 @@ export { createPaymentLink, paymentLinkApi } from "./payment-links";
 export { claimPreRegisteredProfile } from "./profile-claim";
 export { syncReservationToGio } from "./gio-sync";
 export { syncAircraftPricing } from "./pricing-sync";
+export { assignAircraftToCreator, removeUnlinkedPilotFromReservations } from "./pilot-sync";
 import { DiditWebhookBody, verifyDiditSignature } from "./didit";
 
 const DIDIT_VERIFICATION_BASE = "https://verification.didit.me";

@@ -35,7 +35,7 @@ import { AircraftTypeSuggestions } from "./components/suggestions";
 
 // TODO: Guardar tipos nuevos de aeronaves para autocompletar en el futuro
 export default function AddAircraftScreen() {
-    const { user, role, profileData } = useAuth();
+    const { user, role, profileData, refreshProfileData } = useAuth();
     const router = useRouter();
     const queryClient = useQueryClient();
     const insets = useSafeAreaInsets();
@@ -149,20 +149,23 @@ export default function AddAircraftScreen() {
             const newDocRef = await addDoc(collection(db, "AircraftSpecs"), {
                 ...cleanData,
                 ownerId: targetOwnerId,
+                // Si la crea una encargada, el servidor (assignAircraftToCreator) se la agrega a managed_aircrafts.
+                createdBy: user?.uid ?? null,
                 createdAt: serverTimestamp(),
             });
 
             queryClient.invalidateQueries({ queryKey: ["owner-aircrafts", targetOwnerId] });
 
             if (isEncargadaFlow) {
-                // Las reglas no permiten que la encargada se agregue la aeronave a
-                // managed_aircrafts (solo puede renunciar): se la asigna el propietario.
+                // La app no puede agregarla a managed_aircrafts (las reglas solo permiten renunciar):
+                // lo hace el servidor al detectar que la creó una encargada de ese propietario.
                 await showNotice(
                     "Aeronave registrada",
-                    `${data.basic_specs.registration} quedó registrada a nombre de ${ownerName(targetOwnerId)}. ` +
-                    "Para que aparezca en tu flota y puedas gestionarla, el propietario debe asignártela " +
-                    "desde \"Mis Pilotos\" > \"Aviones a su cargo\"."
+                    `${data.basic_specs.registration} quedó registrada a nombre de ${ownerName(targetOwnerId)} ` +
+                    "y se agregó a tu flota a cargo."
                 );
+                await refreshProfileData();
+                queryClient.invalidateQueries({ queryKey: ["managed-aircrafts"] });
                 router.back();
                 return;
             }
@@ -271,7 +274,7 @@ export default function AddAircraftScreen() {
                                 </View>
                             )}
                             <Text style={ownerStyles.hint}>
-                                Después de guardarla, el propietario debe asignártela para que puedas gestionarla.
+                                Al guardarla, queda a cargo tuyo automáticamente.
                             </Text>
                         </View>
                     )}

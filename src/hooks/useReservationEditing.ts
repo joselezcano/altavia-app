@@ -8,6 +8,7 @@
  * - La fila de GIO (owner_operational_flights) la sincroniza el servidor (gio-sync.ts).
  */
 import { db } from "@/config/firebase";
+import { countOvernights } from "@/utils/flight-pricing";
 import { AircraftAvailability, ClientReservationItem } from "@/types/all-roles";
 import { ReservationEditInput, ReservationLegBlock } from "@/types/reservation-edit";
 import { isReservationPaid } from "@/utils/paid-reservation";
@@ -223,6 +224,12 @@ export function useEditReservation() {
                     update.overnight_fee_usd = input.quote.overnightFeeUsd;
                     update.hangar_per_night_usd = input.quote.hangarPerNightUsd;
                 }
+            } else {
+                // Pagada: el precio queda fijo, pero si cambian las noches fuera se actualizan
+                // (GIO las usa para el pernocte del piloto y el hangaraje).
+                update.overnight_nights = input.roundtrip
+                    ? countOvernights(input.outboundStart, input.returnStart)
+                    : 0;
             }
 
             try {

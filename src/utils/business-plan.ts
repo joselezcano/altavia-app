@@ -54,6 +54,7 @@ export const BUSINESS_PLAN_DEFAULTS = {
     horasCesaConservador: 15,
     horasCesaObjetivo: 20,
     tarifasCesa: [1200, 1300, 1400],
+    tarifasCesaIncluyenIva: false,
     seguroAnualSinCesa: 3628,
     seguroAnualConCesa: 14500,
     inspeccionesAnuales: 8000,
@@ -217,8 +218,10 @@ export function computeScenario(base: PlanCostBase, input: PlanScenarioInput): P
     const tarifa = Math.max(0, num(input.tarifaHora));
     const ivaFactor = 1 + Math.max(0, base.ivaPct);
 
-    const ingresoBruto = h * tarifa;
-    const ingresoNeto = ingresoBruto / ivaFactor;
+    // La tarifa puede venir con IVA incluido (la de hoy, de GIO) o neta (las de CESA).
+    const incluyeIva = input.tarifaIncluyeIva !== false;
+    const ingresoBruto = incluyeIva ? h * tarifa : h * tarifa * ivaFactor;
+    const ingresoNeto = incluyeIva ? ingresoBruto / ivaFactor : h * tarifa;
     const iva = ingresoBruto - ingresoNeto;
     // La comisión de la pasarela se cobra sobre el monto total pagado (IVA incluido).
     const comisionBancard = input.descontarBancard ? ingresoBruto * base.comisionBancardPct : 0;
@@ -238,8 +241,9 @@ export function computeScenario(base: PlanCostBase, input: PlanScenarioInput): P
     const resultado = resultadoAntesIre - ire;
 
     // Punto de equilibrio: costos que no dependen de las horas ÷ contribución por hora.
-    const netoHora = tarifa / ivaFactor;
-    const comisionHora = input.descontarBancard ? tarifa * base.comisionBancardPct : 0;
+    const netoHora = incluyeIva ? tarifa / ivaFactor : tarifa;
+    const brutoHora = incluyeIva ? tarifa : tarifa * ivaFactor;
+    const comisionHora = input.descontarBancard ? brutoHora * base.comisionBancardPct : 0;
     const overhaulVariableHora = base.overhaul.modo === "por_hora" ? base.overhaul.usdHora : 0;
     const contribucionHora = netoHora - comisionHora - costoVariableHora - overhaulVariableHora;
     const costosNoHorarios = fijosMes + (base.overhaul.modo === "fijo_mensual" ? base.overhaul.usdMes : 0);
@@ -294,7 +298,16 @@ export function buildPlanScenarioInputs(
         horasMes: number,
         tarifaHora: number,
         conCesa: boolean
-    ): PlanScenarioInput => ({ id, etiqueta: SCENARIO_LABELS[id], horasMes, tarifaHora, conCesa, ...toggles });
+    ): PlanScenarioInput => ({
+        id,
+        etiqueta: SCENARIO_LABELS[id],
+        horasMes,
+        tarifaHora,
+        // Hoy: tarifa de GIO (IVA incluido). Con CESA: según el plan (por defecto, sin IVA).
+        tarifaIncluyeIva: conCesa ? plan.tarifasCesaIncluyenIva === true : true,
+        conCesa,
+        ...toggles,
+    });
     return [
         mk("hoy_min", num(plan.horasHoyMin), tarifaHoy, false),
         mk("hoy_prom", prom, tarifaHoy, false),
@@ -339,6 +352,7 @@ export function computeTariffComparison(
                     etiqueta: `USD ${formatNumber(t)} · ${formatNumber(h)} hs`,
                     horasMes: h,
                     tarifaHora: num(t),
+                    tarifaIncluyeIva: plan.tarifasCesaIncluyenIva === true,
                     conCesa: true,
                     ...toggles,
                 })

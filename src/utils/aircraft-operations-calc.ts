@@ -50,7 +50,7 @@ export const DEFAULT_FIXED_EXPENSES: FixedMonthlyExpense[] = [
     { id: "fix-admin", n: "Administración", m: 2200000, c: "GS" },
     { id: "fix-clean", n: "Limpieza", m: 500000, c: "GS" },
     { id: "fix-ins", n: "Seguro", m: 0, c: "USD" },
-    { id: "fix-hab", n: "Habilitaciones (anual / 12)", m: 133, c: "USD" },
+    { id: "fix-hab", n: "Habilitaciones (anual / 12)", m: 667, c: "USD" }, // 8000 USD por año
 ];
 
 /**

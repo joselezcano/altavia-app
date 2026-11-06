@@ -35,7 +35,8 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
 
 - **Editar y eliminar reservas (`src/screens/edit-reservation`, `useReservationEditing.ts`):** el owner y la encargada editan desde el detalle o la lista.
   - **Sin pagar:** se cambian ruta, fechas, ida/vuelta y pasajeros. Recotiza por hora y el precio se puede mantener, tomar el sugerido o escribir a mano.
-  - **Pagada:** solo se reprograma, y el precio queda fijo.
+  - **Pagada:** solo se reprograma, y el precio queda fijo. Se actualizan las noches fuera (`overnight_nights`), que GIO usa para el pernocte y el hangaraje.
+  - **Precio editado con el link ya enviado:** se avisa que el link cobra el precio nuevo y que conviene reenviarlo.
   - **Calendario:** se recrean los bloqueos de `aircraft-availability` y se valida que no choquen con otras reservas.
   - **Eliminar:** solo reservas sin ningún cobro. Primero se borran los bloqueos y después la reserva.
 - **Navegación por rol (`src/utils/role-routes.ts`):** las pantallas compartidas (reservas, nueva reserva) navegan al grupo del rol activo. Antes llevaban a rutas protegidas de otro rol.
@@ -62,6 +63,7 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
   - **Pestañas:** Situación actual (real de GIO contra el plan), Escenarios con y sin CESA, Simulador en vivo, Terceros (fee CESA + plataforma) y ROI real acumulado.
   - **Costos:** los operativos se leen de GIO; el plan solo guarda seguros, inspecciones, inversión, metas de horas, tarifas y parámetros de terceros.
   - **Correcciones a la planilla:** la reserva de overhaul es por hora, se trabaja con el ingreso neto de IVA y hay opciones para descontar Bancard (2,5 %) e IRE (10 %).
+  - **IVA:** la tarifa de hoy (GIO) es con IVA incluido. Las tarifas con CESA se cargan **sin IVA** (`tarifasCesaIncluyenIva`, configurable). Las habilitaciones por defecto son USD 8.000 por año.
   - **Verificación:** `node tests/business-plan/verify-spreadsheet.mjs` reproduce la planilla (128 chequeos).
   - **IA:** el botón "Preguntale a la IA" queda para más adelante.
 
@@ -92,7 +94,9 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
 - **Módulo Contable para la encargada (`(pilot)/finances`):** pestaña "Contable", visible solo si `isEncargado`. Reutiliza `OwnerOperationalControlView` sobre sus `managed_aircrafts`; los registros quedan a nombre del dueño de cada aeronave. `useOperationalFlights` y `useOperationalExpenses` filtran por `aircraftId` en Firestore para cumplir las reglas.
 - **Cambio de estado por el piloto asignado:** en el detalle del vuelo, el piloto asignado puede mover solo los estados operativos de un vuelo confirmado (`FlightStatusModal` acepta `allowedStatuses`).
 - **Mis propietarios (`(pilot)/my-owners.tsx`, oculta, se abre desde el avatar):** el piloto ve con qué propietarios está vinculado y puede desvincularse (`useUnlinkFromOwner`). Al hacerlo pierde las aeronaves de ese propietario y, si no le queda ninguno, deja de ser encargado.
-- **Alta de aeronaves por la encargada (`(pilot)/aircrafts/add-aircraft.tsx`):** la aeronave se registra a nombre de su propietario (`owner_ids`, con selector si tiene varios). Después el propietario se la asigna desde "Mis Pilotos".
+- **Alta de aeronaves por la encargada (`(pilot)/aircrafts/add-aircraft.tsx`):** la aeronave se registra a nombre de su propietario (`owner_ids`, con selector si tiene varios), con `createdBy`. El trigger `assignAircraftToCreator` (`functions/src/pilot-sync.ts`) la agrega sola a su `managed_aircrafts`. Las reglas exigen que `createdBy` sea quien crea.
+- **Desvinculación y reservas:** `removeUnlinkedPilotFromReservations` saca de `pilot_ids` al piloto que deja de estar vinculado a un propietario, en las reservas futuras y abiertas de sus aeronaves.
+- **Editar especificaciones (`src/screens/aircraft-edit`, ruta `aircrafts/details/edit-specs`):** botón "Editar especificaciones" para el admin, el dueño o la encargada que la gestiona. Reutiliza los pasos del alta y solo actualiza `basic_specs`, `technical_specs`, `operating_specs`, `emergency` y `notes`.
 - **Asignar pilotos (encargada):** `screens/assign-pilots` usa el `ownerId` de la aeronave. Antes la lista salía vacía. `useOwnerPilots` ahora tiene try-catch, tolera perfiles incompletos y consulta en tandas de 30.
 
 ## 5. Rol: CLIENT

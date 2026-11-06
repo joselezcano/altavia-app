@@ -126,6 +126,7 @@ export function BusinessPlanParamsModal({
     const [descontarBancard, setDescontarBancard] = useState(plan.descontarBancard);
     const [descontarIre, setDescontarIre] = useState(plan.descontarIre);
     const [cesaVigente, setCesaVigente] = useState(plan.cesaVigente);
+    const [cesaConIva, setCesaConIva] = useState(plan.tarifasCesaIncluyenIva === true);
     const [escenario, setEscenario] = useState<BusinessPlanScenarioId>(plan.escenarioReferencia);
     const [excluidos, setExcluidos] = useState<string[]>(() => resolveExcludedFixedIds(plan, cfg));
     const [error, setError] = useState<string | null>(null);
@@ -135,6 +136,7 @@ export function BusinessPlanParamsModal({
         setDescontarBancard(p.descontarBancard);
         setDescontarIre(p.descontarIre);
         setCesaVigente(p.cesaVigente);
+        setCesaConIva(p.tarifasCesaIncluyenIva === true);
         setEscenario(p.escenarioReferencia);
         setExcluidos(resolveExcludedFixedIds(p, cfg));
         setError(null);
@@ -146,6 +148,7 @@ export function BusinessPlanParamsModal({
             descontarBancard,
             descontarIre,
             cesaVigente,
+            tarifasCesaIncluyenIva: cesaConIva,
             escenarioReferencia: escenario,
             fijosGioExcluidos: excluidos,
             tarifasCesa: [0, 1, 2].map((i) => parseNum(values[`tarifa${i}`])),
@@ -188,6 +191,10 @@ export function BusinessPlanParamsModal({
                         <View style={styles.toggleRow}>
                             <Text style={styles.label}>CESA vigente</Text>
                             <Switch value={cesaVigente} onValueChange={setCesaVigente} trackColor={{ true: FIN_COLORS.gold, false: "#CBD5E1" }} thumbColor="#FFFFFF" />
+                        </View>
+                        <View style={styles.toggleRow}>
+                            <Text style={styles.label}>Tarifas con CESA incluyen IVA</Text>
+                            <Switch value={cesaConIva} onValueChange={setCesaConIva} trackColor={{ true: FIN_COLORS.gold, false: "#CBD5E1" }} thumbColor="#FFFFFF" />
                         </View>
                         <View style={styles.toggleRow}>
                             <Text style={styles.label}>Descontar comisión Bancard</Text>

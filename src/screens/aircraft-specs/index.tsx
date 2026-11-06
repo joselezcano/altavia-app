@@ -1,6 +1,7 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAircraftDetails } from "@/hooks/useAircraftDetails";
+import { USER_ROLE, useAuth } from "@/hooks/useAuth";
 import { AircraftDetailsHeader } from "@/screens/aircraft-details/components/header";
 import { AircraftDetailsTitleCard } from "@/screens/aircraft-details/components/title-card";
 import { BasicSpecsCard } from "@/screens/aircraft-specs/components/basic-specs";
@@ -13,6 +14,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import {
     ActivityIndicator,
     ScrollView,
+    StyleSheet,
+    Text,
     TouchableOpacity,
     View
 } from "react-native";
@@ -23,6 +26,7 @@ export default function AircraftSpecsScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
 
     const { data: aircraft, isLoading, error } = useAircraftDetails(id);
+    const { user, role, profileData } = useAuth();
 
     if (isLoading) {
         return (
@@ -61,6 +65,15 @@ export default function AircraftSpecsScreen() {
     const { basic_specs, technical_specs, operating_specs, emergency, notes } =
         aircraft;
 
+    // Mismo criterio que firestore.rules: admin, dueño o encargada que la gestiona.
+    const canEdit =
+        role === USER_ROLE.ADMIN ||
+        (role === USER_ROLE.OWNER && !!user?.uid && aircraft.ownerId === user.uid) ||
+        (role === USER_ROLE.PILOT &&
+            profileData?.isEncargado === true &&
+            Array.isArray(profileData?.managed_aircrafts) &&
+            profileData.managed_aircrafts.includes(id));
+
     return (
         <ThemedView className="flex-1 px-4 pt-2">
             {/* Header */}
@@ -73,6 +86,17 @@ export default function AircraftSpecsScreen() {
                     model={basic_specs.model}
                     registration={basic_specs.registration}
                 />
+
+                {canEdit && (
+                    <TouchableOpacity
+                        onPress={() => router.push({ pathname: "/aircrafts/details/edit-specs", params: { id } })}
+                        style={editStyles.button}
+                        activeOpacity={0.8}
+                    >
+                        <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                        <Text style={editStyles.text}>Editar especificaciones</Text>
+                    </TouchableOpacity>
+                )}
 
                 {/* 1. Basic Specs Card */}
                 <BasicSpecsCard
@@ -96,3 +120,17 @@ export default function AircraftSpecsScreen() {
         </ThemedView>
     );
 }
+
+const editStyles = StyleSheet.create({
+    button: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#0f1e3d",
+        borderRadius: 14,
+        paddingVertical: 12,
+        marginBottom: 16,
+        gap: 8,
+    },
+    text: { color: "#FFFFFF", fontWeight: "700", fontSize: 14 },
+});

@@ -110,6 +110,8 @@ export function PlanSimulatorTab({ plan, cfg, liveTc }: BusinessPlanTabProps) {
     const [conCesa, setConCesa] = useState(initial.conCesa);
     const [bancard, setBancard] = useState(plan.descontarBancard);
     const [ire, setIre] = useState(plan.descontarIre);
+    // Hoy la tarifa de GIO es con IVA; las de CESA se cargan sin IVA (configurable en el plan).
+    const tarifaConIva = conCesa ? plan.tarifasCesaIncluyenIva === true : true;
 
     const base = useMemo(() => buildPlanCostBase(plan, cfg, { tc: num(tc) }), [plan, cfg, tc]);
     const result = useMemo(
@@ -119,11 +121,12 @@ export function PlanSimulatorTab({ plan, cfg, liveTc }: BusinessPlanTabProps) {
                 etiqueta: "Simulador",
                 horasMes: num(horas),
                 tarifaHora: num(tarifa),
+                tarifaIncluyeIva: tarifaConIva,
                 conCesa,
                 descontarBancard: bancard,
                 descontarIre: ire,
             }),
-        [base, horas, tarifa, conCesa, bancard, ire]
+        [base, horas, tarifa, tarifaConIva, conCesa, bancard, ire]
     );
 
     const tarifaHoy = getTarifaHoy(cfg);
@@ -148,7 +151,7 @@ export function PlanSimulatorTab({ plan, cfg, liveTc }: BusinessPlanTabProps) {
         <View>
             <SectionCard title="Supuestos del simulador" subtitle="Los cambios no se guardan: sirven para probar escenarios.">
                 <Stepper label="Horas de vuelo por mes" value={horas} onChange={setHoras} step={1} suffix="hs" quick={horasQuick} />
-                <Stepper label="Tarifa por hora (USD, IVA incluido)" value={tarifa} onChange={setTarifa} step={50} suffix="USD" quick={tarifaQuick} />
+                <Stepper label={tarifaConIva ? "Tarifa por hora (USD, IVA incluido)" : "Tarifa por hora (USD, sin IVA)"} value={tarifa} onChange={setTarifa} step={50} suffix="USD" quick={tarifaQuick} />
                 <Stepper label="Tipo de cambio" value={tc} onChange={setTc} step={50} suffix="Gs/USD" quick={tcQuick} />
                 <ToggleRow
                     label="Con CESA"
