@@ -7,6 +7,8 @@ import { FormStep1, fieldsToValidate1 } from "@/screens/create-flight-plan/compo
 import { FormStep2, fieldsToValidate2 } from "@/screens/create-flight-plan/components/form-step-2";
 import { FormStep3, fieldsToValidate3 } from "@/screens/create-flight-plan/components/form-step-3";
 import { FormStep4 } from "@/screens/create-flight-plan/components/form-step-4";
+import { FlightPlanPhotoPicker } from "@/screens/create-flight-plan/components/flight-plan-photo";
+import { uploadFlightPlanPhoto } from "@/services/flight-plan-photo";
 import { AircraftSpecs } from "@/types/owner";
 import { FlightPlan, flightPlanSchema } from "@/types/pilot";
 import { Ionicons } from "@expo/vector-icons";
@@ -55,6 +57,8 @@ export default function CreateFlightPlanScreen() {
 
     const [currentStep, setCurrentStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    // Foto del plan presentado: URL de Storage (plan existente) o URI local recién elegida.
+    const [photoUri, setPhotoUri] = useState<string | null>(null);
 
     // Default values matching the Zod schema structure with empty route/performance fields
     const defaultValues: FlightPlan = {
@@ -165,6 +169,7 @@ export default function CreateFlightPlanScreen() {
                             },
                             aircraft_reservation_id: data.aircraft_reservation_id || params.reservationId || undefined,
                         });
+                        setPhotoUri(data.photoUrl || null);
                         return;
                     }
                 }
@@ -338,10 +343,18 @@ export default function CreateFlightPlanScreen() {
 
         setIsSubmitting(true);
         try {
+            // La foto se sube a flight_plan_photos/{reservationId}/... (storage.rules valida la reserva).
+            const photoReservationId = params.reservationId || data.aircraft_reservation_id;
+            const photoUrl =
+                photoUri && photoReservationId
+                    ? await uploadFlightPlanPhoto(photoReservationId, params.legType || "", photoUri)
+                    : null;
+
             if (params.flightPlanId) {
                 const docRef = doc(db, "flight-plans", params.flightPlanId);
                 await updateDoc(docRef, {
                     ...data,
+                    photoUrl,
                     pilot_id: user.uid,
                     updated_at: serverTimestamp(),
                     status: "Updated",
@@ -368,6 +381,7 @@ export default function CreateFlightPlanScreen() {
             } else {
                 const docRef = await addDoc(collection(db, "flight-plans"), {
                     ...data,
+                    photoUrl,
                     pilot_id: user.uid,
                     updated_at: serverTimestamp(),
                     created_at: serverTimestamp(),
@@ -467,6 +481,11 @@ export default function CreateFlightPlanScreen() {
 
                     {/* PASO 4: Datos del Piloto y Envío */}
                     {currentStep === 4 && <FormStep4 control={control} errors={errors} />}
+
+                    {/* Foto del plan presentado (solo planes asociados a una reserva) */}
+                    {currentStep === 4 && !!(params.reservationId || watch("aircraft_reservation_id")) && (
+                        <FlightPlanPhotoPicker photoUri={photoUri} onChange={setPhotoUri} />
+                    )}
 
                     {/* Botones de Navegación del Formulario */}
                     <FormNavigationButtons

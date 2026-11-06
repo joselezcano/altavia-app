@@ -182,6 +182,14 @@ describe("aircraft-reservation", () => {
     test("la encargada crea reservas telefónicas para un cliente", async () => {
         await assertSucceeds(addDoc(collection(as(UIDS.encargada), "aircraft-reservation"), newReservation(UIDS.otherClient)));
     });
+    test("el owner da de alta clientes y crea reservas solo para SUS aeronaves", async () => {
+        const db = as(UIDS.owner);
+        await assertSucceeds(setDoc(doc(db, "users", "telefonico2"), { roles: ["CLIENT"], firstName: "Ana" }));
+        await assertSucceeds(setDoc(doc(db, "clients", "telefonico2"), { uid: "telefonico2" }, { merge: true }));
+        await assertSucceeds(addDoc(collection(db, "aircraft-availability"), { aircraftId: "ac1", reason: "flight" }));
+        await assertSucceeds(addDoc(collection(db, "aircraft-reservation"), newReservation("telefonico2")));
+        await assertFails(addDoc(collection(db, "aircraft-reservation"), { ...newReservation("telefonico2"), aircraftId: "ac2" }));
+    });
     test("EL CLIENTE NO PUEDE MARCAR SU VUELO COMO PAGADO", async () => {
         const ref = doc(as(UIDS.client), "aircraft-reservation", "res1");
         await assertFails(updateDoc(ref, { client_status: "confirmed", internal_status: "confirmed" }));
@@ -223,6 +231,45 @@ describe("aircraft-reservation", () => {
         await assertFails(updateDoc(doc(as(UIDS.pilot), "aircraft-reservation", "res2"), { internal_status: "awaiting_payment" }));
         // res1 no está pagada (awaiting_payment) y además no está asignado.
         await assertFails(updateDoc(doc(as(UIDS.pilot), "aircraft-reservation", "res1"), { internal_status: "confirmed" }));
+    });
+    test("el piloto asignado, el owner y la encargada cargan el ID de FlightAware", async () => {
+        await assertSucceeds(updateDoc(doc(as(UIDS.pilot), "aircraft-reservation", "res2"), { fa_flight_id: "ZPBOC-1762430000-adhoc-0123" }));
+        await assertSucceeds(updateDoc(doc(as(UIDS.owner), "aircraft-reservation", "res2"), { fa_flight_id: "ZPBOC-1762430000-adhoc-0124" }));
+        await assertSucceeds(updateDoc(doc(as(UIDS.encargada), "aircraft-reservation", "res2"), { fa_flight_id: null }));
+    });
+    test("el ID de FlightAware no lo carga un piloto no asignado ni el cliente, ni sirve para colar otros campos", async () => {
+        await assertFails(updateDoc(doc(as(UIDS.pilot), "aircraft-reservation", "res1"), { fa_flight_id: "X-1" }));
+        await assertFails(updateDoc(doc(as(UIDS.client), "aircraft-reservation", "res2"), { fa_flight_id: "X-1" }));
+        await assertFails(updateDoc(doc(as(UIDS.pilot), "aircraft-reservation", "res2"), { fa_flight_id: "X-1", price: 1 }));
+    });
+    test("editar reserva: owner y encargada reprograman y re-sincronizan bloqueos", async () => {
+        const schedule = {
+            roundtrip: false,
+            outbound_flight_departure_time: new Date("2026-12-01T12:00:00Z"),
+            outbound_flight_arrival_time: new Date("2026-12-01T13:30:00Z"),
+            return_flight_departure_time: null,
+            return_flight_arrival_time: null,
+        };
+        // Reserva sin pagar: ruta, precio y cotización.
+        await assertSucceeds(updateDoc(doc(as(UIDS.owner), "aircraft-reservation", "res1"), {
+            schedule, event_ids: ["evNuevo"], price: 2100, estimated_price: 2100, billable_hours: 3.4,
+            trip: { origin_airport_ident: "SGAS", origin_timezone: "", destination_airport_ident: "SGES", destination_timezone: "" },
+            capacity: { passangers: 3 },
+        }));
+        // Reserva pagada: solo reprogramar (los campos de pago siguen bloqueados).
+        await assertSucceeds(updateDoc(doc(as(UIDS.encargada), "aircraft-reservation", "res2"), { schedule, event_ids: ["evNuevo2"] }));
+        await assertFails(updateDoc(doc(as(UIDS.encargada), "aircraft-reservation", "res2"), { schedule, paid_at: new Date() }));
+        // El piloto asignado no reprograma.
+        await assertFails(updateDoc(doc(as(UIDS.pilot), "aircraft-reservation", "res2"), {
+            schedule: { ...schedule, outbound_flight_departure_time: new Date("2026-12-02T12:00:00Z") },
+        }));
+    });
+    test("eliminar reserva sin pagar: primero los bloqueos, después la reserva", async () => {
+        await env.withSecurityRulesDisabled(async (ctx) => {
+            await setDoc(doc(ctx.firestore(), "aircraft-availability", "ev1"), { aircraftId: "ac1", reason: "flight" });
+        });
+        await assertSucceeds(deleteDoc(doc(as(UIDS.owner), "aircraft-availability", "ev1")));
+        await assertSucceeds(deleteDoc(doc(as(UIDS.owner), "aircraft-reservation", "res1")));
     });
     test("eliminar: solo reservas sin pagar y solo quien gestiona la aeronave", async () => {
         await assertFails(deleteDoc(doc(as(UIDS.owner), "aircraft-reservation", "res2")));

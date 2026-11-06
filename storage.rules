@@ -61,6 +61,32 @@ service firebase.storage {
         && (isAdmin() || (isOwner() && request.auth.uid == ownerUid) || isEncargadaOf(ownerUid));
     }
 
+    // Reserva de la que cuelga la foto del plan de vuelo.
+    function reservationOf(reservationId) {
+      return firestore.get(/databases/(default)/documents/aircraft-reservation/$(reservationId)).data;
+    }
+
+    // Admin, dueño o encargada de la aeronave de la reserva, o piloto asignado (pilot_ids).
+    // Mismo criterio que canManageAircraft() de firestore.rules, más el piloto asignado.
+    function canWriteFlightPlanPhoto(reservationId) {
+      return signedIn()
+        && firestore.exists(/databases/(default)/documents/aircraft-reservation/$(reservationId))
+        && (isAdmin()
+            || request.auth.uid in reservationOf(reservationId).get('pilot_ids', [])
+            || (isOwner()
+                && firestore.get(/databases/(default)/documents/AircraftSpecs/$(reservationOf(reservationId).get('aircraftId', 'sin-aeronave'))).data.get('ownerId', '') == request.auth.uid)
+            || (isEncargado()
+                && reservationOf(reservationId).get('aircraftId', '')
+                     in firestore.get(/databases/(default)/documents/pilots/$(request.auth.uid)).data.get('managed_aircrafts', [])));
+    }
+
+    // Fotos del plan de vuelo presentado, por tramo: flight_plan_photos/{reservationId}/{archivo}.
+    match /flight_plan_photos/{reservationId}/{fileName} {
+      allow read: if signedIn();
+      allow create, update: if isImageUpload() && canWriteFlightPlanPhoto(reservationId);
+      allow delete: if canWriteFlightPlanPhoto(reservationId);
+    }
+
     // Todo lo demás: denegado.
   }
 }

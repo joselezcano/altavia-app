@@ -20,6 +20,7 @@ export function useFlightPlanDetails(flightPlanId: string | undefined) {
           id: docSnap.id,
           flight_plan: data.flight_plan,
           aircraft_reservation_id: data.aircraft_reservation_id,
+          photoUrl: data.photoUrl || null,
           airports: data.airports,
           pilot_id: data.pilot_id,
           status: data.status,

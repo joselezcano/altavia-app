@@ -1,8 +1,13 @@
 import { ThemedText } from "@/components/themed-text";
+import { useAuth } from "@/hooks/useAuth";
 import { ClientReservationItem } from "@/types/all-roles";
+import { roleFlightRoute, toHref } from "@/utils/role-routes";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import {
+    ActivityIndicator,
+    StyleSheet,
+    Text,
     TouchableOpacity,
     View
 } from "react-native";
@@ -13,14 +18,25 @@ export function OwnerToolBar({
     returnFlightPlanId,
     aircraftModel,
     onOpenManifest,
+    onEditReservation,
+    editLabel,
+    onDeleteReservation,
+    isDeleting = false,
 }: {
     reservation: ClientReservationItem;
     outboundFlightPlanId?: string;
     returnFlightPlanId?: string;
     aircraftModel?: string;
     onOpenManifest?: () => void;
+    /** Editar (sin pagar) o reprogramar (pagada). Sin callback no se muestra. */
+    onEditReservation?: () => void;
+    editLabel?: string;
+    /** Eliminar: solo se pasa para reservas sin pagar. */
+    onDeleteReservation?: () => void;
+    isDeleting?: boolean;
 }) {
     const router = useRouter();
+    const { role } = useAuth();
 
     const handleOutboundFpl = () => {
         if (outboundFlightPlanId) {
@@ -46,20 +62,26 @@ export function OwnerToolBar({
                 ? String(reservation.passengers.length)
                 : String(reservation.capacity?.passangers || 1);
 
-            router.push({
-                pathname: "/flights/create-flight-plan",
-                params: {
-                    reservationId: reservation.id,
-                    legType: "outbound",
-                    originIdent,
-                    destinationIdent: destIdent,
-                    originIcaoCode: originIcao,
-                    destinationIcaoCode: destIcao,
-                    departureTime: depTime,
-                    aircraftId: reservation.aircraftId || "",
-                    paxCount,
-                },
-            });
+            const fplParams = {
+                reservationId: reservation.id,
+                legType: "outbound",
+                originIdent,
+                destinationIdent: destIdent,
+                originIcaoCode: originIcao,
+                destinationIcaoCode: destIcao,
+                departureTime: depTime,
+                aircraftId: reservation.aircraftId || "",
+                paxCount,
+            };
+            // Ruta del grupo del rol activo: owner → (owner)/flights, encargada → (pilot)/flights.
+            router.push(
+                toHref(
+                    roleFlightRoute(role, "create-flight-plan", fplParams) ?? {
+                        pathname: "/flights/create-flight-plan",
+                        params: fplParams,
+                    }
+                )
+            );
         }
     };
 
@@ -87,20 +109,26 @@ export function OwnerToolBar({
                 ? String(reservation.passengers.length)
                 : String(reservation.capacity?.passangers || 1);
 
-            router.push({
-                pathname: "/flights/create-flight-plan",
-                params: {
-                    reservationId: reservation.id,
-                    legType: "return",
-                    originIdent,
-                    destinationIdent: destIdent,
-                    originIcaoCode: originIcao,
-                    destinationIcaoCode: destIcao,
-                    departureTime: depTime,
-                    aircraftId: reservation.aircraftId || "",
-                    paxCount,
-                },
-            });
+            const fplParams = {
+                reservationId: reservation.id,
+                legType: "return",
+                originIdent,
+                destinationIdent: destIdent,
+                originIcaoCode: originIcao,
+                destinationIcaoCode: destIcao,
+                departureTime: depTime,
+                aircraftId: reservation.aircraftId || "",
+                paxCount,
+            };
+            // Ruta del grupo del rol activo: owner → (owner)/flights, encargada → (pilot)/flights.
+            router.push(
+                toHref(
+                    roleFlightRoute(role, "create-flight-plan", fplParams) ?? {
+                        pathname: "/flights/create-flight-plan",
+                        params: fplParams,
+                    }
+                )
+            );
         }
     };
 
@@ -198,6 +226,80 @@ export function OwnerToolBar({
                     </TouchableOpacity>
                 )}
             </View>
+
+            {/* Editar / Eliminar reserva */}
+            {(onEditReservation || onDeleteReservation) && (
+                <View style={styles.manageRow}>
+                    {onEditReservation && (
+                        <TouchableOpacity onPress={onEditReservation} style={styles.editButton} activeOpacity={0.8}>
+                            <Ionicons name="create-outline" size={17} color="#0f1e3d" />
+                            <Text style={styles.editButtonText} numberOfLines={1}>
+                                {editLabel || "Editar Reserva"}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                    {onDeleteReservation && (
+                        <TouchableOpacity
+                            onPress={onDeleteReservation}
+                            disabled={isDeleting}
+                            style={styles.deleteButton}
+                            activeOpacity={0.8}
+                        >
+                            {isDeleting ? (
+                                <ActivityIndicator size="small" color="#B91C1C" />
+                            ) : (
+                                <Ionicons name="trash-outline" size={17} color="#B91C1C" />
+                            )}
+                            <Text style={styles.deleteButtonText} numberOfLines={1}>
+                                Eliminar
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            )}
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    manageRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+        marginBottom: 8,
+    },
+    editButton: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        paddingVertical: 11,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#C5A059",
+        backgroundColor: "#FFFFFF",
+    },
+    editButtonText: {
+        fontSize: 12,
+        fontWeight: "bold",
+        color: "#0f1e3d",
+    },
+    deleteButton: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        paddingVertical: 11,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#FECACA",
+        backgroundColor: "#FEF2F2",
+    },
+    deleteButtonText: {
+        fontSize: 12,
+        fontWeight: "bold",
+        color: "#B91C1C",
+    },
+});

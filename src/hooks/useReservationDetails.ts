@@ -101,6 +101,11 @@ export function useReservationDetails(reservationId: string | undefined) {
           currency: data.currency || "USD",
           distance_nm: data.distance_nm ?? 0,
           cruise_speed_knots: data.cruise_speed_knots ?? 120,
+          billable_hours: data.billable_hours,
+          price_per_hour_usd: data.price_per_hour_usd,
+          overnight_nights: data.overnight_nights,
+          overnight_fee_usd: data.overnight_fee_usd,
+          hangar_per_night_usd: data.hangar_per_night_usd,
           trip: data.trip,
           schedule: {
             roundtrip: !!data.schedule?.roundtrip,

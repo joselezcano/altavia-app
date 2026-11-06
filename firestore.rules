@@ -241,9 +241,9 @@ service cloud.firestore {
             && !('clientId' in changedKeys())
             && (!('aircraftId' in changedKeys())
                 || canManageAircraft(request.resource.data.get('aircraftId', ''))))
-          // Piloto asignado: manifiesto, notas y estados operativos (nunca precio ni aprobación).
+          // Piloto asignado: manifiesto, notas, estados operativos e ID de FlightAware (nunca precio ni aprobación).
           || (uid() in resource.data.get('pilot_ids', [])
-              && changedKeys().hasOnly(['passengers', 'internal_status', 'status_notes'])
+              && changedKeys().hasOnly(['passengers', 'internal_status', 'status_notes', 'fa_flight_id'])
               && (!('internal_status' in changedKeys())
                   || (resource.data.get('internal_status', '') in pilotStatuses()
                       && request.resource.data.internal_status in pilotStatuses())))

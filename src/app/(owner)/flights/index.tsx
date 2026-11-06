@@ -7,12 +7,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { useOwnerAircrafts } from "@/hooks/useOwnerAircrafts";
 import { useOwnerReservations } from "@/hooks/useOwnerReservations";
 import { getStatusBadge } from "@/utils/flight-status";
+import { roleFlightRoute, toHref } from "@/utils/role-routes";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   RefreshControl,
   ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
   View
 } from "react-native";
@@ -82,6 +85,25 @@ export default function OwnerFlightsScreen() {
         onActionButtonPress={() => setModalVisible(true)}
         userInitial={userInitial}
       />
+
+      {/* Nueva reserva telefónica (alta rápida de cliente, cotización y despacho) */}
+      <TouchableOpacity
+        onPress={() => {
+          const route = roleFlightRoute(role, "new-booking");
+          if (route) router.push(toHref(route));
+        }}
+        style={styles.newBookingButton}
+        activeOpacity={0.8}
+      >
+        <View style={styles.newBookingIcon}>
+          <Ionicons name="paper-plane" size={18} color="#0f1e3d" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.newBookingTitle}>+ Nueva Reserva</Text>
+          <Text style={styles.newBookingSubtitle}>Alta rápida de cliente, cotización y despacho</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color="#C5A059" />
+      </TouchableOpacity>
 
       {/* Filters Section */}
       <View className="mb-4" style={{ gap: 12 }}>
@@ -417,3 +439,39 @@ export default function OwnerFlightsScreen() {
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  newBookingButton: {
+    backgroundColor: "#0f1e3d",
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  newBookingIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#C5A059",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  newBookingTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  newBookingSubtitle: {
+    fontSize: 11,
+    color: "#94A3B8",
+    marginTop: 2,
+  },
+});

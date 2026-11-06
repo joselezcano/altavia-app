@@ -15,6 +15,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EditButton } from "./components/edit-button";
+import { FlightPlanPhotoCard } from "./components/flight-plan-photo-card";
 
 
 export default function ViewFlightPlanScreen() {
@@ -162,6 +163,9 @@ export default function ViewFlightPlanScreen() {
                                     telephone={plt?.contact_info || ""}
                                     observations={plt?.observations || ""}
                                 />
+
+                                {/* Foto del plan presentado */}
+                                <FlightPlanPhotoCard photoUrl={plan.photoUrl} />
                             </View>
                         );
                     })()}

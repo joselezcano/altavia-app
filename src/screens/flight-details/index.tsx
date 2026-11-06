@@ -11,10 +11,12 @@ import { useClientReservations } from "@/hooks/useClientReservations";
 import { useFlightPlanByReservation } from "@/hooks/useFlightPlanByReservation";
 import { useOwnerReservations } from "@/hooks/useOwnerReservations";
 import { usePilotReservations } from "@/hooks/usePilotReservations";
+import { useDeleteReservation } from "@/hooks/useReservationEditing";
 import { useReservationDetails } from "@/hooks/useReservationDetails";
 import { AircraftCard } from "@/screens/flight-details/components/aircraft-card";
 import { AltitudeCard } from "@/screens/flight-details/components/altitude-card";
 import { CruiseSpeedCard } from "@/screens/flight-details/components/cruise-speed-card";
+import { FlightAwareCard } from "@/screens/flight-details/components/flight-aware-card";
 import { FlightCard } from "@/screens/flight-details/components/flight-card";
 import { FlightStatusModal } from "@/screens/flight-details/components/modal";
 import { OwnerToolBar } from "@/screens/flight-details/components/owner-tool-bar";
@@ -23,6 +25,9 @@ import { RouteCard } from "@/screens/flight-details/components/route-card";
 import { ScheduleCard } from "@/screens/flight-details/components/schedule-card";
 import { generateAndShareInvoicePdf } from "@/utils/electronic-invoice";
 import { getFlightData, getStatusBadge, PILOT_OPERATIONAL_STATUSES } from "@/utils/flight-status";
+import { isReservationPaid } from "@/utils/paid-reservation";
+import { NON_EDITABLE_STATUSES } from "@/utils/reservation-permissions";
+import { roleFlightRoute, toHref } from "@/utils/role-routes";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -35,6 +40,7 @@ import {
     View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 
 export default function FlightDetailsScreen() {
@@ -129,6 +135,42 @@ export default function FlightDetailsScreen() {
     const isAssignedPilot = role === "PILOT" && !!user?.uid && !!reservation?.pilot_ids?.includes(user.uid);
     const canPilotMoveStatus =
         isAssignedPilot && PILOT_OPERATIONAL_STATUSES.includes(reservation?.internal_status ?? "");
+
+    // Editar / eliminar reserva (owner y encargada). Pagada: solo reprogramar; eliminar solo sin pagar.
+    const deleteReservation = useDeleteReservation();
+    const isPaid = reservation ? isReservationPaid(reservation) : false;
+    const editReservationRoute =
+        reservation && !NON_EDITABLE_STATUSES.includes(reservation.internal_status)
+            ? roleFlightRoute(role, "edit-reservation", { reservationId: reservation.id })
+            : null;
+
+    const handleDeleteReservation = () => {
+        if (!reservation) return;
+        Alert.alert(
+            "Eliminar reserva",
+            "Se va a eliminar la reserva y se liberarán sus horarios en el calendario de la aeronave. Esta acción no se puede deshacer.",
+            [
+                { text: "Volver", style: "cancel" },
+                {
+                    text: "Eliminar",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await deleteReservation.mutateAsync(reservation);
+                            Toast.show({ type: "success", text1: "Reserva eliminada" });
+                            router.back();
+                        } catch (error: any) {
+                            Alert.alert("Error", error?.message || "No se pudo eliminar la reserva.");
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    // ID de FlightAware: owner, encargada o piloto asignado, en vuelos ya confirmados.
+    const canEditFaFlightId =
+        (canManageStatus || isAssignedPilot) && PILOT_OPERATIONAL_STATUSES.includes(reservation?.internal_status ?? "");
 
     const openStatusModal = () => {
         if (reservation) {
@@ -289,6 +331,10 @@ export default function FlightDetailsScreen() {
                                         returnFlightPlanId={returnFlightPlan?.id}
                                         aircraftModel={aircraft?.basic_specs.model}
                                         onOpenManifest={() => setIsManifestModalVisible(true)}
+                                        onEditReservation={editReservationRoute ? () => router.push(toHref(editReservationRoute)) : undefined}
+                                        editLabel={isPaid ? "Reprogramar" : "Editar Reserva"}
+                                        onDeleteReservation={!isPaid ? handleDeleteReservation : undefined}
+                                        isDeleting={deleteReservation.isPending}
                                     />
                                 }
 
@@ -425,6 +471,14 @@ export default function FlightDetailsScreen() {
                                             <Ionicons name="share-outline" size={14} color="#FFFFFF" />
                                         </TouchableOpacity>
                                     </View>
+                                )}
+
+                                {/* ID de vuelo de FlightAware (tracking) */}
+                                {reservation && canEditFaFlightId && (
+                                    <FlightAwareCard
+                                        reservationId={reservation.id}
+                                        faFlightId={reservation.fa_flight_id}
+                                    />
                                 )}
 
                                 {/* Manifiesto de Pasajeros (DINAC) Card */}

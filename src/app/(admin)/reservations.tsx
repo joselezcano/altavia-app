@@ -7,6 +7,10 @@ import { AircraftSpecs } from "@/types/owner";
 import { BaseUser } from "@/types/user";
 import { generateAndShareInvoicePdf } from "@/utils/electronic-invoice";
 import { getStatusBadge } from "@/utils/flight-status";
+import { isReservationPaid } from "@/utils/paid-reservation";
+import { canManageReservationAircraft, NON_EDITABLE_STATUSES } from "@/utils/reservation-permissions";
+import { roleFlightRoute, toHref } from "@/utils/role-routes";
+import { useDeleteReservation } from "@/hooks/useReservationEditing";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -31,7 +35,11 @@ export default function AdminReservationsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, role, profileData } = useAuth();
+  const deleteReservation = useDeleteReservation();
+
+  // Rutas del grupo del rol activo (esta pantalla se re-exporta en (pilot)/flights para la encargada).
+  const newBookingRoute = roleFlightRoute(role, "new-booking");
 
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [sharingResId, setSharingResId] = useState<string | null>(null);
@@ -252,8 +260,43 @@ export default function AdminReservationsScreen() {
     }
   };
 
+  // Eliminar una reserva SIN pagar (primero sus bloqueos de calendario, después la reserva).
+  const handleDeleteReservation = (item: ClientReservationItem) => {
+    Alert.alert(
+      "Eliminar reserva",
+      "Se va a eliminar la reserva y se liberarán sus horarios en el calendario de la aeronave. Esta acción no se puede deshacer.",
+      [
+        { text: "Volver", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteReservation.mutateAsync(item);
+              Toast.show({ type: "success", text1: "Reserva eliminada" });
+              refetch();
+            } catch (err: any) {
+              Alert.alert("Error", err?.message || "No se pudo eliminar la reserva.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderReservationCard = ({ item }: { item: ClientReservationItem }) => {
     const badge = getStatusBadge(item.internal_status);
+    const assignPilotsRoute = roleFlightRoute(role, "assign-pilots", { reservationId: item.id });
+    const flightDetailsRoute = roleFlightRoute(role, "flight-details", { reservationId: item.id });
+    const editReservationRoute = roleFlightRoute(role, "edit-reservation", { reservationId: item.id });
+    const canManageItem = canManageReservationAircraft({
+      role,
+      uid: user?.uid,
+      profileData,
+      aircraftId: item.aircraftId,
+      aircraftOwnerId: item.aircraftSpecs?.ownerId,
+    });
+    const isPaidItem = isReservationPaid(item);
     const originLabel = item.originAirport?.iata_code || item.trip.origin_airport_ident;
     const destLabel = item.destinationAirport?.iata_code || item.trip.destination_airport_ident;
     const model = item.aircraftSpecs?.basic_specs?.model || "Aeronave";
@@ -372,14 +415,9 @@ export default function AdminReservationsScreen() {
         {/* Action Buttons based on status */}
         <View style={{ marginTop: 12, gap: 8 }}>
           {/* Action 1: Assign pilots / Approve (when pending) */}
-          {(item.internal_status === "pending_approval" || item.internal_status === "pending") && (
+          {(item.internal_status === "pending_approval" || item.internal_status === "pending") && assignPilotsRoute && (
             <TouchableOpacity
-              onPress={() =>
-                router.push({
-                  pathname: "/(owner)/flights/assign-pilots",
-                  params: { reservationId: item.id },
-                })
-              }
+              onPress={() => router.push(toHref(assignPilotsRoute))}
               style={styles.approveButton}
               activeOpacity={0.8}
             >
@@ -408,17 +446,14 @@ export default function AdminReservationsScreen() {
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() =>
-                  router.push({
-                    pathname: "/(owner)/flights/assign-pilots",
-                    params: { reservationId: item.id },
-                  })
-                }
-                style={styles.secondaryButton}
-              >
-                <Text style={styles.secondaryButtonText}>Editar Tripulación o Tarifa</Text>
-              </TouchableOpacity>
+              {assignPilotsRoute && (
+                <TouchableOpacity
+                  onPress={() => router.push(toHref(assignPilotsRoute))}
+                  style={styles.secondaryButton}
+                >
+                  <Text style={styles.secondaryButtonText}>Editar Tripulación o Tarifa</Text>
+                </TouchableOpacity>
+              )}
             </>
           )}
 
@@ -434,7 +469,8 @@ export default function AdminReservationsScreen() {
             </TouchableOpacity>
           )}
 
-          {/* Action: Flight Plan FPL DINAC button */}
+          {/* Action: Flight Plan FPL DINAC button (el admin no tiene la ruta create-flight-plan) */}
+          {roleFlightRoute(role, "create-flight-plan") && (
           <TouchableOpacity
             onPress={() => {
               const originIdent = item.trip?.origin_airport_ident || "";
@@ -450,20 +486,18 @@ export default function AdminReservationsScreen() {
                 ? String(item.passengers.length)
                 : String(item.capacity?.passangers || 1);
 
-              router.push({
-                pathname: "/flights/create-flight-plan",
-                params: {
-                  reservationId: item.id,
-                  legType: "outbound",
-                  originIdent,
-                  destinationIdent: destIdent,
-                  originIcaoCode: originIcao,
-                  destinationIcaoCode: destIcao,
-                  departureTime: depTime,
-                  aircraftId: item.aircraftId || "",
-                  paxCount,
-                },
+              const fplRoute = roleFlightRoute(role, "create-flight-plan", {
+                reservationId: item.id,
+                legType: "outbound",
+                originIdent,
+                destinationIdent: destIdent,
+                originIcaoCode: originIcao,
+                destinationIcaoCode: destIcao,
+                departureTime: depTime,
+                aircraftId: item.aircraftId || "",
+                paxCount,
               });
+              if (fplRoute) router.push(toHref(fplRoute));
             }}
             style={styles.fplButton}
             activeOpacity={0.8}
@@ -472,21 +506,46 @@ export default function AdminReservationsScreen() {
             <Text style={styles.fplButtonText}>Plan de Vuelo FPL (DINAC)</Text>
             <Ionicons name="arrow-forward" size={14} color="#0f1e3d" />
           </TouchableOpacity>
+          )}
+
+          {/* Editar / Eliminar (quien gestiona la aeronave). Eliminar solo si no está pagada. */}
+          {canManageItem && (editReservationRoute || !isPaidItem) && (
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              {editReservationRoute && !NON_EDITABLE_STATUSES.includes(item.internal_status) && (
+                <TouchableOpacity
+                  onPress={() => router.push(toHref(editReservationRoute))}
+                  style={styles.actionOutlineButton}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="create-outline" size={16} color="#0f1e3d" />
+                  <Text style={styles.detailsButtonText}>{isPaidItem ? "Reprogramar" : "Editar Reserva"}</Text>
+                </TouchableOpacity>
+              )}
+              {!isPaidItem && (
+                <TouchableOpacity
+                  onPress={() => handleDeleteReservation(item)}
+                  disabled={deleteReservation.isPending}
+                  style={[styles.actionOutlineButton, styles.deleteButton]}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="trash-outline" size={16} color="#B91C1C" />
+                  <Text style={[styles.detailsButtonText, { color: "#B91C1C" }]}>Eliminar</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
 
           {/* Link to Details */}
+          {flightDetailsRoute && (
           <TouchableOpacity
-            onPress={() =>
-              router.push({
-                pathname: "/flights/flight-details",
-                params: { reservationId: item.id },
-              })
-            }
+            onPress={() => router.push(toHref(flightDetailsRoute))}
             style={styles.detailsButton}
           >
             <Ionicons name="information-circle-outline" size={16} color="#0f1e3d" />
             <Text style={styles.detailsButtonText}>Más Información del Vuelo</Text>
             <Ionicons name="chevron-forward" size={14} color="#0f1e3d" />
           </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -502,7 +561,7 @@ export default function AdminReservationsScreen() {
         </View>
 
         <TouchableOpacity
-          onPress={() => router.push("/(admin)/new-booking")}
+          onPress={() => newBookingRoute && router.push(toHref(newBookingRoute))}
           style={styles.newBookingHeaderButton}
           activeOpacity={0.8}
         >
@@ -553,7 +612,7 @@ export default function AdminReservationsScreen() {
             No hay vuelos que coincidan con el filtro seleccionado.
           </Text>
           <TouchableOpacity
-            onPress={() => router.push("/(admin)/new-booking")}
+            onPress={() => newBookingRoute && router.push(toHref(newBookingRoute))}
             style={styles.emptyAction}
           >
             <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
@@ -849,6 +908,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#0f1e3d",
     fontWeight: "600",
+  },
+  actionOutlineButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 9,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+  },
+  deleteButton: {
+    borderColor: "#FECACA",
+    backgroundColor: "#FEF2F2",
   },
   emptyContainer: {
     flex: 1,

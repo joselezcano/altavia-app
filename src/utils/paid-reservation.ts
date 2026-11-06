@@ -41,3 +41,19 @@ export async function fetchPaidReservationFields(reservationId: string): Promise
         throw error;
     }
 }
+
+/**
+ * true si la reserva tiene algún cobro registrado (total, seña o reembolso).
+ * Criterio más estricto que firestore.rules (que solo mira client_status 'confirmed' y paid_at):
+ * una reserva pagada no se borra ni cambia de ruta o precio; solo se reprograma o se cancela.
+ */
+export function isReservationPaid(
+    reservation: Pick<ClientReservationItem, "client_status" | "paid_at">
+): boolean {
+    return (
+        reservation.client_status === "confirmed" ||
+        reservation.client_status === "reserved" ||
+        reservation.client_status === "refunded" ||
+        !!reservation.paid_at
+    );
+}

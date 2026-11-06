@@ -11,6 +11,7 @@ import { QuickClientForm, QuickClientFormSchema } from "@/types/client";
 import { BaseUser } from "@/types/user";
 import { showNotice } from "@/utils/dialogs";
 import { getDistanceBetweenAirports } from "@/utils/flight-distance";
+import { roleFlightRoute, roleHomeRoute, toHref } from "@/utils/role-routes";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -37,11 +38,23 @@ export default function NewBookingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, role, profileData } = useAuth();
 
   // Queries
   const { data: clients = [], isLoading: isLoadingClients } = useClients();
-  const { data: aircrafts = [], isLoading: isLoadingAircrafts } = useAllAircrafts();
+  const { data: allAircrafts = [], isLoading: isLoadingAircrafts } = useAllAircrafts();
+
+  // Solo las aeronaves que el rol activo puede gestionar (si no, firestore.rules rechaza el alta):
+  // admin, todas; owner, las suyas; encargada, sus managed_aircrafts.
+  const aircrafts = useMemo(() => {
+    if (role === "ADMIN") return allAircrafts;
+    if (role === "OWNER") return allAircrafts.filter((a) => !!user?.uid && a.ownerId === user.uid);
+    if (role === "PILOT" && profileData?.isEncargado === true) {
+      const managed: string[] = Array.isArray(profileData?.managed_aircrafts) ? profileData.managed_aircrafts : [];
+      return allAircrafts.filter((a) => managed.includes(a.id));
+    }
+    return [];
+  }, [allAircrafts, role, user?.uid, profileData]);
   const { data: exchangeRate } = useExchangeRate();
   const createQuickClientMutation = useCreateQuickClient();
 
@@ -378,24 +391,27 @@ export default function NewBookingScreen() {
         text2: `Vuelo registrado para ${selectedClient.firstName} ${selectedClient.lastName}`,
       });
 
+      // Rutas del grupo del rol activo (el admin no tiene assign-pilots: solo vuelve al inicio).
+      const assignPilotsRoute = roleFlightRoute(role, "assign-pilots", { reservationId: resDocRef.id });
       Alert.alert(
         "Reserva Creada",
-        `La reserva fue registrada con éxito por USD ${effectivePriceNumber.toLocaleString("en-US")}.\n\n¿Deseas asignar tripulación y aprobarla ahora?`,
+        assignPilotsRoute
+          ? `La reserva fue registrada con éxito por USD ${effectivePriceNumber.toLocaleString("en-US")}.\n\n¿Deseas asignar tripulación y aprobarla ahora?`
+          : `La reserva fue registrada con éxito por USD ${effectivePriceNumber.toLocaleString("en-US")}.`,
         [
           {
-            text: "Ir al Dashboard",
+            text: role === "ADMIN" ? "Ir al Dashboard" : "Ir a Vuelos",
             style: "cancel",
-            onPress: () => router.replace("/(admin)"),
+            onPress: () => router.replace(roleHomeRoute(role)),
           },
-          {
-            text: "Asignar Piloto y Aprobar",
-            onPress: () => {
-              router.replace({
-                pathname: "/(owner)/flights/assign-pilots",
-                params: { reservationId: resDocRef.id },
-              });
-            },
-          },
+          ...(assignPilotsRoute
+            ? [
+                {
+                  text: "Asignar Piloto y Aprobar",
+                  onPress: () => router.replace(toHref(assignPilotsRoute)),
+                },
+              ]
+            : []),
         ]
       );
     } catch (error: any) {
@@ -605,6 +621,12 @@ export default function NewBookingScreen() {
                   </Text>
                 </View>
               </View>
+
+              {!activeAircraft && !isLoadingAircrafts && (
+                <Text style={[styles.cardSubtitle, { color: "#B45309", marginBottom: 12 }]}>
+                  No tenés aeronaves habilitadas para cargar reservas con este rol.
+                </Text>
+              )}
 
               {/* Selected Aircraft Banner */}
               {activeAircraft && (

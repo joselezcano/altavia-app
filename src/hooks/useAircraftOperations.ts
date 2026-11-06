@@ -224,9 +224,14 @@ export async function uploadFlightPlanReceiptPhoto(
 }
 
 /**
- * Selector de imagen (Galería o Cámara) para el comprobante del Plan de Vuelo DINAC
+ * Selector de imagen (Galería o Cámara) para el comprobante del Plan de Vuelo DINAC.
+ * Con `fileUriOnly` devuelve siempre la URI del archivo (sin base64), para subirla a Storage.
  */
-export async function pickFlightPlanImage(source: "library" | "camera" = "library"): Promise<string | null> {
+export async function pickFlightPlanImage(
+    source: "library" | "camera" = "library",
+    options?: { fileUriOnly?: boolean }
+): Promise<string | null> {
+    const fileUriOnly = options?.fileUriOnly === true;
     const ImagePicker = getImagePicker();
     if (!ImagePicker) {
         throw new Error("El selector de imágenes no está disponible en este dispositivo.");
@@ -240,11 +245,11 @@ export async function pickFlightPlanImage(source: "library" | "camera" = "librar
         const res = await ImagePicker.launchCameraAsync({
             mediaTypes: ["images"],
             quality: 0.65,
-            base64: true,
+            base64: !fileUriOnly,
         });
         if (res.canceled || !res.assets || res.assets.length === 0) return null;
         const asset = res.assets[0];
-        if (asset.base64 && asset.base64.length < 350000) {
+        if (!fileUriOnly && asset.base64 && asset.base64.length < 350000) {
             return `data:image/jpeg;base64,${asset.base64}`;
         }
         return asset.uri;
@@ -256,11 +261,11 @@ export async function pickFlightPlanImage(source: "library" | "camera" = "librar
         const res = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ["images"],
             quality: 0.65,
-            base64: true,
+            base64: !fileUriOnly,
         });
         if (res.canceled || !res.assets || res.assets.length === 0) return null;
         const asset = res.assets[0];
-        if (asset.base64 && asset.base64.length < 350000) {
+        if (!fileUriOnly && asset.base64 && asset.base64.length < 350000) {
             return `data:image/jpeg;base64,${asset.base64}`;
         }
         return asset.uri;

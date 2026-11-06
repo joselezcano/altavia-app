@@ -94,6 +94,8 @@ export const flightPlanSchema = z.object({
         }),
     }),
     aircraft_reservation_id: z.string().optional(),
+    // URL (Storage) de la foto del plan de vuelo presentado ante DINAC.
+    photoUrl: z.string().nullable().optional(),
     airports: z.object({
         origin_ident: z.string(),
         destination_ident: z.string(),

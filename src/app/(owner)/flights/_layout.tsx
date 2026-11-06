@@ -7,6 +7,10 @@ export default function FlightsLayout() {
       <Stack.Screen name="flight-details" />
       <Stack.Screen name="flight-tracker" />
       <Stack.Screen name="assign-pilots" />
+      <Stack.Screen name="view-flight-plan" />
+      <Stack.Screen name="create-flight-plan" />
+      <Stack.Screen name="new-booking" />
+      <Stack.Screen name="edit-reservation" />
     </Stack>
   );
 }
