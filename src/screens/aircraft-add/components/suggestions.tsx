@@ -150,7 +150,7 @@ export function AircraftTypeSuggestions({
                                                 <Ionicons
                                                     name="add-circle-outline"
                                                     size={20}
-                                                    color="#C5A059"
+                                                    color="#0165FF"
                                                 />
                                                 <ThemedText type="accent" className="text-base font-bold text-brand-gold">
                                                     Ingresar datos manualmente

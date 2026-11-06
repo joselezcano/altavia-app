@@ -33,7 +33,7 @@ export function FlightPlanPhotoPicker({
     return (
         <View style={styles.card}>
             <View style={styles.headerRow}>
-                <Ionicons name="camera-outline" size={20} color="#0f1e3d" />
+                <Ionicons name="camera-outline" size={20} color="#030436" />
                 <Text style={styles.title}>Foto del plan presentado</Text>
             </View>
             <Text style={styles.hint}>
@@ -47,7 +47,7 @@ export function FlightPlanPhotoPicker({
                     style={styles.pickerButton}
                     activeOpacity={0.8}
                 >
-                    <Ionicons name="image-outline" size={18} color="#0f1e3d" />
+                    <Ionicons name="image-outline" size={18} color="#030436" />
                     <Text style={styles.pickerButtonText}>{isPicking ? "Cargando…" : "Galería"}</Text>
                 </TouchableOpacity>
                 {Platform.OS !== "web" && (
@@ -57,7 +57,7 @@ export function FlightPlanPhotoPicker({
                         style={styles.pickerButton}
                         activeOpacity={0.8}
                     >
-                        <Ionicons name="camera-outline" size={18} color="#0f1e3d" />
+                        <Ionicons name="camera-outline" size={18} color="#030436" />
                         <Text style={styles.pickerButtonText}>Cámara</Text>
                     </TouchableOpacity>
                 )}
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 15,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     hint: {
         fontSize: 12,
@@ -125,13 +125,13 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: "#C5A059",
+        borderColor: "#0165FF",
         backgroundColor: "#FFFFFF",
     },
     pickerButtonText: {
         fontSize: 13,
         fontWeight: "600",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     thumb: {
         width: "100%",

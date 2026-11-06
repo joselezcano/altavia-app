@@ -302,14 +302,14 @@ export function PassengerManifestModal({ visible, onClose, reservation, onSaved 
         {/* Top Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.8}>
-            <Ionicons name="close" size={24} color="#0f1e3d" />
+            <Ionicons name="close" size={24} color="#030436" />
           </TouchableOpacity>
           <View style={styles.headerTitles}>
             <Text style={styles.headerEyebrow}>Requisito Oficial DINAC</Text>
             <Text style={styles.headerTitle}>Manifiesto de Pasajeros</Text>
           </View>
           <TouchableOpacity onPress={handleShareManifest} style={styles.shareBtn} activeOpacity={0.8}>
-            <Ionicons name="share-social-outline" size={20} color="#0f1e3d" />
+            <Ionicons name="share-social-outline" size={20} color="#030436" />
           </TouchableOpacity>
         </View>
 
@@ -322,7 +322,7 @@ export function PassengerManifestModal({ visible, onClose, reservation, onSaved 
                 <Text style={styles.routeCity}>Origen</Text>
               </View>
               <View style={styles.planeIconWrap}>
-                <Ionicons name="airplane" size={18} color="#C5A059" />
+                <Ionicons name="airplane" size={18} color="#0165FF" />
               </View>
               <View style={{ alignItems: "flex-end" }}>
                 <Text style={styles.routeCode}>{reservation.trip?.destination_airport_ident || "DEST"}</Text>
@@ -375,10 +375,10 @@ export function PassengerManifestModal({ visible, onClose, reservation, onSaved 
                 activeOpacity={0.8}
               >
                 {isLoadingClient ? (
-                  <ActivityIndicator size="small" color="#0f1e3d" />
+                  <ActivityIndicator size="small" color="#030436" />
                 ) : (
                   <>
-                    <Ionicons name="copy-outline" size={16} color="#0f1e3d" />
+                    <Ionicons name="copy-outline" size={16} color="#030436" />
                     <Text style={styles.autoFillBtnText}>Cargar Titular</Text>
                   </>
                 )}
@@ -493,7 +493,7 @@ export function PassengerManifestModal({ visible, onClose, reservation, onSaved 
                 <Ionicons
                   name={isPrimary ? "checkbox" : "square-outline"}
                   size={20}
-                  color={isPrimary ? "#0f1e3d" : "#64748B"}
+                  color={isPrimary ? "#030436" : "#64748B"}
                 />
                 <Text style={styles.primaryToggleText}>Pasajero Titular / Contacto del Vuelo</Text>
               </TouchableOpacity>
@@ -549,7 +549,7 @@ export function PassengerManifestModal({ visible, onClose, reservation, onSaved 
                 DINAC exige registrar a todos los pasajeros y sus pesos antes de autorizar el despegue.
               </Text>
               <TouchableOpacity onPress={openAddForm} style={styles.emptyAddBtn} activeOpacity={0.8}>
-                <Ionicons name="add-circle-outline" size={18} color="#0f1e3d" />
+                <Ionicons name="add-circle-outline" size={18} color="#030436" />
                 <Text style={styles.emptyAddBtnText}>Cargar Primer Pasajero</Text>
               </TouchableOpacity>
             </View>
@@ -582,7 +582,7 @@ export function PassengerManifestModal({ visible, onClose, reservation, onSaved 
                 {/* Card Actions */}
                 <View style={styles.paxCardActions}>
                   <TouchableOpacity onPress={() => openEditForm(index)} style={styles.iconBtn}>
-                    <Ionicons name="pencil-outline" size={18} color="#0f1e3d" />
+                    <Ionicons name="pencil-outline" size={18} color="#030436" />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => handleDeletePassenger(index)} style={styles.iconBtn}>
                     <Ionicons name="trash-outline" size={18} color="#E11D48" />
@@ -655,7 +655,7 @@ const styles = StyleSheet.create({
   },
   headerEyebrow: {
     fontSize: 10,
-    color: "#C5A059",
+    color: "#0165FF",
     fontWeight: "bold",
     letterSpacing: 1,
     textTransform: "uppercase",
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0f1e3d",
+    color: "#030436",
     marginTop: 1,
   },
   scrollContent: {
@@ -690,7 +690,7 @@ const styles = StyleSheet.create({
   routeCode: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   routeCity: {
     fontSize: 11,
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
   metricBoxHighlight: {
     flex: 1.1,
     alignItems: "center",
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     paddingVertical: 6,
     paddingHorizontal: 4,
     borderRadius: 10,
@@ -729,7 +729,7 @@ const styles = StyleSheet.create({
   },
   metricLabelHighlight: {
     fontSize: 10,
-    color: "#C5A059",
+    color: "#0165FF",
     fontWeight: "bold",
     marginBottom: 2,
     textAlign: "center",
@@ -737,7 +737,7 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   metricAlert: {
     color: "#E11D48",
@@ -763,7 +763,7 @@ const styles = StyleSheet.create({
   },
   addPaxBtn: {
     flex: 1,
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -789,7 +789,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   autoFillBtnText: {
-    color: "#0f1e3d",
+    color: "#030436",
     fontSize: 12,
     fontWeight: "600",
     marginLeft: 6,
@@ -814,7 +814,7 @@ const styles = StyleSheet.create({
   formTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   inputLabel: {
     fontSize: 11,
@@ -831,7 +831,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 13,
-    color: "#0f1e3d",
+    color: "#030436",
   },
   docTypeRow: {
     flexDirection: "row",
@@ -848,8 +848,8 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   docTypeBtnActive: {
-    backgroundColor: "#0f1e3d",
-    borderColor: "#0f1e3d",
+    backgroundColor: "#030436",
+    borderColor: "#030436",
   },
   docTypeBtnText: {
     fontSize: 10,
@@ -872,7 +872,7 @@ const styles = StyleSheet.create({
   primaryToggleText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#0f1e3d",
+    color: "#030436",
     marginLeft: 6,
   },
   formBtnRow: {
@@ -893,7 +893,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   savePaxBtn: {
-    backgroundColor: "#C5A059",
+    backgroundColor: "#0165FF",
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 8,
@@ -915,7 +915,7 @@ const styles = StyleSheet.create({
   listHeaderTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   capacityWarning: {
     fontSize: 11,
@@ -933,7 +933,7 @@ const styles = StyleSheet.create({
   emptyListTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0f1e3d",
+    color: "#030436",
     marginTop: 8,
   },
   emptyListSub: {
@@ -958,7 +958,7 @@ const styles = StyleSheet.create({
   emptyAddBtnText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#0f1e3d",
+    color: "#030436",
     marginLeft: 6,
   },
   paxCard: {
@@ -990,7 +990,7 @@ const styles = StyleSheet.create({
   paxAvatarText: {
     fontSize: 11,
     fontWeight: "800",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   paxNameRow: {
     flexDirection: "row",
@@ -1000,7 +1000,7 @@ const styles = StyleSheet.create({
   paxName: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#0f1e3d",
+    color: "#030436",
     marginRight: 6,
   },
   primaryBadge: {
@@ -1021,7 +1021,7 @@ const styles = StyleSheet.create({
   },
   paxWeights: {
     fontSize: 11,
-    color: "#0f1e3d",
+    color: "#030436",
     fontWeight: "600",
     marginTop: 3,
   },
@@ -1053,7 +1053,7 @@ const styles = StyleSheet.create({
     borderTopColor: "#E2E8F0",
   },
   persistBtn: {
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

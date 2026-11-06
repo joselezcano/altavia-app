@@ -157,7 +157,7 @@ export default function FlightPlanScreen() {
             <TouchableOpacity
               onPress={() => router.push("/(pilot)/flights/new-booking" as any)}
               style={{
-                backgroundColor: "#0f1e3d",
+                backgroundColor: "#030436",
                 padding: 16,
                 borderRadius: 18,
                 flexDirection: "row",
@@ -177,12 +177,12 @@ export default function FlightPlanScreen() {
                     width: 40,
                     height: 40,
                     borderRadius: 12,
-                    backgroundColor: "#C5A059",
+                    backgroundColor: "#0165FF",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Ionicons name="paper-plane" size={20} color="#0f1e3d" />
+                  <Ionicons name="paper-plane" size={20} color="#030436" />
                 </View>
                 <View>
                   <Text style={{ fontSize: 15, fontWeight: "bold", color: "#FFFFFF" }}>
@@ -193,7 +193,7 @@ export default function FlightPlanScreen() {
                   </Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={18} color="#C5A059" />
+              <Ionicons name="chevron-forward" size={18} color="#0165FF" />
             </TouchableOpacity>
 
             {/* Secondary Action: Gestionar Reservas y Cobros */}
@@ -213,8 +213,8 @@ export default function FlightPlanScreen() {
               activeOpacity={0.7}
             >
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                <Ionicons name="calendar-outline" size={18} color="#0f1e3d" />
-                <Text style={{ fontSize: 13, fontWeight: "bold", color: "#0f1e3d" }}>
+                <Ionicons name="calendar-outline" size={18} color="#030436" />
+                <Text style={{ fontSize: 13, fontWeight: "bold", color: "#030436" }}>
                   Gestionar Reservas y Links de Pago
                 </Text>
               </View>
@@ -231,7 +231,7 @@ export default function FlightPlanScreen() {
 
         {isLoading ? (
           <View className="py-12 items-center justify-center">
-            <ActivityIndicator size="large" color="#0f1e3d" />
+            <ActivityIndicator size="large" color="#030436" />
             <ThemedText className="text-slate-500 text-sm mt-3">
               Cargando vuelos asignados...
             </ThemedText>

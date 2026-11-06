@@ -71,12 +71,12 @@ export function buildInvoiceHtml(data: InvoiceData): string {
           font-family: Arial, Helvetica, sans-serif;
           margin: 0;
           padding: 24px;
-          color: #0f1e3d;
+          color: #030436;
           background: #ffffff;
           font-size: 11px;
         }
         .header {
-          border-bottom: 2px solid #0f1e3d;
+          border-bottom: 2px solid #030436;
           padding-bottom: 12px;
           margin-bottom: 16px;
           display: flex;
@@ -85,7 +85,7 @@ export function buildInvoiceHtml(data: InvoiceData): string {
         .company-name {
           font-size: 20px;
           font-weight: 800;
-          color: #0f1e3d;
+          color: #030436;
         }
         .company-sub {
           font-size: 10px;
@@ -107,7 +107,7 @@ export function buildInvoiceHtml(data: InvoiceData): string {
         .invoice-num {
           font-size: 14px;
           font-weight: 800;
-          color: #0f1e3d;
+          color: #030436;
           margin: 2px 0;
         }
         .cdc-box {
@@ -122,7 +122,7 @@ export function buildInvoiceHtml(data: InvoiceData): string {
           word-break: break-all;
         }
         .section-title {
-          background: #0f1e3d;
+          background: #030436;
           color: #ffffff;
           padding: 4px 8px;
           font-size: 10px;
@@ -255,9 +255,9 @@ export function buildInvoiceHtml(data: InvoiceData): string {
           <td style="text-align: right;"><strong>Liquidación IVA 10% (USD):</strong></td>
           <td style="text-align: right; font-weight: 600; color: #00529b;">$${iva10Usd}</td>
         </tr>
-        <tr style="border-top: 2px solid #0f1e3d;">
+        <tr style="border-top: 2px solid #030436;">
           <td style="text-align: right; font-size: 13px;"><strong>TOTAL A PAGAR (USD):</strong></td>
-          <td style="text-align: right; font-size: 14px; font-weight: 800; color: #0f1e3d;">$${data.amountUsd.toLocaleString("en-US")}</td>
+          <td style="text-align: right; font-size: 14px; font-weight: 800; color: #030436;">$${data.amountUsd.toLocaleString("en-US")}</td>
         </tr>
         <tr>
           <td style="text-align: right; color: #64748b; font-size: 10px;">Equivalente en Guaraníes (T.C. 7.850):</td>

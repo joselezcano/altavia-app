@@ -23,7 +23,7 @@ export default function AircraftDetailsScreen() {
     if (isLoading) {
         return (
             <ThemedView className="flex-1 justify-center items-center">
-                <ActivityIndicator size="large" color="#0f1e3d" />
+                <ActivityIndicator size="large" color="#030436" />
                 <ThemedText className="text-slate-500 mt-2">
                     Cargando especificaciones...
                 </ThemedText>

@@ -253,11 +253,11 @@ export default function PilotsScreen() {
             className="flex-row items-center bg-slate-100 px-3 py-1.5 rounded-xl gap-1"
             activeOpacity={0.7}
           >
-            <Ionicons name="person-circle-outline" size={16} color="#0f1e3d" />
+            <Ionicons name="person-circle-outline" size={16} color="#030436" />
             <ThemedText className="text-brand-blue text-xs font-bold">
               Perfil
             </ThemedText>
-            <Ionicons name="chevron-forward" size={12} color="#0f1e3d" />
+            <Ionicons name="chevron-forward" size={12} color="#030436" />
           </TouchableOpacity>
         </View>
 
@@ -346,7 +346,7 @@ export default function PilotsScreen() {
       {/* Lista de Pilotos */}
       {isLoadingPilots ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#0f1e3d" />
+          <ActivityIndicator size="large" color="#030436" />
           <ThemedText className="text-slate-500 mt-2">Cargando pilotos...</ThemedText>
         </View>
       ) : pilots.length === 0 ? (

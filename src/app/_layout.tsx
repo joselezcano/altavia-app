@@ -5,7 +5,10 @@ import { ThemedView } from "@/components/themed-view";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthProvider, useAuth, USER_ROLE } from "@/hooks/useAuth";
 import { QueryProvider } from "@/providers/query-providers";
+import { BRAND_FONT_FILES, setBrandFontsReady } from "@/utils/brand-fonts";
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator } from "react-native";
 import { configureReanimatedLogger } from "react-native-reanimated";
@@ -13,6 +16,9 @@ import Toast from "react-native-toast-message";
 import "../../global.css";
 
 configureReanimatedLogger({ strict: false });
+
+// La splash queda visible hasta que carga la tipografía de marca (Noto Sans).
+SplashScreen.preventAutoHideAsync().catch(() => { });
 function RootLayoutNav() {
   const { user, role, isLoading, isRoleSelectorRequired, needsProfileCompletion } = useAuth();
   if (isLoading) {
@@ -72,6 +78,15 @@ function RootLayoutNav() {
 
 export function RootLayout() {
   const colorScheme = useColorScheme();
+  const [fontsLoaded, fontError] = useFonts(BRAND_FONT_FILES);
+  const fontsSettled = fontsLoaded || !!fontError;
+  if (fontsSettled) {
+    // Si las fuentes fallan, la app sigue con la tipografía del sistema.
+    setBrandFontsReady(fontsLoaded && !fontError);
+    SplashScreen.hideAsync().catch(() => { });
+  }
+  if (!fontsSettled) return null;
+
   return (
     <QueryProvider>
       <AuthProvider>

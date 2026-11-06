@@ -76,7 +76,7 @@ export default function PilotPlansScreen() {
           subtitle="Mis Planes de Vuelo"
         />
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#0f1e3d" />
+          <ActivityIndicator size="large" color="#030436" />
           <ThemedText className="text-slate-500 text-sm mt-3">
             Cargando planes de vuelo...
           </ThemedText>
@@ -154,7 +154,7 @@ export default function PilotPlansScreen() {
               <View className="flex-row justify-between items-center mb-3">
                 <View className="flex-row items-center gap-3 flex-1 pr-2">
                   <View className="w-11 h-11 rounded-xl bg-brand-blue/10 items-center justify-center border border-brand-blue/10">
-                    <Ionicons name="document-text" size={20} color="#0f1e3d" />
+                    <Ionicons name="document-text" size={20} color="#030436" />
                   </View>
 
                   <View className="flex-1">
@@ -215,7 +215,7 @@ export default function PilotPlansScreen() {
                     <View className="flex-row items-center w-full justify-center">
                       <View className="h-[1.5px] bg-slate-200 flex-1" />
                       <View className="mx-1.5 bg-brand-gold/15 p-1 rounded-full border border-brand-gold/30">
-                        <Ionicons name="airplane" size={12} color="#C5A059" />
+                        <Ionicons name="airplane" size={12} color="#0165FF" />
                       </View>
                       <View className="h-[1.5px] bg-slate-200 flex-1" />
                     </View>
@@ -271,7 +271,7 @@ export default function PilotPlansScreen() {
                   <ThemedText className="text-xs font-bold text-brand-gold">
                     Ver
                   </ThemedText>
-                  <Ionicons name="chevron-forward" size={14} color="#C5A059" />
+                  <Ionicons name="chevron-forward" size={14} color="#0165FF" />
                 </View>
               </View>
             </TouchableOpacity>

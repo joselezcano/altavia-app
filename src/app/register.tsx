@@ -177,7 +177,7 @@ export default function RegisterScreen() {
                   onPress={() => setShowTermsModal(true)}
                   style={styles.termsLinkRow}
                 >
-                  <Ionicons name="document-text-outline" size={13} color="#D4AF37" />
+                  <Ionicons name="document-text-outline" size={13} color="#0165FF" />
                   <ThemedText className="text-[11px] font-bold text-brand-gold ml-1">
                     Leer términos completos
                   </ThemedText>
@@ -203,7 +203,7 @@ export default function RegisterScreen() {
             >
               {googleLoading ? (
                 <View style={styles.loadingRow}>
-                  <ActivityIndicator size="small" color="#0F1E3D" />
+                  <ActivityIndicator size="small" color="#030436" />
                   <ThemedText className="font-bold text-slate-800 text-sm ml-2">
                     Registrando con Google...
                   </ThemedText>
@@ -333,8 +333,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   checkboxActive: {
-    backgroundColor: "#0F1E3D",
-    borderColor: "#0F1E3D",
+    backgroundColor: "#030436",
+    borderColor: "#030436",
   },
   checkboxInactive: {
     backgroundColor: "#F8FAFC",

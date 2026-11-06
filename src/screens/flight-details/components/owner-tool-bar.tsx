@@ -232,7 +232,7 @@ export function OwnerToolBar({
                 <View style={styles.manageRow}>
                     {onEditReservation && (
                         <TouchableOpacity onPress={onEditReservation} style={styles.editButton} activeOpacity={0.8}>
-                            <Ionicons name="create-outline" size={17} color="#0f1e3d" />
+                            <Ionicons name="create-outline" size={17} color="#030436" />
                             <Text style={styles.editButtonText} numberOfLines={1}>
                                 {editLabel || "Editar Reserva"}
                             </Text>
@@ -277,13 +277,13 @@ const styles = StyleSheet.create({
         paddingVertical: 11,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: "#C5A059",
+        borderColor: "#0165FF",
         backgroundColor: "#FFFFFF",
     },
     editButtonText: {
         fontSize: 12,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     deleteButton: {
         flex: 1,

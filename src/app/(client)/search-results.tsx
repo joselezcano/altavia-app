@@ -64,7 +64,7 @@ export default function SearchResultsScreen() {
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={20} color="#0f1e3d" />
+          <Ionicons name="arrow-back" size={20} color="#030436" />
         </TouchableOpacity>
         <Text style={styles.screenTitle}>
           Resultados de Búsqueda
@@ -80,7 +80,7 @@ export default function SearchResultsScreen() {
               <View style={{ flex: 1, paddingRight: 8 }}>
                 {/* Origin Airport */}
                 <View style={styles.airportRow}>
-                  <MaterialCommunityIcons name="airplane-takeoff" size={16} color="#0f1e3d" />
+                  <MaterialCommunityIcons name="airplane-takeoff" size={16} color="#030436" />
                   <Text style={styles.airportName} numberOfLines={1}>
                     {activeSearch.trip.origin_airport?.name || activeSearch.trip.origin_airport_ident}
                   </Text>
@@ -88,7 +88,7 @@ export default function SearchResultsScreen() {
 
                 {/* Destination Airport */}
                 <View style={styles.airportRow}>
-                  <MaterialCommunityIcons name="airplane-landing" size={16} color="#0f1e3d" />
+                  <MaterialCommunityIcons name="airplane-landing" size={16} color="#030436" />
                   <Text style={styles.airportName} numberOfLines={1}>
                     {activeSearch.trip.destination_airport?.name || activeSearch.trip.destination_airport_ident}
                   </Text>
@@ -98,7 +98,7 @@ export default function SearchResultsScreen() {
 
             <View style={styles.summaryFooter}>
               <View style={styles.paxBadge}>
-                <MaterialCommunityIcons name="seat-passenger" size={14} color="#0f1e3d" />
+                <MaterialCommunityIcons name="seat-passenger" size={14} color="#030436" />
                 <Text style={styles.paxText}>
                   {activeSearch.capacity.passangers}
                 </Text>
@@ -118,7 +118,7 @@ export default function SearchResultsScreen() {
         {/* Search Loading Indicator */}
         {isSearching && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#0f1e3d" />
+            <ActivityIndicator size="large" color="#030436" />
             <Text style={styles.loadingText}>
               Buscando aeronaves disponibles y verificando itinerarios...
             </Text>
@@ -197,7 +197,7 @@ export default function SearchResultsScreen() {
                         ) : (
                           <View style={styles.placeholderBanner}>
                             <View style={styles.placeholderIconCircle}>
-                              <Ionicons name="airplane" size={32} color="#DAA520" />
+                              <Ionicons name="airplane" size={32} color="#0165FF" />
                             </View>
                           </View>
                         )}
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   screenTitle: {
-    color: "#0f1e3d",
+    color: "#030436",
     fontWeight: "bold",
     fontSize: 18,
   },
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   },
   airportName: {
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
     fontSize: 14,
     flex: 1,
   },
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   newSearchButton: {
-    backgroundColor: "#C5A059",
+    backgroundColor: "#0165FF",
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   resultsCountTitle: {
-    color: "#0f1e3d",
+    color: "#030436",
     fontWeight: "bold",
     fontSize: 18,
   },
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyActionButton: {
-    backgroundColor: "#C5A059",
+    backgroundColor: "#0165FF",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   placeholderBanner: {
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(15, 30, 61, 0.95)",
+    backgroundColor: "rgba(3, 4, 54, 0.95)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 12,
     right: 12,
-    backgroundColor: "rgba(15, 30, 61, 0.92)",
+    backgroundColor: "rgba(3, 4, 54, 0.92)",
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 12,
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(218, 165, 32, 0.4)",
   },
   priceBadgeText: {
-    color: "#DAA520",
+    color: "#0165FF",
     fontWeight: "bold",
     fontSize: 14,
   },
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   aircraftModel: {
-    color: "#0f1e3d",
+    color: "#030436",
     fontWeight: "bold",
     fontSize: 18,
   },
@@ -570,7 +570,7 @@ const styles = StyleSheet.create({
   priceValue: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   quoteBadge: {
     backgroundColor: "#F1F5F9",
@@ -606,11 +606,11 @@ const styles = StyleSheet.create({
   },
   specDurationValue: {
     fontWeight: "bold",
-    color: "#C5A059",
+    color: "#0165FF",
     fontSize: 14,
   },
   actionButton: {
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: "center",

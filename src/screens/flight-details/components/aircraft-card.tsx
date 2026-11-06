@@ -44,7 +44,7 @@ export function AircraftCard({
                         <View className="absolute w-36 h-36 rounded-full bg-white/5 -top-10 -right-10" />
                         <View className="absolute w-24 h-24 rounded-full bg-brand-gold/10 -bottom-6 -left-6" />
                         <View className="w-16 h-16 rounded-full bg-white/10 items-center justify-center border border-white/20">
-                            <Ionicons name="airplane" size={32} color="#DAA520" />
+                            <Ionicons name="airplane" size={32} color="#0165FF" />
                         </View>
                     </View>
                 )}

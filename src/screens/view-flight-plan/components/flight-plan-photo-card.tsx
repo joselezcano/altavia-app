@@ -10,7 +10,7 @@ export const FlightPlanPhotoCard = ({ photoUrl }: { photoUrl?: string | null }) 
     return (
         <View style={styles.card}>
             <View style={styles.headerRow}>
-                <Ionicons name="camera-outline" size={20} color="#0f1e3d" />
+                <Ionicons name="camera-outline" size={20} color="#030436" />
                 <Text style={styles.title}>Foto del Plan Presentado</Text>
             </View>
             {photoUrl ? (
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 16,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     photo: {
         width: "100%",

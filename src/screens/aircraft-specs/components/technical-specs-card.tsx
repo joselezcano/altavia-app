@@ -60,7 +60,7 @@ export function TechnicalSpecsCard({ technical_specs }: { technical_specs: Aircr
             className="p-5 mb-4 border border-slate-100"
         >
             <View className="flex-row items-center gap-2 mb-3">
-                <Ionicons name="settings" size={20} color="#0f1e3d" />
+                <Ionicons name="settings" size={20} color="#030436" />
                 <ThemedText type="subtitle" className="font-bold text-brand-blue">
                     Especificaciones Técnicas
                 </ThemedText>

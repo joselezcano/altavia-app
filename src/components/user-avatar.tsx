@@ -78,7 +78,7 @@ export default function UserAvatar({
         onRequestClose={() => setModalVisible(false)}
       >
         <TouchableOpacity
-          style={{ flex: 1, backgroundColor: "rgba(15, 30, 61, 0.4)" }}
+          style={{ flex: 1, backgroundColor: "rgba(3, 4, 54, 0.4)" }}
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
         >
@@ -164,7 +164,7 @@ export default function UserAvatar({
                   style={avatarStyles.ownersButton}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="briefcase-outline" size={18} color="#0f1e3d" />
+                  <Ionicons name="briefcase-outline" size={18} color="#030436" />
                   <Text style={avatarStyles.ownersButtonText}>Mis propietarios</Text>
                 </TouchableOpacity>
               )}
@@ -205,7 +205,7 @@ const avatarStyles = StyleSheet.create({
     marginBottom: 12,
   },
   ownersButtonText: {
-    color: "#0f1e3d",
+    color: "#030436",
     fontWeight: "600",
     fontSize: 14,
   },

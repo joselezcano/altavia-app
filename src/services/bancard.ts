@@ -174,7 +174,7 @@ export function getBancardIframeHtml(
           "button-text-color": "#ffffff",
           "button-border-color": "#00529b",
           "input-background-color": "#f8fafc",
-          "input-text-color": "#0f1e3d",
+          "input-text-color": "#030436",
           "input-placeholder-color": "#94a3b8"
         };
 

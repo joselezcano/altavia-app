@@ -6,12 +6,13 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          blue: "#0f1e3d",
-          gold: "#C5A059",
-          light: "#F8FAFC",
+          // Remapeados a la paleta AltaGo (manual de identidad): blue → Dark Navy, gold → Azur.
+          blue: "#030436",
+          gold: "#0165FF",
+          light: "#F5F8FD",
           white: "#FFFFFF",
-          text: "#0F172A",
-          muted: "#64748B",
+          text: "#030436",
+          muted: "#5B5D7A",
         },
         // Paleta AltaGo (manual de identidad). Ver src/constants/brand.ts.
         altago: {

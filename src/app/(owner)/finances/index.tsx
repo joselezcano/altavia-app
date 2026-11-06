@@ -330,7 +330,7 @@ export default function OwnerFinancesScreen() {
                             refetchAircrafts();
                             refetchReservations();
                         }}
-                        tintColor="#C5A059"
+                        tintColor="#0165FF"
                     />
                 }
             >
@@ -350,7 +350,7 @@ export default function OwnerFinancesScreen() {
                         style={styles.navArrowButton}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="chevron-back" size={20} color="#0f1e3d" />
+                        <Ionicons name="chevron-back" size={20} color="#030436" />
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -359,7 +359,7 @@ export default function OwnerFinancesScreen() {
                         activeOpacity={0.8}
                     >
                         <View style={styles.calendarIconWrapper}>
-                            <Ionicons name="calendar" size={16} color="#C5A059" />
+                            <Ionicons name="calendar" size={16} color="#0165FF" />
                         </View>
                         <View style={styles.monthTextContainer}>
                             <ThemedText style={styles.monthText}>
@@ -377,14 +377,14 @@ export default function OwnerFinancesScreen() {
                         style={styles.navArrowButton}
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="chevron-forward" size={20} color="#0f1e3d" />
+                        <Ionicons name="chevron-forward" size={20} color="#030436" />
                     </TouchableOpacity>
                 </View>
 
                 {/* Demo Data Toggle Bar */}
                 <View style={styles.demoToggleBar}>
                     <View style={styles.demoTextWrapper}>
-                        <Ionicons name="sparkles" size={16} color="#C5A059" />
+                        <Ionicons name="sparkles" size={16} color="#0165FF" />
                         <ThemedText style={styles.demoLabel}>
                             Incluir Vuelos Históricos Demostrativos
                         </ThemedText>
@@ -392,7 +392,7 @@ export default function OwnerFinancesScreen() {
                     <Switch
                         value={includeDemoData}
                         onValueChange={setIncludeDemoData}
-                        trackColor={{ false: "#CBD5E1", true: "#C5A059" }}
+                        trackColor={{ false: "#CBD5E1", true: "#0165FF" }}
                         thumbColor="#FFFFFF"
                     />
                 </View>
@@ -413,7 +413,7 @@ export default function OwnerFinancesScreen() {
                         <Ionicons
                             name="airplane"
                             size={14}
-                            color={selectedAircraftId === "all" ? "#FFFFFF" : "#0f1e3d"}
+                            color={selectedAircraftId === "all" ? "#FFFFFF" : "#030436"}
                         />
                         <ThemedText
                             style={[
@@ -439,7 +439,7 @@ export default function OwnerFinancesScreen() {
                                 <Ionicons
                                     name="airplane-outline"
                                     size={14}
-                                    color={isSelected ? "#FFFFFF" : "#0f1e3d"}
+                                    color={isSelected ? "#FFFFFF" : "#030436"}
                                 />
                                 <ThemedText
                                     style={[
@@ -567,7 +567,7 @@ export default function OwnerFinancesScreen() {
                             {/* Card 1: Completed Flights */}
                             <View style={styles.kpiCard}>
                                 <View style={styles.kpiIconWrapperBlue}>
-                                    <MaterialCommunityIcons name="airplane-takeoff" size={20} color="#0f1e3d" />
+                                    <MaterialCommunityIcons name="airplane-takeoff" size={20} color="#030436" />
                                 </View>
                                 <ThemedText
                                     style={styles.kpiNumber}
@@ -587,7 +587,7 @@ export default function OwnerFinancesScreen() {
                             {/* Card 2: Total Flight Hours */}
                             <View style={styles.kpiCard}>
                                 <View style={styles.kpiIconWrapperGold}>
-                                    <MaterialCommunityIcons name="timer-sand-complete" size={20} color="#C5A059" />
+                                    <MaterialCommunityIcons name="timer-sand-complete" size={20} color="#0165FF" />
                                 </View>
                                 <ThemedText
                                     style={styles.kpiNumber}
@@ -649,7 +649,7 @@ export default function OwnerFinancesScreen() {
                         <View style={styles.breakdownCard}>
                             <View style={styles.sectionHeaderRow}>
                                 <View style={styles.sectionTitleWithIcon}>
-                                    <MaterialCommunityIcons name="chart-pie" size={18} color="#C5A059" />
+                                    <MaterialCommunityIcons name="chart-pie" size={18} color="#0165FF" />
                                     <ThemedText style={styles.sectionTitle}>
                                         Rendimiento por Aeronave
                                     </ThemedText>
@@ -758,7 +758,7 @@ export default function OwnerFinancesScreen() {
                         <View style={styles.ledgerSection}>
                             <View style={styles.sectionHeaderRow}>
                                 <View style={styles.sectionTitleWithIcon}>
-                                    <Ionicons name="list" size={18} color="#0f1e3d" />
+                                    <Ionicons name="list" size={18} color="#030436" />
                                     <ThemedText style={styles.sectionTitle}>
                                         Detalle de Entradas ({displayedFlights.length})
                                     </ThemedText>
@@ -771,10 +771,10 @@ export default function OwnerFinancesScreen() {
                                     disabled={isExporting}
                                 >
                                     {isExporting ? (
-                                        <ActivityIndicator size="small" color="#0f1e3d" />
+                                        <ActivityIndicator size="small" color="#030436" />
                                     ) : (
                                         <>
-                                            <Ionicons name="download-outline" size={14} color="#0f1e3d" />
+                                            <Ionicons name="download-outline" size={14} color="#030436" />
                                             <ThemedText style={styles.exportButtonSmallText}>
                                                 Exportar PDF
                                             </ThemedText>
@@ -924,7 +924,7 @@ export default function OwnerFinancesScreen() {
                                                 </View>
 
                                                 <View style={styles.routeArrowGroup}>
-                                                    <Ionicons name="airplane" size={16} color="#C5A059" />
+                                                    <Ionicons name="airplane" size={16} color="#0165FF" />
                                                     <ThemedText style={styles.flightHoursTag}>
                                                         {flight.flightHours}h • {flight.distanceNm} nm
                                                     </ThemedText>
@@ -1023,7 +1023,7 @@ export default function OwnerFinancesScreen() {
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>Seleccionar Período</Text>
                             <TouchableOpacity onPress={() => setIsMonthPickerVisible(false)}>
-                                <Ionicons name="close" size={22} color="#0f1e3d" />
+                                <Ionicons name="close" size={22} color="#030436" />
                             </TouchableOpacity>
                         </View>
 
@@ -1033,14 +1033,14 @@ export default function OwnerFinancesScreen() {
                                 onPress={() => setSelectedYear(y => y - 1)}
                                 style={styles.yearArrowBtn}
                             >
-                                <Ionicons name="chevron-back" size={18} color="#0f1e3d" />
+                                <Ionicons name="chevron-back" size={18} color="#030436" />
                             </TouchableOpacity>
                             <Text style={styles.yearTitleText}>{selectedYear}</Text>
                             <TouchableOpacity
                                 onPress={() => setSelectedYear(y => y + 1)}
                                 style={styles.yearArrowBtn}
                             >
-                                <Ionicons name="chevron-forward" size={18} color="#0f1e3d" />
+                                <Ionicons name="chevron-forward" size={18} color="#030436" />
                             </TouchableOpacity>
                         </View>
 
@@ -1126,7 +1126,7 @@ const styles = StyleSheet.create({
     monthText: {
         fontSize: 16,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     monthSubText: {
         fontSize: 10,
@@ -1171,8 +1171,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     chipActive: {
-        backgroundColor: "#0f1e3d",
-        borderColor: "#0f1e3d",
+        backgroundColor: "#030436",
+        borderColor: "#030436",
     },
     chipInactive: {
         backgroundColor: "#FFFFFF",
@@ -1186,11 +1186,11 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
     },
     chipTextInactive: {
-        color: "#0f1e3d",
+        color: "#030436",
     },
     // Hero Card
     heroCard: {
-        backgroundColor: "#0f1e3d",
+        backgroundColor: "#030436",
         borderRadius: 24,
         padding: 20,
         marginBottom: 14,
@@ -1202,7 +1202,7 @@ const styles = StyleSheet.create({
     },
     heroEyebrow: {
         fontSize: 11,
-        color: "#C5A059",
+        color: "#0165FF",
         fontWeight: "bold",
         letterSpacing: 1,
     },
@@ -1357,7 +1357,7 @@ const styles = StyleSheet.create({
     kpiNumber: {
         fontSize: 17,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     kpiUnit: {
         fontSize: 13,
@@ -1398,12 +1398,12 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 14,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     sectionSubBadge: {
         fontSize: 11,
         fontWeight: "600",
-        color: "#C5A059",
+        color: "#0165FF",
         backgroundColor: "#FFFBEB",
         paddingHorizontal: 8,
         paddingVertical: 2,
@@ -1431,7 +1431,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     registrationBadge: {
-        backgroundColor: "#0f1e3d",
+        backgroundColor: "#030436",
         paddingHorizontal: 7,
         paddingVertical: 3,
         borderRadius: 6,
@@ -1452,7 +1452,7 @@ const styles = StyleSheet.create({
     aircraftRevenueUsd: {
         fontSize: 13,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     aircraftRevenuePercent: {
         fontSize: 10,
@@ -1467,7 +1467,7 @@ const styles = StyleSheet.create({
     },
     progressBarFill: {
         height: "100%",
-        backgroundColor: "#C5A059",
+        backgroundColor: "#0165FF",
         borderRadius: 4,
     },
     aircraftStatsRow: {
@@ -1513,7 +1513,7 @@ const styles = StyleSheet.create({
     paymentMethodAmount: {
         fontSize: 15,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     paymentMethodTag: {
         fontSize: 9,
@@ -1543,7 +1543,7 @@ const styles = StyleSheet.create({
     exportButtonSmallText: {
         fontSize: 11,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     searchBar: {
         flexDirection: "row",
@@ -1560,7 +1560,7 @@ const styles = StyleSheet.create({
     searchInput: {
         flex: 1,
         fontSize: 12,
-        color: "#0f1e3d",
+        color: "#030436",
         padding: 0,
     },
     statusTabsRow: {
@@ -1575,8 +1575,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     statusTabActive: {
-        backgroundColor: "#0f1e3d",
-        borderColor: "#0f1e3d",
+        backgroundColor: "#030436",
+        borderColor: "#030436",
     },
     statusTabInactive: {
         backgroundColor: "#F8FAFC",
@@ -1633,7 +1633,7 @@ const styles = StyleSheet.create({
     flightDateText: {
         fontSize: 11,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     flightTimeText: {
         fontSize: 11,
@@ -1684,7 +1684,7 @@ const styles = StyleSheet.create({
     airportCode: {
         fontSize: 16,
         fontWeight: "800",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     airportCity: {
         fontSize: 10,
@@ -1697,7 +1697,7 @@ const styles = StyleSheet.create({
     },
     flightHoursTag: {
         fontSize: 9,
-        color: "#C5A059",
+        color: "#0165FF",
         fontWeight: "bold",
         marginTop: 2,
     },
@@ -1762,7 +1762,7 @@ const styles = StyleSheet.create({
     footerAmountUsd: {
         fontSize: 16,
         fontWeight: "800",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     footerAmountGs: {
         fontSize: 10,
@@ -1785,7 +1785,7 @@ const styles = StyleSheet.create({
     // Month Modal Styles (Strict React Native Native Components as per Rule 5)
     modalBackdrop: {
         flex: 1,
-        backgroundColor: "rgba(15, 30, 61, 0.6)",
+        backgroundColor: "rgba(3, 4, 54, 0.6)",
         justifyContent: "center",
         alignItems: "center",
         padding: 20,
@@ -1806,7 +1806,7 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 16,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     yearSelectorRow: {
         flexDirection: "row",
@@ -1824,7 +1824,7 @@ const styles = StyleSheet.create({
     yearTitleText: {
         fontSize: 16,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     monthsGrid: {
         flexDirection: "row",
@@ -1839,7 +1839,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     monthGridItemActive: {
-        backgroundColor: "#C5A059",
+        backgroundColor: "#0165FF",
     },
     monthGridItemInactive: {
         backgroundColor: "#F1F5F9",
@@ -1873,7 +1873,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     topModeBtnActive: {
-        backgroundColor: "#0f1e3d",
+        backgroundColor: "#030436",
     },
     topModeBtnText: {
         fontSize: 13,

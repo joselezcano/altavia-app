@@ -49,7 +49,7 @@ export default function ViewFlightPlanScreen() {
                     className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
                     activeOpacity={0.8}
                 >
-                    <Ionicons name="arrow-back" size={20} color="#0f1e3d" />
+                    <Ionicons name="arrow-back" size={20} color="#030436" />
                 </TouchableOpacity>
                 <View className="items-center">
                     <ThemedText type="caption" className="uppercase font-bold text-brand-gold tracking-widest text-[10px]">

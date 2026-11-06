@@ -22,7 +22,7 @@ export default function PilotLayout() {
                 screenOptions={{
                     headerShown: false,
                     tabBarStyle: isWideScreen ? styles.wideTabBar : styles.mobileTabBar,
-                    tabBarActiveTintColor: "#0f1e3d", // brand-blue
+                    tabBarActiveTintColor: "#030436", // brand-blue
                     tabBarInactiveTintColor: "#94A3B8", // brand-muted
                     tabBarLabelStyle: {
                         fontWeight: "600",
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         borderRadius: 24,
         marginBottom: 16,
-        shadowColor: "#0F1E3D",
+        shadowColor: "#030436",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,

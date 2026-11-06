@@ -181,7 +181,7 @@ export default function FlightTrackerScreen() {
                     className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
                     activeOpacity={0.8}
                 >
-                    <Ionicons name="arrow-back" size={20} color="#0f1e3d" />
+                    <Ionicons name="arrow-back" size={20} color="#030436" />
                 </TouchableOpacity>
                 <View className="items-center">
                     <ThemedText
@@ -256,7 +256,7 @@ export default function FlightTrackerScreen() {
                                 {elapsedTimeStr ? (
                                     <View className="mt-4 pt-3 border-t border-slate-100 flex-row items-center justify-between">
                                         <View className="flex-row items-center gap-2">
-                                            <Ionicons name="time-outline" size={16} color="#0f1e3d" />
+                                            <Ionicons name="time-outline" size={16} color="#030436" />
                                             <ThemedText className="text-xs font-medium text-slate-600">
                                                 Tiempo transcurrido:
                                             </ThemedText>
@@ -272,7 +272,7 @@ export default function FlightTrackerScreen() {
                             {mapBase64Image ? (
                                 <View className="bg-brand-white rounded-3xl p-4 border border-slate-200 shadow-sm">
                                     <View className="flex-row items-center gap-2 mb-3 px-1">
-                                        <Ionicons name="map-outline" size={18} color="#0f1e3d" />
+                                        <Ionicons name="map-outline" size={18} color="#030436" />
                                         <ThemedText type="subtitle" className="text-brand-blue font-bold text-base">
                                             Mapa de Vuelo
                                         </ThemedText>
@@ -322,7 +322,7 @@ export default function FlightTrackerScreen() {
                                     {/* Connector */}
                                     <View className="flex-row items-center gap-2 pl-1 my-0.5">
                                         <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
-                                        <MaterialCommunityIcons name={flightStatus === "arrived" || flightStatus === "to be confirmed" ? "airplane-landing" : "airplane-takeoff"} size={16} color="#C5A059" className="ml-2" />
+                                        <MaterialCommunityIcons name={flightStatus === "arrived" || flightStatus === "to be confirmed" ? "airplane-landing" : "airplane-takeoff"} size={16} color="#0165FF" className="ml-2" />
                                     </View>
 
                                     {/* Destination */}
@@ -360,7 +360,7 @@ export default function FlightTrackerScreen() {
                                 <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
                                     <View className="flex-row items-center gap-2.5">
                                         <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                                            <Ionicons name="compass-outline" size={18} color="#0f1e3d" />
+                                            <Ionicons name="compass-outline" size={18} color="#030436" />
                                         </View>
                                         <ThemedText className="text-xs font-medium text-slate-600">
                                             Latitud
@@ -375,7 +375,7 @@ export default function FlightTrackerScreen() {
                                 <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
                                     <View className="flex-row items-center gap-2.5">
                                         <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                                            <Ionicons name="location-outline" size={18} color="#0f1e3d" />
+                                            <Ionicons name="location-outline" size={18} color="#030436" />
                                         </View>
                                         <ThemedText className="text-xs font-medium text-slate-600">
                                             Longitud
@@ -390,7 +390,7 @@ export default function FlightTrackerScreen() {
                                 <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
                                     <View className="flex-row items-center gap-2.5">
                                         <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                                            <MaterialCommunityIcons name="cloud-upload-outline" size={18} color="#0f1e3d" />
+                                            <MaterialCommunityIcons name="cloud-upload-outline" size={18} color="#030436" />
                                         </View>
                                         <ThemedText className="text-xs font-medium text-slate-600">
                                             Altitud
@@ -407,7 +407,7 @@ export default function FlightTrackerScreen() {
                                 <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
                                     <View className="flex-row items-center gap-2.5">
                                         <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                                            <MaterialCommunityIcons name="speedometer" size={18} color="#0f1e3d" />
+                                            <MaterialCommunityIcons name="speedometer" size={18} color="#030436" />
                                         </View>
                                         <ThemedText className="text-xs font-medium text-slate-600">
                                             Velocidad de tierra
@@ -424,7 +424,7 @@ export default function FlightTrackerScreen() {
                                 <View className="flex-row items-center justify-between py-2">
                                     <View className="flex-row items-center gap-2.5">
                                         <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                                            <Ionicons name="navigate-outline" size={18} color="#0f1e3d" />
+                                            <Ionicons name="navigate-outline" size={18} color="#030436" />
                                         </View>
                                         <ThemedText className="text-xs font-medium text-slate-600">
                                             Rumbo

@@ -149,7 +149,7 @@ export default function ClientDashboard() {
   if (isCheckingTerms) {
     return (
       <ThemedView className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#0f1e3d" />
+        <ActivityIndicator size="large" color="#030436" />
       </ThemedView>
     );
   }
@@ -178,7 +178,7 @@ export default function ClientDashboard() {
               className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
               activeOpacity={0.7}
             >
-              <Ionicons name="arrow-back" size={20} color="#0f1e3d" />
+              <Ionicons name="arrow-back" size={20} color="#030436" />
             </TouchableOpacity>
 
             <View>
@@ -299,7 +299,7 @@ export default function ClientDashboard() {
                       <View className="flex-row items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
                         <View className="flex-row items-center gap-2.5 flex-1 mr-2">
                           <View className="w-9 h-9 rounded-full bg-brand-blue/10 items-center justify-center">
-                            <Ionicons name="people" size={18} color="#0f1e3d" />
+                            <Ionicons name="people" size={18} color="#030436" />
                           </View>
                           <View className="flex-1">
                             <ThemedText className="font-bold text-brand-blue text-sm" numberOfLines={1}>
@@ -335,7 +335,7 @@ export default function ClientDashboard() {
                             <Ionicons
                               name="remove"
                               size={18}
-                              color={count <= 1 ? "#94A3B8" : "#0f1e3d"}
+                              color={count <= 1 ? "#94A3B8" : "#030436"}
                             />
                           </TouchableOpacity>
 
@@ -358,7 +358,7 @@ export default function ClientDashboard() {
                               borderRadius: 18,
                               alignItems: "center",
                               justifyContent: "center",
-                              backgroundColor: count >= 30 ? "#94A3B8" : "#0f1e3d",
+                              backgroundColor: count >= 30 ? "#94A3B8" : "#030436",
                               opacity: count >= 30 ? 0.4 : 1,
                             }}
                             activeOpacity={0.7}
@@ -394,7 +394,7 @@ export default function ClientDashboard() {
                     <Switch
                       value={value}
                       onValueChange={onChange}
-                      trackColor={{ false: "#CBD5E1", true: "#0f1e3d" }}
+                      trackColor={{ false: "#CBD5E1", true: "#030436" }}
                       thumbColor="#FFFFFF"
                     />
                   )}

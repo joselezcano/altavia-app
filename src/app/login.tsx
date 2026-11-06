@@ -124,7 +124,7 @@ export default function LoginScreen() {
             <ThemedText type="title" className="text-4xl tracking-widest font-black text-brand-blue">
               ALTAVIA
             </ThemedText>
-            <View style={{ width: 140, height: 2, backgroundColor: "#D4AF37" }} />
+            <View style={{ width: 140, height: 2, backgroundColor: "#0165FF" }} />
             <ThemedText
               type="caption"
               className="uppercase tracking-[0.25em] font-bold text-slate-500 text-[11px] mt-0.5"
@@ -222,7 +222,7 @@ export default function LoginScreen() {
             >
               {googleLoading ? (
                 <View style={styles.loadingRow}>
-                  <ActivityIndicator size="small" color="#0F1E3D" />
+                  <ActivityIndicator size="small" color="#030436" />
                   <ThemedText className="font-bold text-slate-800 text-sm ml-2">
                     Iniciando sesión...
                   </ThemedText>

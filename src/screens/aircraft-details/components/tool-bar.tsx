@@ -65,7 +65,7 @@ export function AircraftToolBar({
                     activeOpacity={0.7}
                 >
                     <View style={styles.iconBox}>
-                        <Ionicons name="calendar" size={28} color="#0f1e3d" />
+                        <Ionicons name="calendar" size={28} color="#030436" />
                     </View>
                     <ThemedText className="text-sm font-semibold text-slate-700 text-center">
                         Calendario
@@ -88,7 +88,7 @@ export function AircraftToolBar({
                     activeOpacity={0.7}
                 >
                     <View style={styles.iconBox}>
-                        <Ionicons name="location" size={28} color="#0f1e3d" />
+                        <Ionicons name="location" size={28} color="#030436" />
                     </View>
                     <ThemedText className="text-sm font-semibold text-slate-700 text-center">
                         Ubicación Base
@@ -113,7 +113,7 @@ export function AircraftToolBar({
                     activeOpacity={0.7}
                 >
                     <View style={styles.iconBox}>
-                        <MaterialCommunityIcons name="account-tie-hat" size={28} color="#0f1e3d" />
+                        <MaterialCommunityIcons name="account-tie-hat" size={28} color="#030436" />
                     </View>
                     <ThemedText className="text-sm font-semibold text-slate-700 text-center">
                         Pilotos
@@ -136,7 +136,7 @@ export function AircraftToolBar({
                     activeOpacity={0.7}
                 >
                     <View style={styles.iconBox}>
-                        <MaterialCommunityIcons name="airplane-cog" size={28} color="#0f1e3d" />
+                        <MaterialCommunityIcons name="airplane-cog" size={28} color="#030436" />
                     </View>
                     <ThemedText className="text-sm font-semibold text-slate-700 text-center">
                         Especificaciones
@@ -161,7 +161,7 @@ export function AircraftToolBar({
                     activeOpacity={0.7}
                 >
                     <View style={styles.iconBox}>
-                        <Ionicons name="images" size={28} color="#0f1e3d" />
+                        <Ionicons name="images" size={28} color="#030436" />
                     </View>
                     <ThemedText className="text-sm font-semibold text-slate-700 text-center">
                         Fotos
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         elevation: 1,
-        shadowColor: "#0f1e3d",
+        shadowColor: "#030436",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 2,

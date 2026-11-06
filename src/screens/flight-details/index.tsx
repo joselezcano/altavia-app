@@ -268,7 +268,7 @@ export default function FlightDetailsScreen() {
                     className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
                     activeOpacity={0.8}
                 >
-                    <Ionicons name="arrow-back" size={20} color="#0f1e3d" />
+                    <Ionicons name="arrow-back" size={20} color="#030436" />
                 </TouchableOpacity>
                 <View className="items-center">
                     <ThemedText type="caption" className="uppercase font-bold text-brand-gold tracking-widest text-[10px]">
@@ -496,7 +496,7 @@ export default function FlightDetailsScreen() {
                                         <View className="flex-row items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
                                             <View className="flex-row items-center" style={{ gap: 8 }}>
                                                 <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
-                                                    <Ionicons name="people" size={16} color="#0f1e3d" />
+                                                    <Ionicons name="people" size={16} color="#030436" />
                                                 </View>
                                                 <View>
                                                     <ThemedText className="text-xs font-bold text-brand-gold uppercase tracking-wider">

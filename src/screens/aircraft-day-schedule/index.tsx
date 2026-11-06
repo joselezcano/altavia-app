@@ -297,7 +297,7 @@ export default function DayScheduleScreen() {
                     onPress={() => router.back()}
                     className="flex-row items-center p-1"
                 >
-                    <Ionicons name="arrow-back" size={24} color="#0f1e3d" />
+                    <Ionicons name="arrow-back" size={24} color="#030436" />
                     <ThemedText className="font-semibold text-brand-blue ml-1">
                         Calendario
                     </ThemedText>
@@ -320,7 +320,7 @@ export default function DayScheduleScreen() {
                     className="flex-row items-center p-1 bg-slate-50 border border-slate-200/80 rounded-xl px-2.5 py-1.5"
                     activeOpacity={0.7}
                 >
-                    <Ionicons name="add" size={24} color="#C5A059" />
+                    <Ionicons name="add" size={24} color="#0165FF" />
                 </TouchableOpacity>
             </View>
 
@@ -488,7 +488,7 @@ export default function DayScheduleScreen() {
                                             }}
                                             className="p-1 rounded-lg bg-white/80 border border-slate-200/60"
                                         >
-                                            <Ionicons name="pencil" size={13} color="#0f1e3d" />
+                                            <Ionicons name="pencil" size={13} color="#030436" />
                                         </TouchableOpacity>
                                     </View>
                                 </View>

@@ -206,7 +206,7 @@ export default function AddAircraftScreen() {
                         onPress={() => router.back()}
                         className="flex-row items-center p-1"
                     >
-                        <Ionicons name="arrow-back" size={24} color="#0f1e3d" />
+                        <Ionicons name="arrow-back" size={24} color="#030436" />
                         <ThemedText className="font-semibold text-brand-blue ml-1">
                             Cancelar
                         </ThemedText>
@@ -343,7 +343,7 @@ const ownerStyles = StyleSheet.create({
     value: {
         fontSize: 16,
         fontWeight: "700",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     warning: {
         fontSize: 14,
@@ -368,8 +368,8 @@ const ownerStyles = StyleSheet.create({
         backgroundColor: "#F8FAFC",
     },
     chipSelected: {
-        backgroundColor: "#0f1e3d",
-        borderColor: "#0f1e3d",
+        backgroundColor: "#030436",
+        borderColor: "#030436",
     },
     chipText: {
         fontSize: 13,

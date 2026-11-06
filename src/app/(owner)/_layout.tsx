@@ -51,8 +51,8 @@ export default function OwnerLayout() {
                         borderRightWidth: isWideScreen ? 1 : 0,
                         borderRightColor: "#E2E8F0",
                     },
-                    drawerActiveTintColor: "#C5A059", // brand.gold
-                    drawerInactiveTintColor: "#0f1e3d", // brand.blue
+                    drawerActiveTintColor: "#0165FF", // brand.gold
+                    drawerInactiveTintColor: "#030436", // brand.blue
                     drawerLabelStyle: {
                         fontWeight: "bold",
                     },

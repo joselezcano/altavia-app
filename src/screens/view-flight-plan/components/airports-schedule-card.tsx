@@ -22,7 +22,7 @@ export const AirportScheduleCard = ({
     return (
         <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
             <View className="flex-row items-center gap-2 mb-3">
-                <Ionicons name="time-outline" size={20} color="#0f1e3d" />
+                <Ionicons name="time-outline" size={20} color="#030436" />
                 <ThemedText type="subtitle" className="font-bold text-brand-blue">
                     Aeropuertos y Horarios
                 </ThemedText>

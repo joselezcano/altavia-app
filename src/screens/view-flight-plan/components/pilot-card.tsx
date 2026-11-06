@@ -8,7 +8,7 @@ export const PilotCard = ({ name, telephone, observations }: { name: string; tel
     return (
         <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
             <View className="flex-row items-center gap-2 mb-3">
-                <MaterialCommunityIcons name="account-tie-hat" size={20} color="#0f1e3d" />
+                <MaterialCommunityIcons name="account-tie-hat" size={20} color="#030436" />
                 <ThemedText type="subtitle" className="font-bold text-brand-blue">
                     Piloto
                 </ThemedText>

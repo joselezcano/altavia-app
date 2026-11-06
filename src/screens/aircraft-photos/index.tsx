@@ -107,7 +107,7 @@ export default function AircraftPhotosScreen() {
   if (isLoading) {
     return (
       <ThemedView className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#0f1e3d" />
+        <ActivityIndicator size="large" color="#030436" />
         <ThemedText className="text-slate-500 mt-2">
           Cargando fotografías...
         </ThemedText>
@@ -160,7 +160,7 @@ export default function AircraftPhotosScreen() {
         >
           {isUploading ? (
             <>
-              <ActivityIndicator size="small" color="#0f1e3d" />
+              <ActivityIndicator size="small" color="#030436" />
               <ThemedText className="font-semibold text-brand-blue">
                 {uploadStage === "selecting"
                   ? "Abriendo galería..."
@@ -170,7 +170,7 @@ export default function AircraftPhotosScreen() {
           ) : (
             <>
               <View className="w-10 h-10 rounded-full bg-brand-blue/10 items-center justify-center">
-                <Ionicons name="cloud-upload" size={22} color="#0f1e3d" />
+                <Ionicons name="cloud-upload" size={22} color="#030436" />
               </View>
               <View>
                 <ThemedText className="font-bold text-brand-blue text-base">

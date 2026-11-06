@@ -240,7 +240,7 @@ export default function ProfileScreen() {
   if (isLoadingProfile) {
     return (
       <ThemedView className="flex-1 bg-brand-light justify-center items-center">
-        <ActivityIndicator size="large" color="#0f1e3d" />
+        <ActivityIndicator size="large" color="#030436" />
       </ThemedView>
     );
   }

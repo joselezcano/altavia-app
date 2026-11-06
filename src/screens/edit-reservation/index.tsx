@@ -36,8 +36,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
-const BRAND_BLUE = "#0f1e3d";
-const BRAND_GOLD = "#C5A059";
+const BRAND_BLUE = "#030436";
+const BRAND_GOLD = "#0165FF";
 const HOUR_MS = 3600 * 1000;
 
 export default function EditReservationScreen() {

@@ -119,7 +119,7 @@ export default function ClientHomeScreen() {
               <ThemedText className="text-brand-blue font-bold mr-2 text-sm">
                 Reservar un vuelo
               </ThemedText>
-              <Ionicons name="arrow-forward" size={16} color="#0f1e3d" />
+              <Ionicons name="arrow-forward" size={16} color="#030436" />
             </TouchableOpacity>
           </View>
         </View>
@@ -131,7 +131,7 @@ export default function ClientHomeScreen() {
             <View
               className="bg-white rounded-3xl p-5 mb-5 border-2 border-brand-gold"
               style={{
-                shadowColor: "#C5A059",
+                shadowColor: "#0165FF",
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.2,
                 shadowRadius: 8,
@@ -140,7 +140,7 @@ export default function ClientHomeScreen() {
             >
               <View className="flex-row items-center justify-between mb-2">
                 <View className="flex-row items-center" style={{ gap: 6 }}>
-                  <Ionicons name="notifications" size={16} color="#C5A059" />
+                  <Ionicons name="notifications" size={16} color="#0165FF" />
                   <ThemedText className="text-brand-blue font-extrabold text-xs uppercase tracking-wider">
                     ¡Vuelo Aprobado!
                   </ThemedText>
@@ -186,11 +186,11 @@ export default function ClientHomeScreen() {
                   }}
                   activeOpacity={0.8}
                 >
-                  <MaterialCommunityIcons name="credit-card-check-outline" size={16} color="#0f1e3d" />
+                  <MaterialCommunityIcons name="credit-card-check-outline" size={16} color="#030436" />
                   <ThemedText className="text-brand-blue font-bold text-xs">
                     Pagar con Bancard
                   </ThemedText>
-                  <Ionicons name="arrow-forward" size={14} color="#0f1e3d" />
+                  <Ionicons name="arrow-forward" size={14} color="#030436" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -204,7 +204,7 @@ export default function ClientHomeScreen() {
           >
             <View className="flex-row items-center" style={{ gap: 12 }}>
               <View className="w-11 h-11 rounded-full bg-blue-50 items-center justify-center">
-                <Ionicons name="ticket" size={22} color="#0f1e3d" />
+                <Ionicons name="ticket" size={22} color="#030436" />
               </View>
               <View>
                 <View className="flex-row items-center" style={{ gap: 6 }}>
@@ -233,7 +233,7 @@ export default function ClientHomeScreen() {
               activeOpacity={0.8}
             >
               <View className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center mb-2">
-                <Ionicons name="person" size={20} color="#0f1e3d" />
+                <Ionicons name="person" size={20} color="#030436" />
               </View>
               <ThemedText className="font-semibold text-brand-blue text-sm">Mi Perfil</ThemedText>
             </TouchableOpacity>
@@ -244,7 +244,7 @@ export default function ClientHomeScreen() {
               activeOpacity={0.8}
             >
               <View className="w-10 h-10 rounded-full bg-amber-50 items-center justify-center mb-2">
-                <Ionicons name="card-outline" size={20} color="#C5A059" />
+                <Ionicons name="card-outline" size={20} color="#0165FF" />
               </View>
               <ThemedText className="font-semibold text-brand-blue text-sm">Facturación</ThemedText>
             </TouchableOpacity>

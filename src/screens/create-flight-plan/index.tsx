@@ -432,7 +432,7 @@ export default function CreateFlightPlanScreen() {
                         onPress={() => router.back()}
                         className="flex-row items-center p-1"
                     >
-                        <Ionicons name="arrow-back" size={24} color="#0f1e3d" />
+                        <Ionicons name="arrow-back" size={24} color="#030436" />
                         <ThemedText className="font-semibold text-brand-blue ml-1">
                             Atrás
                         </ThemedText>

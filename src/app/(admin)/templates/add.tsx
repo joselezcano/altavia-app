@@ -86,7 +86,7 @@ export default function AddTemplateScreen() {
               onPress={() => router.back()}
               className="flex-row items-center p-1"
             >
-              <Ionicons name="arrow-back" size={24} color="#0f1e3d" />
+              <Ionicons name="arrow-back" size={24} color="#030436" />
               <ThemedText className="font-semibold text-brand-blue ml-1">
                 Volver
               </ThemedText>
@@ -495,7 +495,7 @@ export default function AddTemplateScreen() {
                         <Switch
                           value={currentVal.carried}
                           onValueChange={(val) => onChange({ ...currentVal, carried: val })}
-                          trackColor={{ false: "#CBD5E1", true: "#C5A059" }}
+                          trackColor={{ false: "#CBD5E1", true: "#0165FF" }}
                           thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (currentVal.carried ? "#FFFFFF" : "#f4f3f4")}
                         />
                         <ThemedText className={currentVal.carried ? "text-brand-text font-medium" : "text-slate-400"}>
@@ -537,7 +537,7 @@ export default function AddTemplateScreen() {
                                 <Switch
                                   value={currentVal.covered || false}
                                   onValueChange={(val) => onChange({ ...currentVal, covered: val })}
-                                  trackColor={{ false: "#CBD5E1", true: "#C5A059" }}
+                                  trackColor={{ false: "#CBD5E1", true: "#0165FF" }}
                                   thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (currentVal.covered ? "#FFFFFF" : "#f4f3f4")}
                                   style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                                 />

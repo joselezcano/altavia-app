@@ -317,7 +317,7 @@ export default function AdminUsersScreen() {
 
       {isLoading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#0f1e3d" />
+          <ActivityIndicator size="large" color="#030436" />
           <Text style={styles.emptyText}>Cargando usuarios...</Text>
         </View>
       ) : error ? (
@@ -334,7 +334,7 @@ export default function AdminUsersScreen() {
           renderItem={renderUser}
           keyExtractor={(item) => item.uid}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#0f1e3d" />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#030436" />}
           contentContainerStyle={{ paddingBottom: 24 }}
           ListEmptyComponent={
             <View style={styles.centered}>
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   },
   headerEyebrow: {
     fontSize: 11,
-    color: "#C5A059",
+    color: "#0165FF",
     fontWeight: "bold",
     letterSpacing: 1,
     textTransform: "uppercase",
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#0f1e3d",
+    color: "#030436",
     marginTop: 2,
   },
   searchBox: {
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     fontSize: 14,
-    color: "#0f1e3d",
+    color: "#030436",
   },
   filterChip: {
     paddingHorizontal: 14,
@@ -398,8 +398,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   filterChipActive: {
-    backgroundColor: "#0f1e3d",
-    borderColor: "#0f1e3d",
+    backgroundColor: "#030436",
+    borderColor: "#030436",
   },
   filterChipText: {
     fontSize: 12,
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
   nameText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   subText: {
     fontSize: 12,
@@ -523,8 +523,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   actionButtonAdd: {
-    backgroundColor: "#0f1e3d",
-    borderColor: "#0f1e3d",
+    backgroundColor: "#030436",
+    borderColor: "#030436",
   },
   actionButtonRemove: {
     backgroundColor: "#FFFFFF",
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   retryButton: {
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 10,

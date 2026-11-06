@@ -85,7 +85,7 @@ export default function MyOwnersScreen() {
       <View style={styles.card}>
         <View style={styles.cardInfo}>
           <View style={styles.ownerIcon}>
-            <Ionicons name="briefcase-outline" size={20} color="#0f1e3d" />
+            <Ionicons name="briefcase-outline" size={20} color="#030436" />
           </View>
           <View style={{ flex: 1 }}>
             <ThemedText className="font-bold text-base text-brand-blue" numberOfLines={1}>
@@ -123,7 +123,7 @@ export default function MyOwnersScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.backButton} activeOpacity={0.7}>
-          <Ionicons name="arrow-back" size={22} color="#0f1e3d" />
+          <Ionicons name="arrow-back" size={22} color="#030436" />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <ThemedText
@@ -144,7 +144,7 @@ export default function MyOwnersScreen() {
 
       {isLoading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#0f1e3d" />
+          <ActivityIndicator size="large" color="#030436" />
           <ThemedText className="text-slate-500 mt-2">Cargando propietarios...</ThemedText>
         </View>
       ) : owners.length === 0 ? (
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     gap: 12,
     elevation: 1,
-    shadowColor: "#0f1e3d",
+    shadowColor: "#030436",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

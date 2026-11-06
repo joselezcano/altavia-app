@@ -332,7 +332,7 @@ export default function AircraftDetailsScreen() {
           className="w-10 h-10 rounded-full bg-slate-100 items-center justify-center border border-slate-200"
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={20} color="#0f1e3d" />
+          <Ionicons name="arrow-back" size={20} color="#030436" />
         </TouchableOpacity>
         <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg">
           Datos de la Aeronave
@@ -345,7 +345,7 @@ export default function AircraftDetailsScreen() {
         <View className="bg-brand-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-6">
           <View className="flex-row items-center gap-3 mb-4">
             <View className="w-12 h-12 rounded-xl bg-brand-blue/10 items-center justify-center">
-              <Ionicons name="airplane" size={24} color="#0f1e3d" />
+              <Ionicons name="airplane" size={24} color="#030436" />
             </View>
             <View className="flex-1">
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-xl">
@@ -413,7 +413,7 @@ export default function AircraftDetailsScreen() {
               </ThemedText>
             </View>
             <View className="w-10 h-10 rounded-full bg-white/10 items-center justify-center">
-              <MaterialCommunityIcons name="currency-usd" size={24} color="#D4AF37" />
+              <MaterialCommunityIcons name="currency-usd" size={24} color="#0165FF" />
             </View>
           </View>
 
@@ -496,7 +496,7 @@ export default function AircraftDetailsScreen() {
                     <Text style={modalStyles.value}>
                       {createdReservation.trip.origin_airport_ident}
                     </Text>
-                    <Ionicons name="arrow-forward" size={12} color="#0f1e3d" />
+                    <Ionicons name="arrow-forward" size={12} color="#030436" />
                     <Text style={modalStyles.value}>
                       {createdReservation.trip.destination_airport_ident}
                     </Text>
@@ -598,7 +598,7 @@ const modalStyles = StyleSheet.create({
     borderColor: "#A7F3D0",
   },
   title: {
-    color: "#0f1e3d",
+    color: "#030436",
     fontWeight: "bold",
     fontSize: 20,
     textAlign: "center",
@@ -636,7 +636,7 @@ const modalStyles = StyleSheet.create({
     fontWeight: "bold",
   },
   boldValue: {
-    color: "#0f1e3d",
+    color: "#030436",
     fontSize: 14,
     fontWeight: "bold",
   },
@@ -660,7 +660,7 @@ const modalStyles = StyleSheet.create({
     textTransform: "uppercase",
   },
   actionButton: {
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,

@@ -24,7 +24,7 @@ export function CruiseSpeedCard({
             <View className="flex-row items-center justify-between py-2">
                 <View className="flex-row items-center gap-2.5">
                     <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
-                        <MaterialCommunityIcons name="speedometer" size={18} color="#0f1e3d" />
+                        <MaterialCommunityIcons name="speedometer" size={18} color="#030436" />
                     </View>
                     <ThemedText className="text-xs font-medium text-slate-600">
                         Velocidad de crucero del avión

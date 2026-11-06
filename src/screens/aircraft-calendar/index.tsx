@@ -324,14 +324,14 @@ export default function AircraftCalendarScreen() {
                             className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 items-center justify-center"
                             activeOpacity={0.7}
                         >
-                            <Ionicons name="chevron-back" size={20} color="#0f1e3d" />
+                            <Ionicons name="chevron-back" size={20} color="#030436" />
                         </TouchableOpacity>
 
                         <View className="flex-row items-center justify-center flex-1 gap-2">
                             <ThemedText className="text-brand-blue text-lg font-bold text-center">
                                 {MONTH_NAMES[currentMonth]} {currentYear}
                             </ThemedText>
-                            {isLoading && <ActivityIndicator size="small" color="#0f1e3d" />}
+                            {isLoading && <ActivityIndicator size="small" color="#030436" />}
                         </View>
 
                         <TouchableOpacity
@@ -339,7 +339,7 @@ export default function AircraftCalendarScreen() {
                             className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 items-center justify-center"
                             activeOpacity={0.7}
                         >
-                            <Ionicons name="chevron-forward" size={20} color="#0f1e3d" />
+                            <Ionicons name="chevron-forward" size={20} color="#030436" />
                         </TouchableOpacity>
                     </View>
 

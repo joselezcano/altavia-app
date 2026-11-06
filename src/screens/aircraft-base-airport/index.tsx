@@ -80,7 +80,7 @@ export default function BaseAirportScreen() {
     if (isLoading) {
         return (
             <ThemedView className="flex-1 justify-center items-center">
-                <ActivityIndicator size="large" color="#0f1e3d" />
+                <ActivityIndicator size="large" color="#030436" />
                 <ThemedText className="text-slate-500 mt-2">
                     Cargando datos de la aeronave...
                 </ThemedText>
@@ -125,7 +125,7 @@ export default function BaseAirportScreen() {
                     className="p-5 mb-5 border border-slate-100"
                 >
                     <View className="flex-row items-center gap-2 mb-2">
-                        <Ionicons name="location" size={20} color="#0f1e3d" />
+                        <Ionicons name="location" size={20} color="#030436" />
                         <ThemedText type="subtitle" className="font-bold text-brand-blue">
                             Seleccionar Aeropuerto
                         </ThemedText>
@@ -148,7 +148,7 @@ export default function BaseAirportScreen() {
                         className="p-5 mb-6 border border-slate-100 bg-slate-50/50"
                     >
                         <View className="flex-row items-center gap-2 mb-3">
-                            <Ionicons name="information-circle-outline" size={20} color="#0f1e3d" />
+                            <Ionicons name="information-circle-outline" size={20} color="#030436" />
                             <ThemedText className="font-semibold text-brand-blue">
                                 Detalles del Aeropuerto Seleccionado
                             </ThemedText>

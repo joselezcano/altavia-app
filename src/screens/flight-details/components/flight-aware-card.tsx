@@ -59,7 +59,7 @@ export function FlightAwareCard({
         <View style={styles.card}>
             <View style={styles.headerRow}>
                 <View style={styles.iconCircle}>
-                    <Ionicons name="radio-outline" size={16} color="#0f1e3d" />
+                    <Ionicons name="radio-outline" size={16} color="#030436" />
                 </View>
                 <View style={{ flex: 1 }}>
                     <Text style={styles.eyebrow}>Seguimiento en vivo</Text>
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     eyebrow: {
         fontSize: 11,
         fontWeight: "bold",
-        color: "#C5A059",
+        color: "#0165FF",
         textTransform: "uppercase",
         letterSpacing: 0.5,
     },
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     idValue: {
         fontSize: 13,
         fontWeight: "600",
-        color: "#0f1e3d",
+        color: "#030436",
         backgroundColor: "#F8FAFC",
         borderWidth: 1,
         borderColor: "#E2E8F0",
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         gap: 6,
-        backgroundColor: "#0f1e3d",
+        backgroundColor: "#030436",
         borderRadius: 12,
         paddingVertical: 10,
     },
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 16,
         fontWeight: "bold",
-        color: "#0f1e3d",
+        color: "#030436",
     },
     modalClose: {
         padding: 6,
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 10,
         fontSize: 14,
-        color: "#0f1e3d",
+        color: "#030436",
     },
     modalActions: {
         flexDirection: "row",
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: 12,
         borderRadius: 12,
-        backgroundColor: "#0f1e3d",
+        backgroundColor: "#030436",
         alignItems: "center",
     },
     saveButtonText: {

@@ -98,7 +98,7 @@ export default function ClientFlightsScreen() {
                 showsVerticalScrollIndicator={false}
                 className="flex-1"
                 refreshControl={
-                    <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#0f1e3d" />
+                    <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#030436" />
                 }
             >
                 {isLoading
@@ -197,7 +197,7 @@ export default function ClientFlightsScreen() {
                                                     </View>
 
                                                     <View className="items-center px-2">
-                                                        <MaterialCommunityIcons name="airplane-takeoff" size={18} color="#C5A059" />
+                                                        <MaterialCommunityIcons name="airplane-takeoff" size={18} color="#0165FF" />
                                                         <View className="w-12 h-0.5 bg-slate-300 my-1" />
                                                         {item.schedule.roundtrip && (
                                                             <ThemedText className="text-xs font-medium text-brand-gold">
@@ -234,7 +234,7 @@ export default function ClientFlightsScreen() {
                                                     <View className="flex-row items-center pl-0.5 my-0.5" style={{ gap: 8 }}>
                                                         <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
                                                         <View className="flex-row items-center ml-3" style={{ gap: 6 }}>
-                                                            <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#C5A059" />
+                                                            <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#0165FF" />
                                                             {item.schedule.roundtrip && (
                                                                 <ThemedText className="text-xs font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
                                                                     Ida y Vuelta
@@ -292,14 +292,14 @@ export default function ClientFlightsScreen() {
                                         {/* Footer Stats Grid */}
                                         <View className="flex-row justify-between items-center pt-1 px-1">
                                             <View className="flex-row items-center" style={{ gap: 6 }}>
-                                                <Ionicons name="people-outline" size={16} color="#0f1e3d" />
+                                                <Ionicons name="people-outline" size={16} color="#030436" />
                                                 <ThemedText className="text-xs font-semibold text-slate-700">
                                                     {item.capacity.passangers} pasajero(s)
                                                 </ThemedText>
                                             </View>
 
                                             <View className="flex-row items-center" style={{ gap: 6 }}>
-                                                <MaterialCommunityIcons name="seat-passenger" size={16} color="#0f1e3d" />
+                                                <MaterialCommunityIcons name="seat-passenger" size={16} color="#030436" />
                                                 <ThemedText className="text-xs font-semibold text-slate-700">
                                                     {aircraftPaxCapacity !== undefined ? `${aircraftPaxCapacity} asientos` : "N/A"}
                                                 </ThemedText>
@@ -307,7 +307,7 @@ export default function ClientFlightsScreen() {
 
                                             {distanceKm ? (
                                                 <View className="flex-row items-center" style={{ gap: 6 }}>
-                                                    <Ionicons name="navigate-outline" size={16} color="#0f1e3d" />
+                                                    <Ionicons name="navigate-outline" size={16} color="#030436" />
                                                     <ThemedText className="text-xs font-semibold text-slate-700">
                                                         {distanceKm} km
                                                     </ThemedText>

@@ -325,7 +325,7 @@ export default function AssignFlightPilotsScreen() {
             activeOpacity={0.7}
           >
             {isUpdating ? (
-              <ActivityIndicator size="small" color="#0f1e3d" />
+              <ActivityIndicator size="small" color="#030436" />
             ) : (
               <View
                 style={[
@@ -353,7 +353,7 @@ export default function AssignFlightPilotsScreen() {
       {/* Header */}
       <View style={styles.topHeader}>
         <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center" }}>
-          <Ionicons name="arrow-back" size={24} color="#0f1e3d" />
+          <Ionicons name="arrow-back" size={24} color="#030436" />
           <Text style={styles.backButtonText}>Volver</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Tripulación y Tarifa</Text>
@@ -377,7 +377,7 @@ export default function AssignFlightPilotsScreen() {
         {/* Route Row */}
         <View style={styles.routeRow}>
           <Text style={styles.routeAirportCode}>{originIdent}</Text>
-          <MaterialCommunityIcons name="airplane" size={16} color="#C5A059" />
+          <MaterialCommunityIcons name="airplane" size={16} color="#0165FF" />
           <Text style={styles.routeAirportCode}>{destIdent}</Text>
           <View style={{ flex: 1 }} />
           <View style={styles.crewCountBadge}>
@@ -400,14 +400,14 @@ export default function AssignFlightPilotsScreen() {
       <View style={styles.priceCard}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <Ionicons name="cash-outline" size={18} color="#C5A059" />
+            <Ionicons name="cash-outline" size={18} color="#0165FF" />
             <Text style={styles.priceCardLabel}>Precio del Vuelo (USD)</Text>
           </View>
           <TouchableOpacity
             onPress={() => setIsEditingPrice(!isEditingPrice)}
             style={styles.editPriceButton}
           >
-            <Ionicons name={isEditingPrice ? "checkmark" : "pencil"} size={14} color="#0f1e3d" />
+            <Ionicons name={isEditingPrice ? "checkmark" : "pencil"} size={14} color="#030436" />
             <Text style={styles.editPriceText}>{isEditingPrice ? "Listo" : "Modificar"}</Text>
           </TouchableOpacity>
         </View>
@@ -445,7 +445,7 @@ export default function AssignFlightPilotsScreen() {
       {/* Pilots List */}
       {isLoading ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color="#0f1e3d" />
+          <ActivityIndicator size="large" color="#030436" />
           <Text style={{ color: "#64748B", marginTop: 8 }}>Cargando información...</Text>
         </View>
       ) : pilots.length === 0 ? (
@@ -570,16 +570,16 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#0f1e3d",
+    color: "#030436",
     marginLeft: 4,
   },
   headerTitle: {
     fontSize: 17,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   flightSummaryCard: {
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     borderRadius: 18,
     padding: 16,
     marginBottom: 10,
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   registrationBadge: {
-    backgroundColor: "#C5A059",
+    backgroundColor: "#0165FF",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 20,
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
   registrationText: {
     fontSize: 11,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   routeRow: {
     flexDirection: "row",
@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
   priceCardLabel: {
     fontSize: 13,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   editPriceButton: {
     flexDirection: "row",
@@ -670,13 +670,13 @@ const styles = StyleSheet.create({
   editPriceText: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   priceInputRow: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1.5,
-    borderColor: "#C5A059",
+    borderColor: "#0165FF",
     borderRadius: 10,
     paddingHorizontal: 10,
     marginTop: 8,
@@ -684,14 +684,14 @@ const styles = StyleSheet.create({
   priceCurrencySign: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
     marginRight: 4,
   },
   priceInputField: {
     flex: 1,
     fontSize: 18,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
     paddingVertical: 6,
   },
   priceCurrencyTag: {
@@ -702,7 +702,7 @@ const styles = StyleSheet.create({
   priceValueDisplay: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   pricePygDisplay: {
     fontSize: 11,
@@ -713,7 +713,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   sectionSubtitle: {
     fontSize: 11,
@@ -730,7 +730,7 @@ const styles = StyleSheet.create({
   pilotNameText: {
     fontSize: 15,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   pilotEmailText: {
     fontSize: 12,
@@ -772,8 +772,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   checkboxAssigned: {
-    backgroundColor: "#0f1e3d",
-    borderColor: "#0f1e3d",
+    backgroundColor: "#030436",
+    borderColor: "#030436",
   },
   bottomBarContainer: {
     borderTopWidth: 1,
@@ -850,7 +850,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   approveButton: {
-    backgroundColor: "#C5A059",
+    backgroundColor: "#0165FF",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

@@ -32,7 +32,7 @@ export function RouteCard({ reservation }: { reservation: ClientReservationItem 
                     <View className="flex-row items-center gap-2 pl-0.5 my-0.5">
                         <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
                         <View className="flex-row items-center gap-1.5 ml-3">
-                            <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#C5A059" />
+                            <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#0165FF" />
                             {reservation.schedule.roundtrip && (
                                 <ThemedText className="text-xs font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
                                     Ida y Vuelta

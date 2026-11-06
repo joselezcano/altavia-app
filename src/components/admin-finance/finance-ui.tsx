@@ -9,8 +9,8 @@ import React from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export const FIN_COLORS = {
-    blue: "#0f1e3d",
-    gold: "#C5A059",
+    blue: "#030436",
+    gold: "#0165FF",
     light: "#F8FAFC",
     border: "#E2E8F0",
     muted: "#64748B",

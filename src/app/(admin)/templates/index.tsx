@@ -60,7 +60,7 @@ export default function AdminTemplatesScreen() {
 
       {isLoading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#0f1e3d" />
+          <ActivityIndicator size="large" color="#030436" />
         </View>
       ) : (
         <FlatList

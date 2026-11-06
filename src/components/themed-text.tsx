@@ -1,4 +1,5 @@
-import { Text, TextProps } from "react-native";
+import { brandFontFamily, weightFromClassName } from "@/utils/brand-fonts";
+import { StyleSheet, Text, TextProps } from "react-native";
 
 interface ThemedTextProps extends TextProps {
   className?: string;
@@ -36,5 +37,13 @@ export function ThemedText({
       break;
   }
 
-  return <Text className={`${typeClasses} ${className}`} {...props} />;
+  const classes = `${typeClasses} ${className}`;
+  // Noto Sans con la familia del peso correspondiente (font-bold → NotoSans_700Bold, etc.).
+  // Si el estilo trae fontWeight explícito, manda ese.
+  const flat = StyleSheet.flatten(props.style) || {};
+  const weight = flat.fontWeight ? Number(flat.fontWeight) || weightFromClassName(classes) : weightFromClassName(classes);
+  const fontFamily = flat.fontFamily ? undefined : brandFontFamily(weight);
+  const { style, ...rest } = props;
+
+  return <Text className={classes} style={fontFamily ? [{ fontFamily }, style] : style} {...rest} />;
 }

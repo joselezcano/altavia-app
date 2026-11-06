@@ -57,7 +57,7 @@ export default function RoleSelectionScreen() {
               className="bg-brand-white border border-slate-200 rounded-2xl p-5 flex-row items-center shadow-sm active:bg-slate-50"
             >
               <View className="w-12 h-12 rounded-xl bg-brand-blue/5 justify-center items-center mr-4">
-                <Ionicons name={info.icon} size={24} color="#0f1e3d" />
+                <Ionicons name={info.icon} size={24} color="#030436" />
               </View>
               <View className="flex-1">
                 <ThemedText className="font-bold text-lg text-brand-blue">

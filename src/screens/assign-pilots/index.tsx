@@ -122,7 +122,7 @@ export default function AssignPilotsScreen() {
                         activeOpacity={0.7}
                     >
                         {isUpdating ? (
-                            <ActivityIndicator size="small" color="#0f1e3d" />
+                            <ActivityIndicator size="small" color="#030436" />
                         ) : (
                             <View
                                 className={`w-7 h-7 rounded-lg border-2 items-center justify-center ${isAssigned
@@ -152,11 +152,11 @@ export default function AssignPilotsScreen() {
                         className="flex-row items-center bg-slate-100 px-3.5 py-1.5 rounded-xl gap-1.5"
                         activeOpacity={0.7}
                     >
-                        <Ionicons name="person-circle-outline" size={18} color="#0f1e3d" />
+                        <Ionicons name="person-circle-outline" size={18} color="#030436" />
                         <ThemedText className="text-brand-blue text-xs font-bold">
                             Perfil
                         </ThemedText>
-                        <Ionicons name="chevron-forward" size={14} color="#0f1e3d" />
+                        <Ionicons name="chevron-forward" size={14} color="#030436" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -174,7 +174,7 @@ export default function AssignPilotsScreen() {
             {/* Pilots List */}
             {isLoading ? (
                 <View className="flex-1 justify-center items-center">
-                    <ActivityIndicator size="large" color="#0f1e3d" />
+                    <ActivityIndicator size="large" color="#030436" />
                     <ThemedText className="text-slate-500 mt-2">
                         Cargando pilotos...
                     </ThemedText>

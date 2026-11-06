@@ -248,7 +248,7 @@ export default function OnboardingStep2Screen() {
             <Ionicons
               name="person"
               size={16}
-              color={personType === "individual" ? "#0F1E3D" : "#64748B"}
+              color={personType === "individual" ? "#030436" : "#64748B"}
             />
             <ThemedText
               className={`text-xs font-bold ${
@@ -269,7 +269,7 @@ export default function OnboardingStep2Screen() {
             <Ionicons
               name="business"
               size={16}
-              color={personType === "company" ? "#0F1E3D" : "#64748B"}
+              color={personType === "company" ? "#030436" : "#64748B"}
             />
             <ThemedText
               className={`text-xs font-bold ${

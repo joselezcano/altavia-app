@@ -51,14 +51,14 @@ export default function AdminLayout() {
                         borderRightColor: "#E2E8F0",
                     },
                     headerStyle: {
-                        backgroundColor: "#0f1e3d", // brand.blue
+                        backgroundColor: "#030436", // brand.blue
                     },
                     headerTintColor: "#FFFFFF", // White text
                     headerTitleStyle: {
                         fontWeight: "bold",
                     },
-                    drawerActiveTintColor: "#C5A059", // brand.gold
-                    drawerInactiveTintColor: "#0f1e3d", // brand.blue
+                    drawerActiveTintColor: "#0165FF", // brand.gold
+                    drawerInactiveTintColor: "#030436", // brand.blue
                     drawerLabelStyle: {
                         fontWeight: "bold",
                     },

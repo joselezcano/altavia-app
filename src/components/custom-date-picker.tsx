@@ -166,7 +166,7 @@ export function CustomDatePicker({
                     <Ionicons
                       name="calendar"
                       size={16}
-                      color={iosTab === 'date' ? '#0f1e3d' : '#64748B'}
+                      color={iosTab === 'date' ? '#030436' : '#64748B'}
                     />
                     <Text
                       style={[
@@ -188,7 +188,7 @@ export function CustomDatePicker({
                     <Ionicons
                       name="time"
                       size={16}
-                      color={iosTab === 'time' ? '#0f1e3d' : '#64748B'}
+                      color={iosTab === 'time' ? '#030436' : '#64748B'}
                     />
                     <Text
                       style={[
@@ -210,7 +210,7 @@ export function CustomDatePicker({
                     minimumDate={minimumDate === null ? undefined : minimumDate}
                     display="inline"
                     themeVariant="light"
-                    accentColor="#0f1e3d"
+                    accentColor="#030436"
                     style={styles.datePicker}
                     onValueChange={(event, date) => {
                       if (date) {
@@ -227,7 +227,7 @@ export function CustomDatePicker({
                       mode="time"
                       display="spinner"
                       themeVariant="light"
-                      accentColor="#0f1e3d"
+                      accentColor="#030436"
                       style={styles.timePicker}
                       onValueChange={(event, date) => {
                         if (date) {
@@ -281,11 +281,11 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontWeight: '700',
-    color: '#0f1e3d',
+    color: '#030436',
     fontSize: 16,
   },
   confirmButton: {
-    backgroundColor: '#0f1e3d',
+    backgroundColor: '#030436',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 8,
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   tabTextActive: {
-    color: '#0f1e3d',
+    color: '#030436',
   },
   pickerContainer: {
     alignItems: 'center',

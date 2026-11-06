@@ -478,7 +478,7 @@ export default function NewBookingScreen() {
           {currentStep === 1 && (
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <Ionicons name="person-circle-outline" size={24} color="#0f1e3d" />
+                <Ionicons name="person-circle-outline" size={24} color="#030436" />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle}>1. Seleccionar o Dar de Alta Cliente</Text>
                   <Text style={styles.cardSubtitle}>
@@ -515,7 +515,7 @@ export default function NewBookingScreen() {
                       onPress={() => setSelectedClient(null)}
                       style={styles.changeClientButton}
                     >
-                      <Ionicons name="pencil" size={14} color="#0f1e3d" />
+                      <Ionicons name="pencil" size={14} color="#030436" />
                       <Text style={styles.changeClientText}>Cambiar</Text>
                     </TouchableOpacity>
                   </View>
@@ -541,7 +541,7 @@ export default function NewBookingScreen() {
 
                   {/* Results list */}
                   {isLoadingClients ? (
-                    <ActivityIndicator size="small" color="#0f1e3d" style={{ marginVertical: 16 }} />
+                    <ActivityIndicator size="small" color="#030436" style={{ marginVertical: 16 }} />
                   ) : filteredClients.length > 0 ? (
                     <View style={{ gap: 8, marginVertical: 8 }}>
                       {filteredClients.map((c) => (
@@ -613,7 +613,7 @@ export default function NewBookingScreen() {
           {currentStep === 2 && (
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <MaterialCommunityIcons name="airplane-takeoff" size={24} color="#0f1e3d" />
+                <MaterialCommunityIcons name="airplane-takeoff" size={24} color="#030436" />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle}>2. Ruta, Aeronave y Fechas</Text>
                   <Text style={styles.cardSubtitle}>
@@ -631,7 +631,7 @@ export default function NewBookingScreen() {
               {/* Selected Aircraft Banner */}
               {activeAircraft && (
                 <View style={styles.aircraftBadgeBox}>
-                  <Ionicons name="airplane" size={18} color="#C5A059" />
+                  <Ionicons name="airplane" size={18} color="#0165FF" />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.aircraftBadgeTitle}>
                       Aeronave: {activeAircraft.basic_specs.model} ({activeAircraft.basic_specs.registration})
@@ -686,7 +686,7 @@ export default function NewBookingScreen() {
                 <Switch
                   value={roundtrip}
                   onValueChange={setRoundtrip}
-                  trackColor={{ false: "#CBD5E1", true: "#0f1e3d" }}
+                  trackColor={{ false: "#CBD5E1", true: "#030436" }}
                   thumbColor="#FFFFFF"
                 />
               </View>
@@ -721,7 +721,7 @@ export default function NewBookingScreen() {
                     onPress={() => setPassengers((p) => Math.max(1, p - 1))}
                     style={styles.paxButton}
                   >
-                    <Ionicons name="remove" size={18} color="#0f1e3d" />
+                    <Ionicons name="remove" size={18} color="#030436" />
                   </TouchableOpacity>
                   <Text style={styles.paxCountValue}>{passengers} pasajero(s)</Text>
                   <TouchableOpacity
@@ -731,7 +731,7 @@ export default function NewBookingScreen() {
                     }}
                     style={styles.paxButton}
                   >
-                    <Ionicons name="add" size={18} color="#0f1e3d" />
+                    <Ionicons name="add" size={18} color="#030436" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -742,7 +742,7 @@ export default function NewBookingScreen() {
                   onPress={() => setCurrentStep(1)}
                   style={styles.backButton}
                 >
-                  <Ionicons name="arrow-back" size={18} color="#0f1e3d" />
+                  <Ionicons name="arrow-back" size={18} color="#030436" />
                   <Text style={styles.backButtonText}>Atrás</Text>
                 </TouchableOpacity>
 
@@ -771,7 +771,7 @@ export default function NewBookingScreen() {
           {currentStep === 3 && (
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <Ionicons name="cash-outline" size={24} color="#0f1e3d" />
+                <Ionicons name="cash-outline" size={24} color="#030436" />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle}>3. Cotización y Confirmación</Text>
                   <Text style={styles.cardSubtitle}>
@@ -918,7 +918,7 @@ export default function NewBookingScreen() {
                   style={styles.backButton}
                   disabled={isSubmitting}
                 >
-                  <Ionicons name="arrow-back" size={18} color="#0f1e3d" />
+                  <Ionicons name="arrow-back" size={18} color="#030436" />
                   <Text style={styles.backButtonText}>Atrás</Text>
                 </TouchableOpacity>
 
@@ -1117,10 +1117,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   stepCircleCurrent: {
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
   },
   stepCircleCompleted: {
-    backgroundColor: "#C5A059",
+    backgroundColor: "#0165FF",
   },
   stepNumber: {
     fontSize: 13,
@@ -1137,7 +1137,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   stepLabelCurrent: {
-    color: "#0f1e3d",
+    color: "#030436",
     fontWeight: "bold",
   },
   card: {
@@ -1164,7 +1164,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   cardSubtitle: {
     fontSize: 12,
@@ -1183,19 +1183,19 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     alignItems: "center",
     justifyContent: "center",
   },
   clientAvatarText: {
-    color: "#C5A059",
+    color: "#0165FF",
     fontWeight: "bold",
     fontSize: 16,
   },
   clientNameText: {
     fontSize: 15,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   clientSubText: {
     fontSize: 12,
@@ -1220,7 +1220,7 @@ const styles = StyleSheet.create({
   },
   changeClientText: {
     fontSize: 11,
-    color: "#0f1e3d",
+    color: "#030436",
     fontWeight: "600",
   },
   searchBarContainer: {
@@ -1238,7 +1238,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 13,
-    color: "#0f1e3d",
+    color: "#030436",
   },
   clientItemRow: {
     flexDirection: "row",
@@ -1259,14 +1259,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   clientAvatarSmallText: {
-    color: "#0f1e3d",
+    color: "#030436",
     fontWeight: "bold",
     fontSize: 13,
   },
   clientItemName: {
     fontSize: 13,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   clientItemSub: {
     fontSize: 11,
@@ -1279,7 +1279,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   newClientButton: {
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -1295,7 +1295,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   nextButton: {
-    backgroundColor: "#C5A059",
+    backgroundColor: "#0165FF",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -1314,7 +1314,7 @@ const styles = StyleSheet.create({
   },
   nextButtonFlex: {
     flex: 1,
-    backgroundColor: "#C5A059",
+    backgroundColor: "#0165FF",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -1334,7 +1334,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   backButtonText: {
-    color: "#0f1e3d",
+    color: "#030436",
     fontWeight: "600",
     fontSize: 13,
   },
@@ -1342,7 +1342,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     padding: 12,
     borderRadius: 12,
     marginBottom: 12,
@@ -1359,13 +1359,13 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 12,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
     marginBottom: 4,
   },
   inputLabelBold: {
     fontSize: 13,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   distancePreviewBox: {
     backgroundColor: "#F1F5F9",
@@ -1380,7 +1380,7 @@ const styles = StyleSheet.create({
   previewValue: {
     fontSize: 11,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   switchRow: {
     flexDirection: "row",
@@ -1395,7 +1395,7 @@ const styles = StyleSheet.create({
   switchLabel: {
     fontSize: 13,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   switchSub: {
     fontSize: 11,
@@ -1424,7 +1424,7 @@ const styles = StyleSheet.create({
   paxCountValue: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   priceCalculationBox: {
     backgroundColor: "#F8FAFC",
@@ -1440,7 +1440,7 @@ const styles = StyleSheet.create({
   priceSubvalue: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   priceDivider: {
     height: 1,
@@ -1450,12 +1450,12 @@ const styles = StyleSheet.create({
   suggestedTitle: {
     fontSize: 13,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   suggestedValue: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#C5A059",
+    color: "#0165FF",
   },
   resetPriceText: {
     fontSize: 11,
@@ -1467,21 +1467,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     borderWidth: 2,
-    borderColor: "#C5A059",
+    borderColor: "#0165FF",
     borderRadius: 14,
     paddingHorizontal: 14,
   },
   priceCurrencySymbol: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
     marginRight: 6,
   },
   priceTextInput: {
     flex: 1,
     fontSize: 22,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
     paddingVertical: 10,
   },
   priceCurrencyBadge: {
@@ -1502,7 +1502,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     fontSize: 12,
-    color: "#0f1e3d",
+    color: "#030436",
     textAlignVertical: "top",
   },
   summaryBox: {
@@ -1515,7 +1515,7 @@ const styles = StyleSheet.create({
   summaryBoxTitle: {
     fontSize: 12,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
     marginBottom: 4,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -1566,7 +1566,7 @@ const styles = StyleSheet.create({
   modalHeaderTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   modalHeaderSub: {
     fontSize: 11,
@@ -1592,8 +1592,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
   },
   typeTabActive: {
-    backgroundColor: "#0f1e3d",
-    borderColor: "#0f1e3d",
+    backgroundColor: "#030436",
+    borderColor: "#030436",
   },
   typeTabText: {
     fontSize: 12,
@@ -1607,7 +1607,7 @@ const styles = StyleSheet.create({
   modalInputLabel: {
     fontSize: 11,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
     marginBottom: 3,
   },
   modalInput: {
@@ -1618,7 +1618,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
     fontSize: 13,
-    color: "#0f1e3d",
+    color: "#030436",
   },
   modalCancelButton: {
     flex: 1,
@@ -1637,7 +1637,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     alignItems: "center",
   },
   modalSaveButtonText: {

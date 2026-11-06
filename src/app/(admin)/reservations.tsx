@@ -336,7 +336,7 @@ export default function AdminReservationsScreen() {
           </View>
 
           <View style={styles.routeMiddle}>
-            <MaterialCommunityIcons name="airplane-takeoff" size={18} color="#C5A059" />
+            <MaterialCommunityIcons name="airplane-takeoff" size={18} color="#0165FF" />
             <View style={styles.routeLine} />
             {item.schedule.roundtrip && (
               <Text style={styles.roundtripTag}>Ida y Vuelta</Text>
@@ -363,10 +363,10 @@ export default function AdminReservationsScreen() {
 
           <View style={{ alignItems: "flex-end" }}>
             <Text style={styles.paxCountText}>
-              <Ionicons name="people-outline" size={14} color="#0f1e3d" /> {item.capacity.passangers} pasajero(s)
+              <Ionicons name="people-outline" size={14} color="#030436" /> {item.capacity.passangers} pasajero(s)
             </Text>
             <Text style={styles.crewCountText}>
-              <MaterialCommunityIcons name="account-tie-hat" size={14} color="#0f1e3d" /> {item.pilot_ids.length} piloto(s)
+              <MaterialCommunityIcons name="account-tie-hat" size={14} color="#030436" /> {item.pilot_ids.length} piloto(s)
             </Text>
           </View>
         </View>
@@ -377,7 +377,7 @@ export default function AdminReservationsScreen() {
             <Ionicons
               name={item.passengers && item.passengers.length > 0 ? "checkmark-circle" : "alert-circle-outline"}
               size={16}
-              color={item.passengers && item.passengers.length > 0 ? "#059669" : "#C5A059"}
+              color={item.passengers && item.passengers.length > 0 ? "#059669" : "#0165FF"}
             />
             <Text style={styles.manifestSummaryText} numberOfLines={1}>
               {item.passengers && item.passengers.length > 0
@@ -502,9 +502,9 @@ export default function AdminReservationsScreen() {
             style={styles.fplButton}
             activeOpacity={0.8}
           >
-            <Ionicons name="document-text-outline" size={16} color="#0f1e3d" />
+            <Ionicons name="document-text-outline" size={16} color="#030436" />
             <Text style={styles.fplButtonText}>Plan de Vuelo FPL (DINAC)</Text>
-            <Ionicons name="arrow-forward" size={14} color="#0f1e3d" />
+            <Ionicons name="arrow-forward" size={14} color="#030436" />
           </TouchableOpacity>
           )}
 
@@ -517,7 +517,7 @@ export default function AdminReservationsScreen() {
                   style={styles.actionOutlineButton}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="create-outline" size={16} color="#0f1e3d" />
+                  <Ionicons name="create-outline" size={16} color="#030436" />
                   <Text style={styles.detailsButtonText}>{isPaidItem ? "Reprogramar" : "Editar Reserva"}</Text>
                 </TouchableOpacity>
               )}
@@ -541,9 +541,9 @@ export default function AdminReservationsScreen() {
             onPress={() => router.push(toHref(flightDetailsRoute))}
             style={styles.detailsButton}
           >
-            <Ionicons name="information-circle-outline" size={16} color="#0f1e3d" />
+            <Ionicons name="information-circle-outline" size={16} color="#030436" />
             <Text style={styles.detailsButtonText}>Más Información del Vuelo</Text>
-            <Ionicons name="chevron-forward" size={14} color="#0f1e3d" />
+            <Ionicons name="chevron-forward" size={14} color="#030436" />
           </TouchableOpacity>
           )}
         </View>
@@ -601,7 +601,7 @@ export default function AdminReservationsScreen() {
       {/* Reservations List */}
       {isLoading ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color="#0f1e3d" />
+          <ActivityIndicator size="large" color="#030436" />
           <Text style={{ color: "#64748B", marginTop: 8 }}>Cargando reservas...</Text>
         </View>
       ) : filteredReservations.length === 0 ? (
@@ -630,7 +630,7 @@ export default function AdminReservationsScreen() {
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={() => refetch()}
-              tintColor="#0f1e3d"
+              tintColor="#030436"
             />
           }
         />
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
   },
   headerEyebrow: {
     fontSize: 11,
-    color: "#C5A059",
+    color: "#0165FF",
     fontWeight: "bold",
     letterSpacing: 1,
     textTransform: "uppercase",
@@ -671,11 +671,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#0f1e3d",
+    color: "#030436",
     marginTop: 2,
   },
   newBookingHeaderButton: {
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
@@ -698,8 +698,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   filterChipActive: {
-    backgroundColor: "#0f1e3d",
-    borderColor: "#0f1e3d",
+    backgroundColor: "#030436",
+    borderColor: "#030436",
   },
   filterChipText: {
     fontSize: 12,
@@ -732,7 +732,7 @@ const styles = StyleSheet.create({
   aircraftText: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   dateText: {
     fontSize: 11,
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
   airportCode: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   airportCity: {
     fontSize: 11,
@@ -787,7 +787,7 @@ const styles = StyleSheet.create({
   roundtripTag: {
     fontSize: 9,
     fontWeight: "bold",
-    color: "#C5A059",
+    color: "#0165FF",
   },
   priceRow: {
     flexDirection: "row",
@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
   priceValue: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
   },
   pricePyg: {
     fontSize: 11,
@@ -845,7 +845,7 @@ const styles = StyleSheet.create({
     color: "#047857",
   },
   approveButton: {
-    backgroundColor: "#C5A059",
+    backgroundColor: "#0165FF",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -906,7 +906,7 @@ const styles = StyleSheet.create({
   },
   detailsButtonText: {
     fontSize: 12,
-    color: "#0f1e3d",
+    color: "#030436",
     fontWeight: "600",
   },
   actionOutlineButton: {
@@ -934,7 +934,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#0f1e3d",
+    color: "#030436",
     marginTop: 12,
   },
   emptySub: {
@@ -945,7 +945,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyAction: {
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
@@ -977,7 +977,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   manifestActionBtn: {
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
@@ -1001,7 +1001,7 @@ const styles = StyleSheet.create({
   fplButtonText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#0f1e3d",
+    color: "#030436",
     marginHorizontal: 6,
   },
 });

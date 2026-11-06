@@ -77,7 +77,7 @@ export function FormStep4({
                         <Switch
                             value={value}
                             onValueChange={onChange}
-                            trackColor={{ false: "#CBD5E1", true: "#0f1e3d" }}
+                            trackColor={{ false: "#CBD5E1", true: "#030436" }}
                             thumbColor="#F1F5F9"
                         />
                     )}
@@ -125,7 +125,7 @@ export function FormStep4({
                                 <Switch
                                     value={value}
                                     onValueChange={onChange}
-                                    trackColor={{ false: "#CBD5E1", true: "#0f1e3d" }}
+                                    trackColor={{ false: "#CBD5E1", true: "#030436" }}
                                     thumbColor="#F1F5F9"
                                     style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                                 />

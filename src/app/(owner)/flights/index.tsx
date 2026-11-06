@@ -96,13 +96,13 @@ export default function OwnerFlightsScreen() {
         activeOpacity={0.8}
       >
         <View style={styles.newBookingIcon}>
-          <Ionicons name="paper-plane" size={18} color="#0f1e3d" />
+          <Ionicons name="paper-plane" size={18} color="#030436" />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.newBookingTitle}>+ Nueva Reserva</Text>
           <Text style={styles.newBookingSubtitle}>Alta rápida de cliente, cotización y despacho</Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} color="#C5A059" />
+        <Ionicons name="chevron-forward" size={18} color="#0165FF" />
       </TouchableOpacity>
 
       {/* Filters Section */}
@@ -114,8 +114,8 @@ export default function OwnerFlightsScreen() {
               onPress={() => setSelectedAircraftId("all")}
               className="px-4 py-2 rounded-full mr-2 border"
               style={{
-                backgroundColor: selectedAircraftId === "all" ? "#0f1e3d" : "#FFFFFF",
-                borderColor: selectedAircraftId === "all" ? "#0f1e3d" : "#E2E8F0",
+                backgroundColor: selectedAircraftId === "all" ? "#030436" : "#FFFFFF",
+                borderColor: selectedAircraftId === "all" ? "#030436" : "#E2E8F0",
               }}
             >
               <ThemedText
@@ -134,8 +134,8 @@ export default function OwnerFlightsScreen() {
                   onPress={() => setSelectedAircraftId(ac.id)}
                   className="px-4 py-2 rounded-full mr-2 border"
                   style={{
-                    backgroundColor: isSelected ? "#0f1e3d" : "#FFFFFF",
-                    borderColor: isSelected ? "#0f1e3d" : "#E2E8F0",
+                    backgroundColor: isSelected ? "#030436" : "#FFFFFF",
+                    borderColor: isSelected ? "#030436" : "#E2E8F0",
                   }}
                 >
                   <ThemedText
@@ -161,8 +161,8 @@ export default function OwnerFlightsScreen() {
                   onPress={() => setSelectedStatus(status.id)}
                   className="px-4 py-2 rounded-full mr-2 border"
                   style={{
-                    backgroundColor: isSelected ? "#C5A059" : "#FFFFFF",
-                    borderColor: isSelected ? "#C5A059" : "#E2E8F0",
+                    backgroundColor: isSelected ? "#0165FF" : "#FFFFFF",
+                    borderColor: isSelected ? "#0165FF" : "#E2E8F0",
                   }}
                 >
                   <ThemedText
@@ -182,7 +182,7 @@ export default function OwnerFlightsScreen() {
         showsVerticalScrollIndicator={false}
         className="flex-1"
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#0f1e3d" />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#030436" />
         }
       >
         {isLoading
@@ -275,7 +275,7 @@ export default function OwnerFlightsScreen() {
                           </View>
 
                           <View className="items-center px-2">
-                            <MaterialCommunityIcons name="airplane-takeoff" size={18} color="#C5A059" />
+                            <MaterialCommunityIcons name="airplane-takeoff" size={18} color="#0165FF" />
                             <View className="w-12 h-0.5 bg-slate-300 my-1" />
                             {item.schedule.roundtrip && (
                               <ThemedText className="text-xs font-medium text-brand-gold">
@@ -312,7 +312,7 @@ export default function OwnerFlightsScreen() {
                           <View className="flex-row items-center pl-0.5 my-0.5" style={{ gap: 8 }}>
                             <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
                             <View className="flex-row items-center ml-3" style={{ gap: 6 }}>
-                              <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#C5A059" />
+                              <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#0165FF" />
                               {item.schedule.roundtrip && (
                                 <ThemedText className="text-xs font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
                                   Ida y Vuelta
@@ -370,14 +370,14 @@ export default function OwnerFlightsScreen() {
                     {/* Footer Stats Grid */}
                     <View className="flex-row justify-between items-center pt-1 px-1">
                       <View className="flex-row items-center" style={{ gap: 6 }}>
-                        <Ionicons name="people-outline" size={16} color="#0f1e3d" />
+                        <Ionicons name="people-outline" size={16} color="#030436" />
                         <ThemedText className="text-xs font-semibold text-slate-700">
                           {item.capacity.passangers} pasajero(s)
                         </ThemedText>
                       </View>
 
                       <View className="flex-row items-center" style={{ gap: 6 }}>
-                        <MaterialCommunityIcons name="seat-passenger" size={16} color="#0f1e3d" />
+                        <MaterialCommunityIcons name="seat-passenger" size={16} color="#030436" />
                         <ThemedText className="text-xs font-semibold text-slate-700">
                           {aircraftPaxCapacity !== undefined ? `${aircraftPaxCapacity} asientos` : "N/A"}
                         </ThemedText>
@@ -385,7 +385,7 @@ export default function OwnerFlightsScreen() {
 
                       {distanceKm ? (
                         <View className="flex-row items-center" style={{ gap: 6 }}>
-                          <Ionicons name="navigate-outline" size={16} color="#0f1e3d" />
+                          <Ionicons name="navigate-outline" size={16} color="#030436" />
                           <ThemedText className="text-xs font-semibold text-slate-700">
                             {distanceKm} km
                           </ThemedText>
@@ -442,7 +442,7 @@ export default function OwnerFlightsScreen() {
 
 const styles = StyleSheet.create({
   newBookingButton: {
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 16,
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "#C5A059",
+    backgroundColor: "#0165FF",
     alignItems: "center",
     justifyContent: "center",
   },

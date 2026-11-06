@@ -90,7 +90,7 @@ export default function AdminDashboard() {
   if (isLoading) {
     return (
       <ThemedView className="flex-1 justify-center items-center bg-brand-light">
-        <ActivityIndicator size="large" color="#0f1e3d" />
+        <ActivityIndicator size="large" color="#030436" />
         <ThemedText className="mt-4 text-slate-500">Cargando métricas del sistema...</ThemedText>
       </ThemedView>
     );
@@ -161,14 +161,14 @@ export default function AdminDashboard() {
         >
           <View className="flex-row items-center gap-3">
             <View className="w-10 h-10 rounded-xl bg-brand-gold items-center justify-center">
-              <Ionicons name="paper-plane" size={20} color="#0f1e3d" />
+              <Ionicons name="paper-plane" size={20} color="#030436" />
             </View>
             <View>
               <ThemedText className="font-bold text-white text-base">Nueva Reserva Telefónica</ThemedText>
               <ThemedText className="text-xs text-slate-300">Despacho y cotización rápida para clientes</ThemedText>
             </View>
           </View>
-          <Ionicons name="arrow-forward" size={18} color="#C5A059" />
+          <Ionicons name="arrow-forward" size={18} color="#0165FF" />
         </TouchableOpacity>
 
         <View className="flex-row gap-3 mb-6">
@@ -177,7 +177,7 @@ export default function AdminDashboard() {
             className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex-row items-center gap-3 active:bg-slate-50"
           >
             <View className="w-10 h-10 rounded-xl bg-brand-gold/15 items-center justify-center flex-shrink-0">
-              <Ionicons name="calendar" size={20} color="#C5A059" />
+              <Ionicons name="calendar" size={20} color="#0165FF" />
             </View>
             <View className="flex-1 flex-shrink">
               <ThemedText className="font-bold text-brand-blue text-sm" numberOfLines={1}>Reservas</ThemedText>
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
             className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex-row items-center gap-3 active:bg-slate-50"
           >
             <View className="w-10 h-10 rounded-xl bg-brand-gold/15 items-center justify-center flex-shrink-0">
-              <Ionicons name="cash" size={20} color="#C5A059" />
+              <Ionicons name="cash" size={20} color="#0165FF" />
             </View>
             <View className="flex-1 flex-shrink">
               <ThemedText className="font-bold text-brand-blue text-sm" numberOfLines={1}>Tarifas</ThemedText>

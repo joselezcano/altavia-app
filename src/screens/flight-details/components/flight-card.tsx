@@ -37,21 +37,21 @@ export function FlightCard({
 
             {/* Pasajeros solicitados */}
             <CardRow
-                icon={<Ionicons name="people-outline" size={18} color="#0f1e3d" />}
+                icon={<Ionicons name="people-outline" size={18} color="#030436" />}
                 title="Pasajeros solicitados"
                 value={`${reservation.capacity.passangers} pasajero(s)`}
             />
 
             {/* Capacidad de asientos */}
             <CardRow
-                icon={<MaterialCommunityIcons name="seat-passenger" size={18} color="#0f1e3d" />}
+                icon={<MaterialCommunityIcons name="seat-passenger" size={18} color="#030436" />}
                 title="Capacidad de asientos"
                 value={paxCapacity ? `${paxCapacity} asientos` : ""}
             />
 
             {/* Distancia del viaje */}
             <CardRow
-                icon={<Ionicons name="navigate-outline" size={18} color="#0f1e3d" />}
+                icon={<Ionicons name="navigate-outline" size={18} color="#030436" />}
                 title="Distancia del viaje"
                 value={distanceKm ? `${distanceKm} km` : ""}
             />
@@ -61,7 +61,7 @@ export function FlightCard({
                     <>
                         {/* Tiempo de vuelo (Ida y Vuelta) */}
                         < CardRow
-                            icon={<Ionicons name="time-outline" size={18} color="#0f1e3d" />}
+                            icon={<Ionicons name="time-outline" size={18} color="#030436" />}
                             title="Tiempo de vuelo"
                             value={flightDurationHoursOutbound ? formatFlightTime(flightDurationHoursOutbound) : ""}
                         />
@@ -70,14 +70,14 @@ export function FlightCard({
                     <>
                         {/* Tiempo de vuelo (Ida) */}
                         <CardRow
-                            icon={<Ionicons name="time-outline" size={18} color="#0f1e3d" />}
+                            icon={<Ionicons name="time-outline" size={18} color="#030436" />}
                             title="Tiempo de vuelo (Ida)"
                             value={flightDurationHoursOutbound ? formatFlightTime(flightDurationHoursOutbound) : ""}
                         />
 
                         {/* Tiempo de vuelo (Vuelta) */}
                         <CardRow
-                            icon={<Ionicons name="time-outline" size={18} color="#0f1e3d" />}
+                            icon={<Ionicons name="time-outline" size={18} color="#030436" />}
                             title="Tiempo de vuelo (Vuelta)"
                             value={flightDurationHoursReturn ? formatFlightTime(flightDurationHoursReturn) : ""}
                         />

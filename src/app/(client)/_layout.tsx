@@ -34,7 +34,7 @@ export default function ClientLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: isWideScreen ? styles.wideTabBar : styles.mobileTabBar,
-          tabBarActiveTintColor: "#0f1e3d", // brand-blue
+          tabBarActiveTintColor: "#030436", // brand-blue
           tabBarInactiveTintColor: "#94A3B8", // brand-muted
           tabBarLabelStyle: {
             fontWeight: "600",
@@ -66,7 +66,7 @@ export default function ClientLayout() {
             title: "Mis Vuelos",
             tabBarBadge: pendingPaymentsCount > 0 ? pendingPaymentsCount : undefined,
             tabBarBadgeStyle: {
-              backgroundColor: "#C5A059",
+              backgroundColor: "#0165FF",
               color: "#FFFFFF",
               fontSize: 10,
               fontWeight: "bold",
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     borderRadius: 24,
     marginBottom: 16,
-    shadowColor: "#0F1E3D",
+    shadowColor: "#030436",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,

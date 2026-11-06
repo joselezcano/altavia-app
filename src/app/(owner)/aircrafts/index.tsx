@@ -54,7 +54,7 @@ export default function ListAircraftsScreen() {
           ) : (
             <View className="w-full h-full bg-brand-blue/95 justify-center items-center relative">
               <View className="w-20 h-20 rounded-full bg-white/10 items-center justify-center">
-                <Ionicons name="airplane" size={40} color="#DAA520" />
+                <Ionicons name="airplane" size={40} color="#0165FF" />
               </View>
             </View>
           )}
@@ -95,7 +95,7 @@ export default function ListAircraftsScreen() {
 
             {item.base_airport && (
               <View className="flex-row items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl">
-                <Ionicons name="location" size={14} color="#0f1e3d" />
+                <Ionicons name="location" size={14} color="#030436" />
                 <ThemedText className="text-xs font-semibold text-slate-700">
                   {item.base_airport.icao_code || item.base_airport.iata_code || item.base_airport.name}
                 </ThemedText>
@@ -138,7 +138,7 @@ export default function ListAircraftsScreen() {
       {/* Main content */}
       {isLoading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#0f1e3d" />
+          <ActivityIndicator size="large" color="#030436" />
           <ThemedText className="text-slate-500 mt-2">Cargando flota...</ThemedText>
         </View>
       ) : aircrafts.length === 0 ? (
@@ -168,7 +168,7 @@ export default function ListAircraftsScreen() {
           renderItem={renderAircraftItem}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#0f1e3d" />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#030436" />}
           contentContainerStyle={{ paddingBottom: 24 }}
         />
       )}

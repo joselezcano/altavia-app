@@ -111,7 +111,7 @@ export default function FleetPricingScreen() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator style={{ marginTop: 32 }} color="#0f1e3d" />
+        <ActivityIndicator style={{ marginTop: 32 }} color="#030436" />
       ) : (
         <FlatList
           data={aircrafts}
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   editBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#0f1e3d",
+    backgroundColor: "#030436",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   editBtnText: { color: "#FFFFFF", fontWeight: "600", fontSize: 13 },
   scrim: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" },
   sheet: { backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 36 },
-  sheetTitle: { fontSize: 17, fontWeight: "700", color: "#0f1e3d", marginBottom: 8 },
+  sheetTitle: { fontSize: 17, fontWeight: "700", color: "#030436", marginBottom: 8 },
   hint: { fontSize: 11, color: "#64748B", marginTop: 4 },
   label: { fontSize: 13, color: "#334155", fontWeight: "600", marginTop: 14, marginBottom: 6 },
   input: {
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#0F172A",
   },
-  sheetBtn: { flex: 1, backgroundColor: "#0f1e3d", borderRadius: 12, paddingVertical: 14, alignItems: "center" },
+  sheetBtn: { flex: 1, backgroundColor: "#030436", borderRadius: 12, paddingVertical: 14, alignItems: "center" },
   sheetBtnText: { color: "#FFFFFF", fontWeight: "700" },
   sheetBtnGhost: { backgroundColor: "#F1F5F9" },
   sheetBtnGhostText: { color: "#334155", fontWeight: "700" },

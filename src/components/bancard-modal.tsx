@@ -248,7 +248,7 @@ export function BancardPaymentModal({
                         disabled={isProcessing}
                         style={styles.closeBtn}
                     >
-                        <Ionicons name="close" size={20} color="#0f1e3d" />
+                        <Ionicons name="close" size={20} color="#030436" />
                     </TouchableOpacity>
                 </View>
 
@@ -277,7 +277,7 @@ export function BancardPaymentModal({
                 <View style={styles.testCardsBar}>
                     <View style={styles.testCardsBarHeader}>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                            <MaterialCommunityIcons name="lightning-bolt" size={15} color="#C5A059" />
+                            <MaterialCommunityIcons name="lightning-bolt" size={15} color="#0165FF" />
                             <Text style={styles.testCardsTitle}>
                                 Tarjetas de Prueba (Toca para precargar en Bancard):
                             </Text>
@@ -444,7 +444,7 @@ export function BancardPaymentModal({
                 {/* Processing Overlay */}
                 {isProcessing && (
                     <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="large" color="#C5A059" />
+                        <ActivityIndicator size="large" color="#0165FF" />
                         <Text style={styles.loadingTitle}>Confirmando Pago con Bancard...</Text>
                         <Text style={styles.loadingSubtitle}>
                             Generando Factura Electrónica e-Kuatia (SIFEN DNIT)
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
     headerTitleVpos: {
         fontSize: 16,
         fontWeight: "800",
-        color: "#C5A059",
+        color: "#0165FF",
     },
     stagingBadge: {
         backgroundColor: "#FEF3C7",
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
     summaryRoute: {
         fontSize: 12,
         fontWeight: "bold",
-        color: "#0F1E3D",
+        color: "#030436",
     },
     summarySub: {
         fontSize: 10,
@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
     cardDetailVal: {
         fontSize: 12,
         fontWeight: "700",
-        color: "#0F1E3D",
+        color: "#030436",
     },
     cardActionsRow: {
         flexDirection: "row",
@@ -693,7 +693,7 @@ const styles = StyleSheet.create({
     stateTitle: {
         fontSize: 15,
         fontWeight: "bold",
-        color: "#0F1E3D",
+        color: "#030436",
     },
     stateSubtitle: {
         fontSize: 12,
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
     errorTitle: {
         fontSize: 16,
         fontWeight: "bold",
-        color: "#0F1E3D",
+        color: "#030436",
         marginBottom: 6,
     },
     errorMessage: {
@@ -744,7 +744,7 @@ const styles = StyleSheet.create({
     errorHelpTitle: {
         fontSize: 12,
         fontWeight: "bold",
-        color: "#0F1E3D",
+        color: "#030436",
         marginBottom: 4,
     },
     errorHelpText: {
@@ -794,7 +794,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(15, 30, 61, 0.85)",
+        backgroundColor: "rgba(3, 4, 54, 0.85)",
         alignItems: "center",
         justifyContent: "center",
         padding: 24,
@@ -808,7 +808,7 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
     loadingSubtitle: {
-        color: "#C5A059",
+        color: "#0165FF",
         fontSize: 12,
         fontWeight: "500",
         textAlign: "center",

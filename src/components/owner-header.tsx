@@ -25,7 +25,7 @@ export function OwnerHeader({
                 onPress={onMenuPress}
                 className="p-2 mr-4 bg-white rounded-xl shadow-sm border border-slate-100 active:bg-slate-50"
             >
-                <Ionicons name="menu" size={24} color="#0f1e3d" />
+                <Ionicons name="menu" size={24} color="#030436" />
             </TouchableOpacity>
             <View className="flex-1">
                 <ThemedText

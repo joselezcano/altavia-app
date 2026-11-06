@@ -46,7 +46,7 @@ const TimeSpinner = ({
             disabled={disabled}
             className="w-7 h-7 items-center justify-center bg-white border border-slate-100 rounded-lg"
         >
-            <Ionicons name="remove" size={16} color="#0f1e3d" />
+            <Ionicons name="remove" size={16} color="#030436" />
         </TouchableOpacity>
         <ThemedText className="text-brand-blue font-bold text-md text-center w-8">
             {String(value).padStart(2, "0")}
@@ -56,7 +56,7 @@ const TimeSpinner = ({
             disabled={disabled}
             className="w-7 h-7 items-center justify-center bg-white border border-slate-100 rounded-lg"
         >
-            <Ionicons name="add" size={16} color="#0f1e3d" />
+            <Ionicons name="add" size={16} color="#030436" />
         </TouchableOpacity>
     </View>
 );
@@ -357,7 +357,7 @@ export default function EventRecurrenceEditScreen() {
 
                 {isLoadingEvent && !isInitialized ? (
                     <View className="flex-1 items-center justify-center py-12">
-                        <ActivityIndicator size="large" color="#0f1e3d" />
+                        <ActivityIndicator size="large" color="#030436" />
                         <ThemedText className="mt-3 text-slate-500 font-medium text-sm">
                             Cargando información del evento...
                         </ThemedText>
@@ -393,7 +393,7 @@ export default function EventRecurrenceEditScreen() {
                         <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
                             <View className="flex-row items-center justify-between mb-4">
                                 <View className="flex-row items-center gap-2">
-                                    <Ionicons name="time" size={20} color="#0f1e3d" />
+                                    <Ionicons name="time" size={20} color="#030436" />
                                     <ThemedText type="subtitle" className="font-bold text-brand-blue">
                                         Rango Horario
                                     </ThemedText>
@@ -415,8 +415,8 @@ export default function EventRecurrenceEditScreen() {
                                                 setEndMinute(0);
                                             }
                                         }}
-                                        trackColor={{ false: "#CBD5E1", true: "#0f1e3d" }}
-                                        thumbColor={allDay ? "#C5A059" : "#FFFFFF"}
+                                        trackColor={{ false: "#CBD5E1", true: "#030436" }}
+                                        thumbColor={allDay ? "#0165FF" : "#FFFFFF"}
                                     />
                                 </View>
                             </View>
@@ -469,7 +469,7 @@ export default function EventRecurrenceEditScreen() {
                         {/* 3. Repeat Period Selector Card */}
                         <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
                             <View className="flex-row items-center gap-2 mb-4">
-                                <Ionicons name="repeat-sharp" size={20} color="#0f1e3d" />
+                                <Ionicons name="repeat-sharp" size={20} color="#030436" />
                                 <ThemedText type="subtitle" className="font-bold text-brand-blue">
                                     Frecuencia y Período
                                 </ThemedText>
@@ -511,7 +511,7 @@ export default function EventRecurrenceEditScreen() {
                                             onPress={() => setInterval((prev) => Math.max(1, prev - 1))}
                                             className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
                                         >
-                                            <Ionicons name="remove" size={16} color="#0f1e3d" />
+                                            <Ionicons name="remove" size={16} color="#030436" />
                                         </TouchableOpacity>
                                         <ThemedText className="text-brand-blue font-bold text-base text-center w-8">
                                             {interval}
@@ -520,7 +520,7 @@ export default function EventRecurrenceEditScreen() {
                                             onPress={() => setInterval((prev) => prev + 1)}
                                             className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
                                         >
-                                            <Ionicons name="add" size={16} color="#0f1e3d" />
+                                            <Ionicons name="add" size={16} color="#030436" />
                                         </TouchableOpacity>
                                         <ThemedText className="text-xs text-brand-muted font-medium ml-1">
                                             {period === "daily"
@@ -572,7 +572,7 @@ export default function EventRecurrenceEditScreen() {
                         {period !== "none" && (
                             <ThemedView variant="card" className="p-5 mb-6 border border-slate-100 bg-white">
                                 <View className="flex-row items-center gap-2 mb-4">
-                                    <Ionicons name="flag" size={20} color="#0f1e3d" />
+                                    <Ionicons name="flag" size={20} color="#030436" />
                                     <ThemedText type="subtitle" className="font-bold text-brand-blue">
                                         Finalización del Evento
                                     </ThemedText>
@@ -590,7 +590,7 @@ export default function EventRecurrenceEditScreen() {
                                     <Ionicons
                                         name={endsType === "never" ? "radio-button-on" : "radio-button-off"}
                                         size={20}
-                                        color={endsType === "never" ? "#0f1e3d" : "#94A3B8"}
+                                        color={endsType === "never" ? "#030436" : "#94A3B8"}
                                     />
                                 </TouchableOpacity>
 
@@ -607,7 +607,7 @@ export default function EventRecurrenceEditScreen() {
                                         <Ionicons
                                             name={endsType === "date" ? "radio-button-on" : "radio-button-off"}
                                             size={20}
-                                            color={endsType === "date" ? "#0f1e3d" : "#94A3B8"}
+                                            color={endsType === "date" ? "#030436" : "#94A3B8"}
                                         />
                                     </TouchableOpacity>
                                     {endsType === "date" && (
@@ -632,7 +632,7 @@ export default function EventRecurrenceEditScreen() {
                                         <Ionicons
                                             name={endsType === "occurrences" ? "radio-button-on" : "radio-button-off"}
                                             size={20}
-                                            color={endsType === "occurrences" ? "#0f1e3d" : "#94A3B8"}
+                                            color={endsType === "occurrences" ? "#030436" : "#94A3B8"}
                                         />
                                         <ThemedText type="caption" className="text-slate-600 font-medium">
                                             Después de
@@ -645,7 +645,7 @@ export default function EventRecurrenceEditScreen() {
                                                 onPress={() => setEndsOccurrences((prev) => Math.max(1, prev - 1))}
                                                 className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
                                             >
-                                                <Ionicons name="remove" size={16} color="#0f1e3d" />
+                                                <Ionicons name="remove" size={16} color="#030436" />
                                             </TouchableOpacity>
                                             <ThemedText className="text-brand-blue font-bold text-base text-center w-8">
                                                 {endsOccurrences}
@@ -654,7 +654,7 @@ export default function EventRecurrenceEditScreen() {
                                                 onPress={() => setEndsOccurrences((prev) => prev + 1)}
                                                 className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
                                             >
-                                                <Ionicons name="add" size={16} color="#0f1e3d" />
+                                                <Ionicons name="add" size={16} color="#030436" />
                                             </TouchableOpacity>
                                             <ThemedText className="text-xs text-brand-muted font-medium ml-1">
                                                 ocurrencias
@@ -668,7 +668,7 @@ export default function EventRecurrenceEditScreen() {
                         {/* 5. Unavailability Reason & Notes Card */}
                         <ThemedView variant="card" className="p-5 mb-6 border border-slate-100 bg-white">
                             <View className="flex-row items-center gap-2 mb-4">
-                                <Ionicons name="alert-circle" size={20} color="#0f1e3d" />
+                                <Ionicons name="alert-circle" size={20} color="#030436" />
                                 <ThemedText type="subtitle" className="font-bold text-brand-blue">
                                     Motivo de Indisponibilidad
                                 </ThemedText>
@@ -692,7 +692,7 @@ export default function EventRecurrenceEditScreen() {
                                                 <Ionicons
                                                     name={option.icon as any}
                                                     size={18}
-                                                    color={isSelected ? "#0f1e3d" : "#64748B"}
+                                                    color={isSelected ? "#030436" : "#64748B"}
                                                 />
                                                 <ThemedText
                                                     className={`text-sm ${isSelected ? "font-bold text-brand-blue" : "font-medium text-slate-700"
@@ -704,7 +704,7 @@ export default function EventRecurrenceEditScreen() {
                                             <Ionicons
                                                 name={isSelected ? "radio-button-on" : "radio-button-off"}
                                                 size={20}
-                                                color={isSelected ? "#0f1e3d" : "#94A3B8"}
+                                                color={isSelected ? "#030436" : "#94A3B8"}
                                             />
                                         </TouchableOpacity>
                                     );

@@ -380,7 +380,7 @@ export async function generateAndShareMonthlyReportPdf(
                 <span style="color: #64748B; font-size: 10px;">${f.route.originCity} - ${f.route.destinationCity}</span>
             </td>
             <td style="padding: 10px 12px; font-size: 11px; border-bottom: 1px solid #E2E8F0;">
-                <span style="background: #EEF2F6; color: #0F1E3D; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 10px;">${f.aircraft.registration}</span><br/>
+                <span style="background: #EEF2F6; color: #030436; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 10px;">${f.aircraft.registration}</span><br/>
                 <span style="color: #64748B; font-size: 10px;">${f.aircraft.model}</span>
             </td>
             <td style="padding: 10px 12px; font-size: 11px; border-bottom: 1px solid #E2E8F0;">
@@ -392,7 +392,7 @@ export async function generateAndShareMonthlyReportPdf(
                     ${f.paymentStatus === 'paid' ? 'COBRADO' : 'PENDIENTE'}
                 </span>
             </td>
-            <td style="padding: 10px 12px; font-size: 12px; font-weight: bold; border-bottom: 1px solid #E2E8F0; text-align: right; color: #0F1E3D;">
+            <td style="padding: 10px 12px; font-size: 12px; font-weight: bold; border-bottom: 1px solid #E2E8F0; text-align: right; color: #030436;">
                 USD $${f.amountUsd.toLocaleString("en-US")}<br/>
                 <span style="color: #64748B; font-size: 10px; font-weight: normal;">Gs. ${f.amountGs.toLocaleString("es-PY")}</span>
             </td>
@@ -406,7 +406,7 @@ export async function generateAndShareMonthlyReportPdf(
             </td>
             <td style="padding: 8px 12px; font-size: 11px; text-align: center;">${ac.flightCount}</td>
             <td style="padding: 8px 12px; font-size: 11px; text-align: center;">${ac.flightHours} hrs</td>
-            <td style="padding: 8px 12px; font-size: 11px; text-align: right; font-weight: bold; color: #0F1E3D;">
+            <td style="padding: 8px 12px; font-size: 11px; text-align: right; font-weight: bold; color: #030436;">
                 USD $${ac.revenueUsd.toLocaleString("en-US")} (${ac.percentage}%)
             </td>
         </tr>
@@ -423,11 +423,11 @@ export async function generateAndShareMonthlyReportPdf(
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
                 margin: 0;
                 padding: 30px;
-                color: #0F1E3D;
+                color: #030436;
                 background-color: #FFFFFF;
                 font-size: 12px;
             }
-            .header-table { width: 100%; border-bottom: 2px solid #C5A059; padding-bottom: 16px; margin-bottom: 24px; }
+            .header-table { width: 100%; border-bottom: 2px solid #0165FF; padding-bottom: 16px; margin-bottom: 24px; }
             .kpi-container { display: flex; gap: 14px; margin-bottom: 24px; }
             .kpi-box {
                 flex: 1;
@@ -438,23 +438,23 @@ export async function generateAndShareMonthlyReportPdf(
                 text-align: center;
             }
             .kpi-title { font-size: 10px; color: #64748B; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
-            .kpi-value { font-size: 18px; font-weight: bold; color: #0F1E3D; margin-top: 4px; }
-            .kpi-sub { font-size: 10px; color: #C5A059; font-weight: 600; margin-top: 2px; }
+            .kpi-value { font-size: 18px; font-weight: bold; color: #030436; margin-top: 4px; }
+            .kpi-sub { font-size: 10px; color: #0165FF; font-weight: 600; margin-top: 2px; }
             table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            th { background: #0F1E3D; color: #FFFFFF; padding: 10px 12px; font-size: 11px; text-align: left; }
-            .section-title { font-size: 14px; font-weight: bold; color: #0F1E3D; margin-top: 20px; border-left: 4px solid #C5A059; padding-left: 8px; }
+            th { background: #030436; color: #FFFFFF; padding: 10px 12px; font-size: 11px; text-align: left; }
+            .section-title { font-size: 14px; font-weight: bold; color: #030436; margin-top: 20px; border-left: 4px solid #0165FF; padding-left: 8px; }
         </style>
     </head>
     <body>
         <table class="header-table">
             <tr>
                 <td style="vertical-align: top;">
-                    <div style="font-size: 24px; font-weight: 800; color: #0F1E3D; letter-spacing: 1px;">ALTAVIA</div>
-                    <div style="font-size: 11px; color: #C5A059; font-weight: bold; margin-top: 2px;">REPORTE MENSUAL DE INGRESOS Y FACTURACIÓN</div>
+                    <div style="font-size: 24px; font-weight: 800; color: #030436; letter-spacing: 1px;">ALTAVIA</div>
+                    <div style="font-size: 11px; color: #0165FF; font-weight: bold; margin-top: 2px;">REPORTE MENSUAL DE INGRESOS Y FACTURACIÓN</div>
                     <div style="font-size: 11px; color: #64748B; margin-top: 4px;">Titular: <strong>${ownerName}</strong></div>
                 </td>
                 <td style="text-align: right; vertical-align: top;">
-                    <div style="background: #0F1E3D; color: #FFFFFF; display: inline-block; padding: 6px 14px; border-radius: 6px; font-weight: bold; font-size: 13px;">
+                    <div style="background: #030436; color: #FFFFFF; display: inline-block; padding: 6px 14px; border-radius: 6px; font-weight: bold; font-size: 13px;">
                         ${metrics.monthName.toUpperCase()} ${metrics.year}
                     </div>
                     <div style="font-size: 10px; color: #64748B; margin-top: 8px;">Emitido el: ${formattedDate}</div>
@@ -466,10 +466,10 @@ export async function generateAndShareMonthlyReportPdf(
         <div style="display: table; width: 100%; margin-bottom: 20px;">
             <div style="display: table-row;">
                 <div style="display: table-cell; width: 25%; padding-right: 8px;">
-                    <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-top: 3px solid #C5A059; border-radius: 8px; padding: 12px; text-align: center;">
+                    <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-top: 3px solid #0165FF; border-radius: 8px; padding: 12px; text-align: center;">
                         <div style="font-size: 9px; color: #64748B; font-weight: bold;">TOTAL INGRESOS BRUTOS</div>
-                        <div style="font-size: 16px; font-weight: bold; color: #0F1E3D; margin: 4px 0;">USD $${metrics.totalRevenueUsd.toLocaleString("en-US")}</div>
-                        <div style="font-size: 10px; color: #C5A059; font-weight: bold;">Gs. ${metrics.totalRevenueGs.toLocaleString("es-PY")}</div>
+                        <div style="font-size: 16px; font-weight: bold; color: #030436; margin: 4px 0;">USD $${metrics.totalRevenueUsd.toLocaleString("en-US")}</div>
+                        <div style="font-size: 10px; color: #0165FF; font-weight: bold;">Gs. ${metrics.totalRevenueGs.toLocaleString("es-PY")}</div>
                     </div>
                 </div>
                 <div style="display: table-cell; width: 25%; padding-right: 8px;">
@@ -487,9 +487,9 @@ export async function generateAndShareMonthlyReportPdf(
                     </div>
                 </div>
                 <div style="display: table-cell; width: 25%;">
-                    <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-top: 3px solid #0F1E3D; border-radius: 8px; padding: 12px; text-align: center;">
+                    <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-top: 3px solid #030436; border-radius: 8px; padding: 12px; text-align: center;">
                         <div style="font-size: 9px; color: #64748B; font-weight: bold;">VUELOS / HORAS</div>
-                        <div style="font-size: 16px; font-weight: bold; color: #0F1E3D; margin: 4px 0;">${metrics.completedFlightsCount} vuelos</div>
+                        <div style="font-size: 16px; font-weight: bold; color: #030436; margin: 4px 0;">${metrics.completedFlightsCount} vuelos</div>
                         <div style="font-size: 10px; color: #64748B;">${metrics.totalFlightHours} hrs voladas</div>
                     </div>
                 </div>
