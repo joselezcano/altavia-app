@@ -52,3 +52,6 @@ contexto.md
 # Caché de Firebase Hosting y logs del emulador
 .firebase/
 firestore-debug.log
+
+# Worktrees de agentes de Claude Code
+.claude/
