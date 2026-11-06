@@ -62,6 +62,13 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
   - **Aviso en pantalla:** es una referencia, no reemplaza METAR/TAF.
 - **Tipo de cambio:** la lista de reservas y el modal de Bancard usan `useExchangeRate()` en vez de la tasa fija.
 
+- **Boarding pass con QR y escáner de embarque (`src/utils/boarding-pass.ts`, `screens/boarding-pass`, `screens/boarding-scanner`):**
+  - **Contenido del QR:** `altago:bp:v1:{reservationId}:{passengerId}:{boardingToken}`. El token es aleatorio de 144 bits, guardado en el ítem del pasajero.
+  - **Cuándo se genera:** al abrir el pase por primera vez (en una transacción) o al guardar el manifiesto. Si cambia el nombre o el documento, se rota.
+  - **Cliente:** "Ver boarding pass" en el detalle de un vuelo pagado y "Mis boarding pass" en el perfil. Hay una tarjeta por pasajero con la marca.
+  - **Piloto asignado, owner y encargada:** "Escanear pasajeros" con `expo-camera`. Valida contra Firestore la reserva, el pago, el pasajero y el token; pide confirmación si el vuelo no es hoy; marca `boardedAt`/`boardedBy` en una transacción y lleva un contador de embarcados. Tiene linterna y antirrebote.
+  - **Manifiesto:** se guarda en una transacción que conserva los datos de embarque.
+
 ## 2. Rol: ADMIN
 - **Dashboard e Index (`index.tsx`, `_layout.tsx`):** Navegación por Drawer configurada con iconos (`Ionicons`), logotipo superior y safe areas. El dashboard cuenta con:
   - Consumo en tiempo real de la base de datos para la cantidad de Modelos Base, Flota Activa y **Vuelos Reservados** (consultando la colección `aircraft-reservation` en Firestore mediante TanStack Query).
