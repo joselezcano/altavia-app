@@ -1,0 +1,359 @@
+/**
+ * Tests de reglas de Firestore (firestore.rules) contra el emulador.
+ *
+ *   cd tests/firestore-rules && npm install && npm test
+ *
+ * Cada caso refleja una operación real que hace la app (o un abuso que debe bloquearse).
+ */
+import { assertFails, assertSucceeds, initializeTestEnvironment } from "@firebase/rules-unit-testing";
+import {
+    addDoc, arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where,
+} from "firebase/firestore";
+import { readFileSync } from "node:fs";
+import { after, before, beforeEach, describe, test } from "node:test";
+
+const [host, port] = (process.env.FIRESTORE_EMULATOR_HOST || "127.0.0.1:8080").split(":");
+
+let env;
+
+const UIDS = {
+    admin: "admin1",
+    owner: "owner1",
+    otherOwner: "owner2",
+    encargada: "encargada1",
+    pilot: "pilot1",
+    client: "client1",
+    otherClient: "client2",
+};
+
+before(async () => {
+    env = await initializeTestEnvironment({
+        projectId: "demo-altavia",
+        firestore: { rules: readFileSync(new URL("../../firestore.rules", import.meta.url), "utf8"), host, port: Number(port) },
+    });
+});
+
+after(async () => {
+    await env.cleanup();
+});
+
+beforeEach(async () => {
+    await env.clearFirestore();
+    await env.withSecurityRulesDisabled(async (ctx) => {
+        const db = ctx.firestore();
+        const users = {
+            [UIDS.admin]: ["ADMIN"],
+            [UIDS.owner]: ["OWNER"],
+            [UIDS.otherOwner]: ["OWNER"],
+            [UIDS.encargada]: ["PILOT"],
+            [UIDS.pilot]: ["PILOT"],
+            [UIDS.client]: ["CLIENT"],
+            [UIDS.otherClient]: ["CLIENT"],
+        };
+        for (const [uid, roles] of Object.entries(users)) {
+            await setDoc(doc(db, "users", uid), { uid, roles, email: `${uid}@test.com`, kycVerified: false });
+        }
+        await setDoc(doc(db, "pilots", UIDS.encargada), { isEncargado: true, managed_aircrafts: ["ac1"], owner_ids: [UIDS.owner] });
+        await setDoc(doc(db, "pilots", UIDS.pilot), { isEncargado: false, managed_aircrafts: [], owner_ids: [UIDS.owner] });
+        await setDoc(doc(db, "AircraftSpecs", "ac1"), { ownerId: UIDS.owner, basic_specs: { registration: "ZP-BOC" } });
+        await setDoc(doc(db, "AircraftSpecs", "ac2"), { ownerId: UIDS.otherOwner, basic_specs: { registration: "ZP-XXX" } });
+        await setDoc(doc(db, "pilots", "pilotOther"), { isEncargado: false, managed_aircrafts: [], pilot_aircrafts: [], owner_ids: [UIDS.otherOwner] });
+        await setDoc(doc(db, "aircraft-reservation", "res1"), {
+            aircraftId: "ac1", clientId: UIDS.client, price: 2000,
+            client_status: "unpaid", internal_status: "awaiting_payment", pilot_ids: [UIDS.encargada],
+        });
+        // Vuelo pagado y confirmado, con el piloto común asignado.
+        await setDoc(doc(db, "aircraft-reservation", "res2"), {
+            aircraftId: "ac1", clientId: UIDS.client, price: 2000, paid_at: new Date(),
+            client_status: "confirmed", internal_status: "confirmed", pilot_ids: [UIDS.pilot],
+        });
+        // Reserva de una aeronave de otro propietario.
+        await setDoc(doc(db, "aircraft-reservation", "res3"), {
+            aircraftId: "ac2", clientId: UIDS.otherClient, price: 900,
+            client_status: "unpaid", internal_status: "awaiting_payment", pilot_ids: [],
+        });
+        await setDoc(doc(db, "aircraft-availability", "ev2"), { aircraftId: "ac2", reason: "maintenance" });
+        await setDoc(doc(db, "owner_operational_flights", "f2"), { ownerId: UIDS.otherOwner, aircraftId: "ac2" });
+        await setDoc(doc(db, "Contadores", "cambioDelDia"), { dolar: 6180 });
+        await setDoc(doc(db, "owner_operational_flights", "f1"), { ownerId: UIDS.owner, aircraftId: "ac1" });
+    });
+});
+
+const as = (uid) => env.authenticatedContext(uid).firestore();
+const anon = () => env.unauthenticatedContext().firestore();
+
+const newReservation = (clientId) => ({
+    aircraftId: "ac1", clientId, price: 1500, client_status: "unpaid", internal_status: "pending_approval", pilot_ids: [],
+});
+
+describe("Sin sesión", () => {
+    test("no puede leer nada", async () => {
+        await assertFails(getDoc(doc(anon(), "aircraft-reservation", "res1")));
+        await assertFails(getDoc(doc(anon(), "users", UIDS.client)));
+        await assertFails(getDoc(doc(anon(), "AircraftSpecs", "ac1")));
+    });
+});
+
+describe("users", () => {
+    test("el usuario no puede darse roles", async () => {
+        await assertFails(updateDoc(doc(as(UIDS.client), "users", UIDS.client), { roles: ["CLIENT", "ADMIN"] }));
+    });
+    test("el usuario no puede marcarse KYC verificado", async () => {
+        await assertFails(updateDoc(doc(as(UIDS.client), "users", UIDS.client), { kycVerified: true }));
+    });
+    test("el usuario puede aceptar TyC y soft-delete", async () => {
+        await assertSucceeds(updateDoc(doc(as(UIDS.client), "users", UIDS.client), { acceptedTermsVersion: "1.0" }));
+        await assertSucceeds(updateDoc(doc(as(UIDS.client), "users", UIDS.client), { deleted: true, firstName: "Usuario" }));
+    });
+    test("onboarding: alta propia solo como CLIENT", async () => {
+        await assertSucceeds(setDoc(doc(as("nuevo"), "users", "nuevo"), { uid: "nuevo", roles: ["CLIENT"] }, { merge: true }));
+        await assertFails(setDoc(doc(as("nuevo2"), "users", "nuevo2"), { uid: "nuevo2", roles: ["OWNER"] }));
+        await assertFails(setDoc(doc(as("nuevo3"), "users", "nuevo3"), { roles: ["CLIENT"], kycVerified: true }));
+    });
+    test("onboarding repetido con roles iguales funciona (merge)", async () => {
+        await assertSucceeds(setDoc(doc(as(UIDS.client), "users", UIDS.client), { roles: ["CLIENT"], phone: "0981" }, { merge: true }));
+    });
+    test("un cliente no puede leer a otro cliente", async () => {
+        await assertFails(getDoc(doc(as(UIDS.client), "users", UIDS.otherClient)));
+    });
+    test("la encargada da de alta clientes (alta rápida) y les agrega rol CLIENT", async () => {
+        const db = as(UIDS.encargada);
+        await assertSucceeds(setDoc(doc(db, "users", "telefonico1"), { roles: ["CLIENT"], firstName: "Juan" }));
+        await assertSucceeds(setDoc(doc(db, "users", UIDS.pilot), { roles: ["PILOT", "CLIENT"] }, { merge: true }));
+        await assertFails(setDoc(doc(db, "users", UIDS.pilot), { roles: ["PILOT", "CLIENT", "ADMIN"] }, { merge: true }));
+        await assertSucceeds(setDoc(doc(db, "clients", "telefonico1"), { uid: "telefonico1" }, { merge: true }));
+    });
+    test("un piloto común no puede crear clientes", async () => {
+        await assertFails(setDoc(doc(as(UIDS.pilot), "users", "x"), { roles: ["CLIENT"] }));
+    });
+});
+
+describe("pilots", () => {
+    test("el piloto no puede hacerse encargado", async () => {
+        await assertFails(updateDoc(doc(as(UIDS.pilot), "pilots", UIDS.pilot), { isEncargado: true }));
+    });
+    test("el owner vincula pilotos a su flota", async () => {
+        await assertSucceeds(updateDoc(doc(as(UIDS.owner), "pilots", UIDS.pilot), { owner_ids: arrayUnion(UIDS.owner) }));
+        await assertSucceeds(updateDoc(doc(as(UIDS.owner), "pilots", "pilotOther"), { owner_ids: arrayUnion(UIDS.owner) }));
+    });
+    test("el owner nombra encargado y asigna aviones a SUS pilotos", async () => {
+        const db = as(UIDS.owner);
+        await assertSucceeds(updateDoc(doc(db, "pilots", UIDS.pilot), { isEncargado: true, managed_aircrafts: ["ac1"] }));
+        await assertSucceeds(updateDoc(doc(db, "pilots", UIDS.encargada), {
+            owner_ids: arrayRemove(UIDS.owner), isEncargado: false, managed_aircrafts: [],
+        }));
+    });
+    test("el owner no toca pilotos ajenos ni vínculos de otros owners", async () => {
+        const db = as(UIDS.owner);
+        await assertFails(updateDoc(doc(db, "pilots", "pilotOther"), { isEncargado: true }));
+        await assertFails(updateDoc(doc(db, "pilots", UIDS.pilot), { owner_ids: [UIDS.owner, UIDS.otherOwner] }));
+    });
+    test("la encargada asigna pilotos solo a las aeronaves que gestiona", async () => {
+        const db = as(UIDS.encargada);
+        await assertSucceeds(updateDoc(doc(db, "pilots", UIDS.pilot), { pilot_aircrafts: arrayUnion("ac1") }));
+        await assertFails(updateDoc(doc(db, "pilots", UIDS.pilot), { pilot_aircrafts: arrayUnion("ac2") }));
+        await assertFails(updateDoc(doc(db, "pilots", UIDS.pilot), { isEncargado: true }));
+        await assertFails(updateDoc(doc(db, "pilots", UIDS.encargada), { managed_aircrafts: ["ac1", "ac2"] }));
+    });
+    test("el piloto puede desvincularse, pero no darse permisos", async () => {
+        const db = as(UIDS.encargada);
+        await assertFails(updateDoc(doc(db, "pilots", UIDS.encargada), { owner_ids: [UIDS.owner, UIDS.otherOwner] }));
+        await assertSucceeds(updateDoc(doc(db, "pilots", UIDS.encargada), {
+            owner_ids: [], isEncargado: false, managed_aircrafts: [],
+        }));
+    });
+});
+
+describe("aircraft-reservation", () => {
+    test("el cliente crea su reserva pendiente", async () => {
+        await assertSucceeds(addDoc(collection(as(UIDS.client), "aircraft-reservation"), newReservation(UIDS.client)));
+    });
+    test("el cliente no puede crear una reserva ya pagada", async () => {
+        await assertFails(addDoc(collection(as(UIDS.client), "aircraft-reservation"), {
+            ...newReservation(UIDS.client), client_status: "confirmed",
+        }));
+        await assertFails(addDoc(collection(as(UIDS.client), "aircraft-reservation"), {
+            ...newReservation(UIDS.client), paid_at: new Date(),
+        }));
+    });
+    test("el cliente no puede crear reservas a nombre de otro", async () => {
+        await assertFails(addDoc(collection(as(UIDS.client), "aircraft-reservation"), newReservation(UIDS.otherClient)));
+    });
+    test("la encargada crea reservas telefónicas para un cliente", async () => {
+        await assertSucceeds(addDoc(collection(as(UIDS.encargada), "aircraft-reservation"), newReservation(UIDS.otherClient)));
+    });
+    test("EL CLIENTE NO PUEDE MARCAR SU VUELO COMO PAGADO", async () => {
+        const ref = doc(as(UIDS.client), "aircraft-reservation", "res1");
+        await assertFails(updateDoc(ref, { client_status: "confirmed", internal_status: "confirmed" }));
+        await assertFails(updateDoc(ref, { paid_at: new Date() }));
+        await assertFails(updateDoc(ref, { invoice_number: "001-001-0001" }));
+    });
+    test("el staff tampoco puede escribir campos de pago", async () => {
+        const ref = doc(as(UIDS.owner), "aircraft-reservation", "res1");
+        await assertFails(updateDoc(ref, { client_status: "confirmed" }));
+        await assertFails(updateDoc(ref, { payment_transaction_id: "x" }));
+    });
+    test("el cliente carga el manifiesto y puede cancelar", async () => {
+        const ref = doc(as(UIDS.client), "aircraft-reservation", "res1");
+        await assertSucceeds(updateDoc(ref, { passengers: [{ id: "p1", fullName: "Ana" }] }));
+        await assertSucceeds(updateDoc(ref, { client_status: "canceled" }));
+    });
+    test("el cliente no puede cambiar el precio", async () => {
+        await assertFails(updateDoc(doc(as(UIDS.client), "aircraft-reservation", "res1"), { price: 1 }));
+    });
+    test("owner y encargada de la aeronave operan la reserva (precio, pilotos, estado)", async () => {
+        await assertSucceeds(updateDoc(doc(as(UIDS.owner), "aircraft-reservation", "res1"), { price: 2500, internal_status: "awaiting_payment" }));
+        await assertSucceeds(updateDoc(doc(as(UIDS.encargada), "aircraft-reservation", "res1"), { pilot_ids: [UIDS.encargada] }));
+    });
+    test("owner y encargada no operan reservas de aeronaves ajenas", async () => {
+        await assertFails(updateDoc(doc(as(UIDS.owner), "aircraft-reservation", "res3"), { price: 1 }));
+        await assertFails(updateDoc(doc(as(UIDS.encargada), "aircraft-reservation", "res3"), { internal_status: "canceled" }));
+        await assertFails(addDoc(collection(as(UIDS.encargada), "aircraft-reservation"), {
+            ...newReservation(UIDS.otherClient), aircraftId: "ac2",
+        }));
+    });
+    test("el piloto asignado mueve estados operativos y carga el manifiesto", async () => {
+        const ref = doc(as(UIDS.pilot), "aircraft-reservation", "res2");
+        await assertSucceeds(updateDoc(ref, { internal_status: "in_flight" }));
+        await assertSucceeds(updateDoc(ref, { passengers: [{ id: "p1", fullName: "Ana" }] }));
+    });
+    test("el piloto no toca precio, aprobación ni vuelos donde no está asignado", async () => {
+        await assertFails(updateDoc(doc(as(UIDS.pilot), "aircraft-reservation", "res2"), { price: 1 }));
+        await assertFails(updateDoc(doc(as(UIDS.pilot), "aircraft-reservation", "res2"), { pilot_ids: [] }));
+        await assertFails(updateDoc(doc(as(UIDS.pilot), "aircraft-reservation", "res2"), { internal_status: "awaiting_payment" }));
+        // res1 no está pagada (awaiting_payment) y además no está asignado.
+        await assertFails(updateDoc(doc(as(UIDS.pilot), "aircraft-reservation", "res1"), { internal_status: "confirmed" }));
+    });
+    test("eliminar: solo reservas sin pagar y solo quien gestiona la aeronave", async () => {
+        await assertFails(deleteDoc(doc(as(UIDS.owner), "aircraft-reservation", "res2")));
+        await assertFails(deleteDoc(doc(as(UIDS.pilot), "aircraft-reservation", "res1")));
+        await assertFails(deleteDoc(doc(as(UIDS.client), "aircraft-reservation", "res1")));
+        await assertSucceeds(deleteDoc(doc(as(UIDS.encargada), "aircraft-reservation", "res1")));
+    });
+    test("el cliente lee sus reservas pero no las de otros", async () => {
+        await assertSucceeds(getDocs(query(collection(as(UIDS.client), "aircraft-reservation"), where("clientId", "==", UIDS.client))));
+        await assertFails(getDoc(doc(as(UIDS.otherClient), "aircraft-reservation", "res1")));
+        await assertFails(getDocs(query(collection(as(UIDS.client), "aircraft-reservation"), where("aircraftId", "==", "ac1"))));
+    });
+    test("el staff lee todas las reservas", async () => {
+        await assertSucceeds(getDocs(collection(as(UIDS.owner), "aircraft-reservation")));
+    });
+});
+
+describe("aircraft-availability", () => {
+    test("el cliente bloquea el horario de su vuelo pero no otros motivos", async () => {
+        const db = as(UIDS.client);
+        await assertSucceeds(addDoc(collection(db, "aircraft-availability"), { aircraftId: "ac1", reason: "flight" }));
+        await assertFails(addDoc(collection(db, "aircraft-availability"), { aircraftId: "ac1", reason: "maintenance" }));
+    });
+    test("el staff solo edita bloqueos de aeronaves que gestiona", async () => {
+        await assertSucceeds(addDoc(collection(as(UIDS.encargada), "aircraft-availability"), { aircraftId: "ac1", reason: "maintenance" }));
+        await assertFails(addDoc(collection(as(UIDS.encargada), "aircraft-availability"), { aircraftId: "ac2", reason: "maintenance" }));
+        await assertFails(deleteDoc(doc(as(UIDS.owner), "aircraft-availability", "ev2")));
+        await assertFails(addDoc(collection(as(UIDS.pilot), "aircraft-availability"), { aircraftId: "ac1", reason: "maintenance" }));
+    });
+    test("el cliente consulta bloqueos (buscador)", async () => {
+        await assertSucceeds(getDocs(query(collection(as(UIDS.client), "aircraft-availability"), where("aircraftId", "==", "ac1"))));
+    });
+});
+
+describe("pagos y servidor", () => {
+    test("nadie lee ni escribe bancard-transactions desde la app", async () => {
+        await assertFails(getDoc(doc(as(UIDS.admin), "bancard-transactions", "1")));
+        await assertFails(setDoc(doc(as(UIDS.admin), "bancard-transactions", "1"), { status: "approved" }));
+    });
+    test("nadie lee ni crea payment-links desde la app", async () => {
+        await assertFails(getDoc(doc(as(UIDS.admin), "payment-links", "abc")));
+        await assertFails(setDoc(doc(as(UIDS.encargada), "payment-links", "abc"), { reservationId: "res1" }));
+    });
+    test("tipo de cambio: lectura sí, escritura no", async () => {
+        await assertSucceeds(getDoc(doc(as(UIDS.client), "Contadores", "cambioDelDia")));
+        await assertFails(setDoc(doc(as(UIDS.admin), "Contadores", "cambioDelDia"), { dolar: 1 }));
+    });
+});
+
+describe("legal_logs", () => {
+    test("solo se crean, propios, e inmutables", async () => {
+        const db = as(UIDS.client);
+        const ref = await assertSucceeds(addDoc(collection(db, "legal_logs"), { userId: UIDS.client, contractVersion: "1.0" }));
+        await assertFails(addDoc(collection(db, "legal_logs"), { userId: UIDS.otherClient }));
+        await assertFails(updateDoc(doc(db, "legal_logs", ref.id), { contractVersion: "2.0" }));
+        await assertFails(deleteDoc(doc(as(UIDS.admin), "legal_logs", ref.id)));
+    });
+});
+
+describe("AircraftSpecs", () => {
+    test("todos leen; solo admin cambia la tarifa; owner ajeno no edita", async () => {
+        await assertSucceeds(getDoc(doc(as(UIDS.client), "AircraftSpecs", "ac1")));
+        await assertSucceeds(updateDoc(doc(as(UIDS.owner), "AircraftSpecs", "ac1"), { base_airport: "SGAS" }));
+        await assertFails(updateDoc(doc(as(UIDS.owner), "AircraftSpecs", "ac1"), { pricePerMileOverride: 1 }));
+        await assertSucceeds(updateDoc(doc(as(UIDS.admin), "AircraftSpecs", "ac1"), { pricePerMileOverride: 4 }));
+        await assertFails(updateDoc(doc(as(UIDS.otherOwner), "AircraftSpecs", "ac1"), { base_airport: "SGES" }));
+        await assertFails(updateDoc(doc(as(UIDS.client), "AircraftSpecs", "ac1"), { base_airport: "SGES" }));
+    });
+    test("el owner registra aeronaves propias, no ajenas", async () => {
+        await assertSucceeds(addDoc(collection(as(UIDS.owner), "AircraftSpecs"), { ownerId: UIDS.owner }));
+        await assertFails(addDoc(collection(as(UIDS.owner), "AircraftSpecs"), { ownerId: UIDS.otherOwner }));
+    });
+    test("la encargada edita y da de alta solo para su propietario", async () => {
+        const db = as(UIDS.encargada);
+        await assertSucceeds(updateDoc(doc(db, "AircraftSpecs", "ac1"), { base_airport: "SGAS" }));
+        await assertFails(updateDoc(doc(db, "AircraftSpecs", "ac2"), { base_airport: "SGAS" }));
+        await assertSucceeds(addDoc(collection(db, "AircraftSpecs"), { ownerId: UIDS.owner }));
+        await assertFails(addDoc(collection(db, "AircraftSpecs"), { ownerId: UIDS.otherOwner }));
+        await assertFails(updateDoc(doc(as(UIDS.pilot), "AircraftSpecs", "ac1"), { base_airport: "SGES" }));
+    });
+    test("la tarifa publicada (pricing) no se escribe desde la app", async () => {
+        await assertFails(updateDoc(doc(as(UIDS.owner), "AircraftSpecs", "ac1"), { pricing: { pricePerHourUsd: 1 } }));
+        await assertFails(updateDoc(doc(as(UIDS.encargada), "AircraftSpecs", "ac1"), { pricing: { pricePerHourUsd: 1 } }));
+    });
+});
+
+describe("Control operativo / GIO (OWNER + encargada)", () => {
+    test("el owner gestiona lo suyo", async () => {
+        const db = as(UIDS.owner);
+        await assertSucceeds(getDocs(query(collection(db, "owner_operational_flights"), where("ownerId", "==", UIDS.owner))));
+        await assertSucceeds(setDoc(doc(db, "owner_aircraft_operations_config", `${UIDS.owner}_ac1`), { ownerId: UIDS.owner, aircraftId: "ac1", tc: 6000 }, { merge: true }));
+        await assertSucceeds(getDoc(doc(db, "owner_aircraft_operations_config", `${UIDS.owner}_ac1`)));
+    });
+    test("la encargada usa GIO de la aeronave que gestiona", async () => {
+        const db = as(UIDS.encargada);
+        await assertSucceeds(getDocs(query(collection(db, "owner_operational_flights"),
+            where("ownerId", "==", UIDS.owner), where("aircraftId", "==", "ac1"))));
+        await assertSucceeds(getDoc(doc(db, "owner_aircraft_operations_config", `${UIDS.owner}_ac1`)));
+        await assertSucceeds(setDoc(doc(db, "owner_aircraft_operations_config", `${UIDS.owner}_ac1`), { ownerId: UIDS.owner, aircraftId: "ac1", tc: 6100 }, { merge: true }));
+        await assertSucceeds(addDoc(collection(db, "owner_operational_flights"), { ownerId: UIDS.owner, aircraftId: "ac1", horas: 1.8 }));
+        await assertSucceeds(addDoc(collection(db, "owner_operational_expenses"), { ownerId: UIDS.owner, aircraftId: "ac1", monto: 100 }));
+    });
+    test("la encargada no ve GIO de otras aeronaves ni consultas sin filtrar", async () => {
+        const db = as(UIDS.encargada);
+        await assertFails(getDocs(query(collection(db, "owner_operational_flights"), where("ownerId", "==", UIDS.owner))));
+        await assertFails(getDoc(doc(db, "owner_operational_flights", "f2")));
+        await assertFails(addDoc(collection(db, "owner_operational_flights"), { ownerId: UIDS.otherOwner, aircraftId: "ac2" }));
+        // Registro con ownerId que no es el dueño real de la aeronave.
+        await assertFails(addDoc(collection(db, "owner_operational_flights"), { ownerId: UIDS.otherOwner, aircraftId: "ac1" }));
+    });
+    test("pilotos comunes y otros owners no acceden", async () => {
+        await assertFails(getDocs(query(collection(as(UIDS.pilot), "owner_operational_flights"),
+            where("ownerId", "==", UIDS.owner), where("aircraftId", "==", "ac1"))));
+        await assertFails(getDoc(doc(as(UIDS.otherOwner), "owner_operational_flights", "f1")));
+        await assertFails(getDoc(doc(as(UIDS.otherOwner), "owner_aircraft_operations_config", `${UIDS.owner}_ac1`)));
+    });
+});
+
+describe("notifications", () => {
+    test("la encargada notifica; el cliente solo lee/marca las suyas", async () => {
+        const ref = await assertSucceeds(addDoc(collection(as(UIDS.encargada), "notifications"), { userId: UIDS.client, read: false }));
+        await assertSucceeds(updateDoc(doc(as(UIDS.client), "notifications", ref.id), { read: true }));
+        await assertFails(getDoc(doc(as(UIDS.otherClient), "notifications", ref.id)));
+        await assertFails(addDoc(collection(as(UIDS.client), "notifications"), { userId: UIDS.client }));
+    });
+});
+
+describe("catálogos", () => {
+    test("airports / templates / model-pricing: lectura todos, escritura admin", async () => {
+        await assertSucceeds(getDocs(collection(as(UIDS.client), "airports")));
+        await assertFails(setDoc(doc(as(UIDS.owner), "airports", "SGAS"), { ident: "SGAS" }));
+        await assertSucceeds(setDoc(doc(as(UIDS.admin), "model-pricing", "C414"), { model: "C414", defaultPricePerMile: 5 }));
+    });
+});

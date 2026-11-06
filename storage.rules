@@ -1,0 +1,66 @@
+rules_version = '2';
+
+// Reglas de Storage de AltaGo. Los roles se leen de Firestore (users/{uid}.roles),
+// igual que en firestore.rules.
+// Nota: las URLs de descarga con ?token=... (getDownloadURL) no pasan por estas reglas.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() { return request.auth != null; }
+
+    function roles() {
+      return firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        ? firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('roles', [])
+        : [];
+    }
+    function hasRole(r) { return signedIn() && r in roles(); }
+    function isAdmin() { return hasRole('ADMIN'); }
+    function isOwner() { return hasRole('OWNER'); }
+    function isEncargado() {
+      return hasRole('PILOT')
+        && firestore.exists(/databases/(default)/documents/pilots/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/pilots/$(request.auth.uid)).data.get('isEncargado', false) == true;
+    }
+
+    // Solo imágenes, hasta 10 MB.
+    function isImageUpload() {
+      return request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // El dueño de la aeronave (o el admin / encargado) gestiona sus fotos.
+    function canManageAircraft(aircraftId) {
+      return isAdmin() || isEncargado()
+        || (isOwner()
+            && firestore.get(/databases/(default)/documents/AircraftSpecs/$(aircraftId)).data.get('ownerId', '') == request.auth.uid);
+    }
+
+    // Recursos públicos (logo, etc.): lectura libre, escritura solo admin.
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Fotos de aeronaves: aircrafts/{aircraftId}_{timestamp}_{rand}.{ext}
+    match /aircrafts/{fileName} {
+      allow read: if signedIn();
+      allow create, update: if isImageUpload() && canManageAircraft(fileName.split('_')[0]);
+      allow delete: if canManageAircraft(fileName.split('_')[0]);
+    }
+
+    // Encargada que trabaja para ese propietario.
+    function isEncargadaOf(ownerUid) {
+      return isEncargado()
+        && ownerUid in firestore.get(/databases/(default)/documents/pilots/$(request.auth.uid)).data.get('owner_ids', []);
+    }
+
+    // Comprobantes de GIO (planes de vuelo operativos): el propietario, su encargada y el admin.
+    match /operational_flight_plans/{ownerUid}/{fileName} {
+      allow read, delete: if isAdmin() || (isOwner() && request.auth.uid == ownerUid) || isEncargadaOf(ownerUid);
+      allow create, update: if isImageUpload()
+        && (isAdmin() || (isOwner() && request.auth.uid == ownerUid) || isEncargadaOf(ownerUid));
+    }
+
+    // Todo lo demás: denegado.
+  }
+}

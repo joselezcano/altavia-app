@@ -1,8 +1,16 @@
 import * as admin from "firebase-admin";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
-import * as crypto from "crypto";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 
 admin.initializeApp();
+
+export { bancardConfirm, bancardGetConfirmation, bancardSingleBuy } from "./bancard";
+export { createPaymentLink, paymentLinkApi } from "./payment-links";
+export { claimPreRegisteredProfile } from "./profile-claim";
+export { syncReservationToGio } from "./gio-sync";
+export { syncAircraftPricing } from "./pricing-sync";
+import { DiditWebhookBody, verifyDiditSignature } from "./didit";
 
 const DIDIT_VERIFICATION_BASE = "https://verification.didit.me";
 
@@ -98,70 +106,136 @@ export const diditWebhook = onRequest(async (req, res) => {
     return;
   }
 
+  const webhookSecret = process.env.DIDIT_WEBHOOK_SECRET?.trim();
+  if (!webhookSecret) {
+    console.error("DIDIT_WEBHOOK_SECRET no configurado: se rechazan todos los webhooks.");
+    res.status(500).send("Webhook secret not configured");
+    return;
+  }
+
+  const verification = verifyDiditSignature(req, webhookSecret);
+  if (!verification.ok) {
+    console.warn(`Webhook de Didit rechazado: ${verification.reason}`);
+    res.status(401).json({ message: "Invalid signature" });
+    return;
+  }
+
   try {
-    const payload = req.body;
-    const webhookSecret = process.env.DIDIT_WEBHOOK_SECRET?.trim();
-    // Security Check: Signature verification using rawBody Buffer provided by Firebase Functions
-    if (webhookSecret) {
-      const rawBodyBuffer: Buffer | string =
-        (req as any).rawBody ||
-        (typeof req.body === "string" ? req.body : JSON.stringify(req.body));
+    const payload = req.body as DiditWebhookBody;
+    const webhookType = payload?.webhook_type;
 
-      const signatureHeader = (
-        req.headers["x-signature-v2"] ||
-        req.headers["x-signature"] ||
-        req.headers["x-didit-signature"]
-      ) as string | undefined;
-
-      if (signatureHeader) {
-        const expectedSignature = crypto
-          .createHmac("sha256", webhookSecret)
-          .update(rawBodyBuffer)
-          .digest("hex");
-
-        const isValid =
-          signatureHeader.toLowerCase() === expectedSignature.toLowerCase() ||
-          signatureHeader.toLowerCase() === `sha256=${expectedSignature.toLowerCase()}` ||
-          signatureHeader.toLowerCase() === `v2=${expectedSignature.toLowerCase()}`;
-
-        if (!isValid) {
-          console.warn(
-            `Firma de Webhook no coincide. Recibida: "${signatureHeader}", Calculada: "${expectedSignature}". Procediendo con actualización de estado KYC para el usuario.`
-          );
-        }
-      }
-    }
-
-    const uid = payload?.vendor_data; // Firebase UID
-    const status = payload?.status || payload?.user_status; // e.g. "Approved", "Declined"
-
-    if (!uid) {
-      console.warn("Webhook de Didit recibido sin vendor_data (uid):", payload);
-      res.status(400).send("Bad Request: missing vendor_data");
+    // Solo procesamos eventos de sesión KYC.
+    if (webhookType !== "status.updated" && webhookType !== "data.updated") {
+      res.status(200).json({ received: true, ignored: webhookType || "unknown" });
       return;
     }
 
-    const isApproved = status === "Approved" || status === "approved";
+    const uid = payload?.vendor_data; // Firebase UID (enviado en startKycSession)
+    const status = payload?.status; // "Approved" | "Declined" | "In Review" | ...
 
-    const userRef = admin.firestore().collection("users").doc(uid);
-    await userRef.update({
-      kycVerified: isApproved,
-      kycData: {
-        documentType: payload?.decision?.details?.document_type || "National ID / Passport",
-        country: payload?.decision?.details?.country || "PY",
-        verifiedAt: new Date().toISOString(),
-        provider: "didit.me",
-        session_id: payload?.session_id || "",
-        status: isApproved ? "approved" : "declined",
-        rawPayload: payload,
-      },
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    if (!uid) {
+      console.warn("Webhook de Didit recibido sin vendor_data (uid):", payload?.session_id);
+      res.status(200).json({ received: true, ignored: "missing vendor_data" });
+      return;
+    }
 
-    console.log(`Estado KYC para usuario ${uid} actualizado a kycVerified=${isApproved}`);
+    const userRef = getFirestore().collection("users").doc(uid);
+    const update: Record<string, unknown> = {
+      "kycData.provider": "didit.me",
+      "kycData.session_id": payload?.session_id || "",
+      "kycData.status": status || "",
+      "kycData.environment": payload?.environment || null,
+      "kycData.lastEventId": payload?.event_id || null,
+      "kycData.updatedAt": new Date().toISOString(),
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    // kycVerified solo cambia con un resultado final; los estados intermedios
+    // (In Progress, In Review, etc.) no deben revocar una verificación previa.
+    if (status === "Approved") {
+      update.kycVerified = true;
+      update["kycData.verifiedAt"] = new Date().toISOString();
+      update["kycData.documentType"] =
+        payload?.decision?.id_verification?.document_type ||
+        payload?.decision?.details?.document_type ||
+        null;
+      update["kycData.country"] =
+        payload?.decision?.id_verification?.issuing_state ||
+        payload?.decision?.details?.country ||
+        null;
+    } else if (status === "Declined" || status === "Kyc Expired") {
+      update.kycVerified = false;
+    }
+
+    if (payload?.decision) {
+      update["kycData.rawDecision"] = payload.decision;
+    }
+
+    await userRef.update(update);
+
+    console.log(`KYC de ${uid}: ${status} (verificado por ${verification.method})`);
     res.status(200).json({ received: true, status: "updated" });
   } catch (error: any) {
     console.error("Error al procesar Webhook de Didit:", error);
     res.status(500).send("Internal Server Error");
   }
 });
+
+/**
+ * 3. Scheduled Function: cambioDelDia
+ * Se ejecuta 3 veces al día (cada 8 horas) en la zona horaria de Asunción.
+ * Consulta la cotización en Cambios Chaco y actualiza el documento Contadores/cambioDelDia en Firestore.
+ */
+export const cambioDelDia = onSchedule(
+  {
+    schedule: "every 8 hours",
+    timeZone: "America/Asuncion",
+  },
+  async () => {
+    try {
+      console.log("[cambioDelDia] Consultando Cambios Chaco...");
+      const res = await fetch("https://www.cambioschaco.com.py/api/branch_office/1/exchange");
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+
+      const data = (await res.json()) as {
+        updateTs?: string;
+        items?: Array<{
+          isoCode: string;
+          purchasePrice: number;
+          salePrice: number;
+        }>;
+      };
+
+      const usdItem = data.items?.find((item) => item.isoCode === "USD") || data.items?.[0];
+      if (!usdItem) {
+        throw new Error("No se encontró la cotización para USD en la respuesta de Cambios Chaco");
+      }
+
+      const venta = parseInt(String(usdItem.salePrice), 10);
+      const compra = parseInt(String(usdItem.purchasePrice), 10);
+
+      console.log(`[cambioDelDia] Dólar obtenido - Venta: ${venta}, Compra: ${compra}`);
+
+      const db = getFirestore();
+      await db.collection("Contadores").doc("cambioDelDia").set(
+        {
+          dolar: venta,
+          compra: compra,
+          venta: venta,
+          source: "Cambios Chaco - Sucursal 1",
+          chacoUpdateTs: data.updateTs || null,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      console.log("[cambioDelDia] Documento Contadores/cambioDelDia actualizado exitosamente.");
+    } catch (error: any) {
+      console.error("[cambioDelDia] Error al actualizar el dólar:", error);
+    }
+
+    return;
+  }
+);

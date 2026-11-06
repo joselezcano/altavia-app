@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <title>Pago de vuelo · AltaGo</title>
+  <style>
+    :root {
+      --navy: #0f1e3d;
+      --navy-2: #1b2d55;
+      --gold: #c5a059;
+      --bg: #f4f6fa;
+      --card: #ffffff;
+      --text: #0f1e3d;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --ok: #059669;
+      --ok-bg: #ecfdf5;
+      --warn: #b45309;
+      --warn-bg: #fffbeb;
+      --err: #dc2626;
+      --err-bg: #fef2f2;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); color: var(--text); }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    header {
+      background: var(--navy);
+      color: #fff;
+      padding: 28px 16px 64px;
+      text-align: center;
+    }
+    .brand { font-size: 22px; font-weight: 800; letter-spacing: 0.5px; }
+    .brand span { color: var(--gold); }
+    .tagline { font-size: 13px; opacity: 0.75; margin-top: 4px; }
+    main { max-width: 480px; margin: -44px auto 32px; padding: 0 16px; }
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(15, 30, 61, 0.08);
+      border: 1px solid var(--line);
+    }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gold); text-transform: uppercase; }
+    .route { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 6px; }
+    .code { font-size: 30px; font-weight: 800; }
+    .arrow { flex: 1; text-align: center; color: var(--gold); font-size: 20px; }
+    .meta { color: var(--muted); font-size: 13px; text-align: center; }
+    .amount { border-top: 1px dashed var(--line); margin-top: 18px; padding-top: 16px; display: flex; justify-content: space-between; align-items: baseline; }
+    .amount .label { color: var(--muted); font-size: 13px; }
+    .amount .usd { font-size: 24px; font-weight: 800; text-align: right; }
+    .amount .pyg { font-size: 12px; color: var(--muted); text-align: right; }
+    button {
+      width: 100%;
+      margin-top: 20px;
+      background: var(--navy);
+      color: #fff;
+      border: 0;
+      border-radius: 12px;
+      padding: 15px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: default; }
+    button.secondary { background: #fff; color: var(--navy); border: 1px solid var(--line); }
+    .secure { margin-top: 12px; text-align: center; color: var(--muted); font-size: 12px; }
+    .state { text-align: center; padding: 12px 0 4px; }
+    .state h1 { font-size: 20px; margin: 10px 0 6px; }
+    .state p { color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .badge {
+      width: 56px; height: 56px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 800;
+    }
+    .badge.ok { background: var(--ok-bg); color: var(--ok); }
+    .badge.warn { background: var(--warn-bg); color: var(--warn); }
+    .badge.err { background: var(--err-bg); color: var(--err); }
+    .spinner {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 3px solid var(--line); border-top-color: var(--navy);
+      animation: spin 0.8s linear infinite; margin: 8px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #iframe-container { min-height: 460px; margin-top: 8px; }
+    .staging { display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 700; color: #92400e; background: #fef3c7; border: 1px solid #fde68a; border-radius: 4px; padding: 2px 6px; }
+    footer { text-align: center; color: var(--muted); font-size: 11px; padding: 0 16px 24px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">Alta<span>Go</span></div>
+    <div class="tagline">Vuelos chárter · ALTAVIA S.A.</div>
+  </header>
+
+  <main>
+    <div class="card" id="card">
+      <!-- Cargando -->
+      <section id="v-loading" class="state">
+        <div class="spinner"></div>
+        <p>Cargando tu vuelo…</p>
+      </section>
+
+      <!-- Resumen + pagar -->
+      <section id="v-summary" hidden>
+        <div class="eyebrow">Tu vuelo</div>
+        <div class="route">
+          <div class="code" id="s-origin">—</div>
+          <div class="arrow">✈</div>
+          <div class="code" id="s-destination">—</div>
+        </div>
+        <div class="meta" id="s-date"></div>
+        <div class="amount">
+          <div class="label">Total a pagar</div>
+          <div>
+            <div class="usd" id="s-usd">—</div>
+            <div class="pyg" id="s-pyg"></div>
+          </div>
+        </div>
+        <button id="btn-pay" type="button">Pagar con tarjeta</button>
+        <div class="secure">🔒 El pago se procesa en el formulario seguro de Bancard. AltaGo no ve ni guarda los datos de tu tarjeta.</div>
+      </section>
+
+      <!-- Checkout Bancard -->
+      <section id="v-checkout" hidden>
+        <div class="eyebrow">Pago seguro Bancard</div>
+        <div class="meta" id="c-amount" style="text-align:left;margin-top:4px"></div>
+        <span class="staging" id="c-staging" hidden>AMBIENTE DE PRUEBAS</span>
+        <div id="iframe-container"></div>
+      </section>
+
+      <!-- Estados finales -->
+      <section id="v-state" class="state" hidden>
+        <div class="badge" id="st-badge"></div>
+        <h1 id="st-title"></h1>
+        <p id="st-text"></p>
+        <button id="st-btn" type="button" class="secondary" hidden></button>
+      </section>
+    </div>
+  </main>
+
+  <footer>¿Dudas con tu reserva? Respondé el mensaje de WhatsApp por el que recibiste este link.</footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var API = "/api/payment-link";
+      var params = new URLSearchParams(window.location.search);
+      var token = params.get("t") || "";
+      var returned = params.get("r") === "1";
+      var canceled = params.get("c") === "1";
+
+      var views = ["v-loading", "v-summary", "v-checkout", "v-state"];
+      function show(id) {
+        views.forEach(function (v) { document.getElementById(v).hidden = v !== id; });
+      }
+      function $(id) { return document.getElementById(id); }
+
+      function fmtUsd(n) {
+        return "USD " + Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 2 });
+      }
+      function fmtPyg(n) {
+        return "₲ " + Math.round(Number(n || 0)).toLocaleString("es-PY");
+      }
+
+      function state(kind, title, text, btn) {
+        var badge = $("st-badge");
+        badge.className = "badge " + kind;
+        badge.textContent = kind === "ok" ? "✓" : kind === "warn" ? "!" : "✕";
+        $("st-title").textContent = title;
+        $("st-text").textContent = text;
+        var b = $("st-btn");
+        if (btn) {
+          b.hidden = false;
+          b.textContent = btn.label;
+          b.onclick = btn.onClick;
+        } else {
+          b.hidden = true;
+        }
+        show("v-state");
+      }
+
+      function api(action) {
+        return fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: action, token: token }),
+        }).then(function (r) {
+          return r.json().catch(function () { return { status: "error" }; });
+        });
+      }
+
+      // Quita r/c de la URL para que recargar no repita estados.
+      function cleanUrl() {
+        var u = new URL(window.location.href);
+        u.searchParams.delete("r");
+        u.searchParams.delete("c");
+        window.history.replaceState(null, "", u.toString());
+      }
+
+      function handleCommonStatus(data) {
+        if (!data || data.status === "invalid") {
+          state("err", "Link inválido", "Este link de pago no existe. Pedí uno nuevo a tu agente de AltaGo.");
+          return true;
+        }
+        if (data.status === "paid" || data.status === "approved") {
+          state("ok", "¡Vuelo pagado!", "Tu pago fue confirmado. Te enviaremos la factura y los detalles del vuelo.");
+          return true;
+        }
+        if (data.status === "expired") {
+          state("warn", "Link vencido", "Este link venció por seguridad. Pedí uno nuevo a tu agente de AltaGo.");
+          return true;
+        }
+        if (data.status === "unavailable") {
+          state("warn", "Reserva no disponible para pago", "Esta reserva fue modificada o cancelada. Comunicate con tu agente de AltaGo.");
+          return true;
+        }
+        if (data.status === "error") {
+          state("err", "No pudimos continuar", data.message || "Ocurrió un error. Intentá de nuevo en unos minutos.", {
+            label: "Reintentar", onClick: function () { window.location.reload(); }
+          });
+          return true;
+        }
+        return false;
+      }
+
+      function loadSummary() {
+        show("v-loading");
+        api("info").then(function (data) {
+          if (handleCommonStatus(data)) return;
+          $("s-origin").textContent = data.origin || "—";
+          $("s-destination").textContent = data.destination || "—";
+          if (data.departure) {
+            var d = new Date(data.departure);
+            $("s-date").textContent = d.toLocaleString("es-PY", {
+              weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
+            }) + " hs";
+          }
+          $("s-usd").textContent = fmtUsd(data.amountUsd);
+          $("s-pyg").textContent = "≈ " + fmtPyg(data.amountPygEstimate) + " (se cobra en guaraníes)";
+          show("v-summary");
+        }).catch(function () {
+          handleCommonStatus({ status: "error" });
+        });
+      }
+
+      function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+          var s = document.createElement("script");
+          s.src = src;
+          s.onload = resolve;
+          s.onerror = function () { reject(new Error("No se pudo cargar Bancard")); };
+          document.head.appendChild(s);
+        });
+      }
+
+      function startCheckout() {
+        var btn = $("btn-pay");
+        btn.disabled = true;
+        btn.textContent = "Conectando con Bancard…";
+        api("checkout").then(function (data) {
+          if (handleCommonStatus(data)) return;
+          if (data.status !== "checkout" || !data.processId) {
+            handleCommonStatus({ status: "error" });
+            return;
+          }
+          $("c-amount").textContent = "Total: " + fmtPyg(data.amountPyg) + " (" + fmtUsd(data.amountUsd) + ")";
+          $("c-staging").hidden = data.environment !== "staging";
+          show("v-checkout");
+          return loadScript(data.checkoutBaseUrl + "/checkout/javascript/dist/bancard-checkout-4.0.0.js").then(function () {
+            window.Bancard.Checkout.createForm("iframe-container", data.processId, {
+              "form-background-color": "#ffffff",
+              "button-background-color": "#0f1e3d",
+              "button-text-color": "#ffffff",
+              "button-border-color": "#0f1e3d",
+              "input-background-color": "#f8fafc",
+              "input-text-color": "#0f1e3d",
+              "input-placeholder-color": "#94a3b8",
+            });
+          });
+        }).catch(function (err) {
+          handleCommonStatus({ status: "error", message: err && err.message });
+        }).then(function () {
+          btn.disabled = false;
+          btn.textContent = "Pagar con tarjeta";
+        });
+      }
+
+      // Al volver de Bancard: la confirmación puede tardar unos segundos.
+      function verifyPayment(attempt) {
+        attempt = attempt || 0;
+        show("v-loading");
+        document.querySelector("#v-loading p").textContent = "Verificando tu pago con Bancard…";
+        api("status").then(function (data) {
+          if (data.status === "approved") {
+            cleanUrl();
+            handleCommonStatus({ status: "paid" });
+          } else if (data.status === "declined") {
+            cleanUrl();
+            state("err", "Pago rechazado", data.responseDescription || "Bancard no aprobó la transacción.", {
+              label: "Intentar con otra tarjeta", onClick: loadSummary
+            });
+          } else if (data.status === "pending" && attempt < 6) {
+            setTimeout(function () { verifyPayment(attempt + 1); }, 3000);
+          } else if (data.status === "pending") {
+            cleanUrl();
+            state("warn", "Pago en verificación", "Todavía no recibimos la confirmación. Si completaste el pago, no lo repitas: se reflejará en unos minutos.", {
+              label: "Volver a verificar", onClick: function () { verifyPayment(0); }
+            });
+          } else if (!handleCommonStatus(data)) {
+            handleCommonStatus({ status: "error" });
+          }
+        }).catch(function () {
+          handleCommonStatus({ status: "error" });
+        });
+      }
+
+      $("btn-pay").addEventListener("click", startCheckout);
+
+      if (!token) {
+        handleCommonStatus({ status: "invalid" });
+      } else if (returned) {
+        verifyPayment(0);
+      } else if (canceled) {
+        cleanUrl();
+        state("warn", "Pago cancelado", "No se realizó ningún cobro.", { label: "Volver a intentar", onClick: loadSummary });
+      } else {
+        loadSummary();
+      }
+    })();
+  </script>
+</body>
+</html>

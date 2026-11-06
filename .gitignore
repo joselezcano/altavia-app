@@ -46,3 +46,9 @@ example
 
 .env
 contexto.md
+# Documentos de trabajo locales
+/prompt final altaGo.docx
+
+# Caché de Firebase Hosting y logs del emulador
+.firebase/
+firestore-debug.log

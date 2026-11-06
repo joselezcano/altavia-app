@@ -1,0 +1,356 @@
+rules_version = '2';
+
+// =============================================================================
+// Reglas de seguridad de Firestore — ALTAVIA / AltaGo
+//
+// Principios:
+//  - Todo cerrado por defecto; cada colección habilita lo que la app usa.
+//  - Los roles salen de users/{uid}.roles y el usuario NO puede modificarlos.
+//  - Los campos de pago/factura de una reserva SOLO los escribe el servidor
+//    (Cloud Functions con Admin SDK, que no pasan por estas reglas).
+//  - KYC (kycVerified / kycData) SOLO lo escribe el webhook de Didit.
+//
+// Tests: tests/firestore-rules (ver README ahí). Desplegar con:
+//   firebase deploy --only firestore:rules
+// =============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------- helpers
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function roles() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? userDoc().data.get('roles', [])
+        : [];
+    }
+
+    function hasRole(role) {
+      return signedIn() && role in roles();
+    }
+
+    function isAdmin() { return hasRole('ADMIN'); }
+    function isOwner() { return hasRole('OWNER'); }
+    function isPilot() { return hasRole('PILOT'); }
+
+    function isEncargado() {
+      return isPilot()
+        && exists(/databases/$(database)/documents/pilots/$(request.auth.uid))
+        && get(/databases/$(database)/documents/pilots/$(request.auth.uid)).data.get('isEncargado', false) == true;
+    }
+
+    function pilotData() {
+      return get(/databases/$(database)/documents/pilots/$(request.auth.uid)).data;
+    }
+
+    function aircraftOwnerId(aircraftId) {
+      return exists(/databases/$(database)/documents/AircraftSpecs/$(aircraftId))
+        ? get(/databases/$(database)/documents/AircraftSpecs/$(aircraftId)).data.get('ownerId', '')
+        : '';
+    }
+
+    // Dueño de esa aeronave puntual.
+    function ownsAircraft(aircraftId) {
+      return isOwner() && aircraftOwnerId(aircraftId) == uid();
+    }
+
+    // Encargada con esa aeronave en managed_aircrafts.
+    function managesAircraft(aircraftId) {
+      return isEncargado() && aircraftId in pilotData().get('managed_aircrafts', []);
+    }
+
+    // Gestión de una aeronave puntual: admin, su dueño o su encargada.
+    function canManageAircraft(aircraftId) {
+      return isAdmin() || ownsAircraft(aircraftId) || managesAircraft(aircraftId);
+    }
+
+    // Estados operativos que el piloto asignado puede mover (nunca aprobar ni cobrar).
+    function pilotStatuses() {
+      return ['confirmed', 'delayed', 'in_flight', 'completed', 'no_show'];
+    }
+
+    // Personal operativo: ve reservas, calendario y planes de vuelo.
+    function isStaff() { return isAdmin() || isOwner() || isPilot(); }
+
+    // Gestión comercial: alta de clientes, reservas telefónicas, aprobación.
+    function isManager() { return isAdmin() || isOwner() || isEncargado(); }
+
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // Campos que solo escribe el servidor al confirmar un pago con Bancard.
+    function paymentFields() {
+      return [
+        'paid_at', 'payment_method', 'payment_transaction_id', 'payment_authorization_number',
+        'bancard_shop_process_id', 'bancard_process_id',
+        'invoice_number', 'invoice_timbrado', 'invoice_cdc', 'invoice_url', 'invoice_is_demo'
+      ];
+    }
+
+    // Campos de usuario que nunca puede tocar la app.
+    function serverOnlyUserFields() {
+      return ['kycVerified', 'kycData'];
+    }
+
+    // ------------------------------------------------------------------ users
+    match /users/{userId} {
+      allow read: if signedIn() && (userId == uid() || isStaff());
+
+      // Alta propia (registro / onboarding) o alta rápida de cliente por la encargada.
+      // Siempre con rol CLIENT únicamente y sin datos de KYC.
+      allow create: if signedIn()
+        && (userId == uid() || isManager())
+        && request.resource.data.get('roles', []) == ['CLIENT']
+        && request.resource.data.get('kycVerified', false) == false
+        && !('kycData' in request.resource.data);
+
+      allow update: if signedIn() && (
+        isAdmin()
+        // El propio usuario: no puede cambiar sus roles ni su KYC.
+        || (userId == uid()
+            && !changedKeys().hasAny(['roles', 'uid'].concat(serverOnlyUserFields())))
+        // Gestión: puede actualizar datos de un cliente y, como mucho, AGREGAR el rol CLIENT.
+        || (isManager()
+            && !changedKeys().hasAny(['uid'].concat(serverOnlyUserFields()))
+            && (!('roles' in changedKeys())
+                || (request.resource.data.roles.hasAll(resource.data.get('roles', []))
+                    && request.resource.data.roles.toSet()
+                         .difference(resource.data.get('roles', []).toSet())
+                         .hasOnly(['CLIENT']))))
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------- perfiles por rol
+    match /clients/{clientId} {
+      allow read: if signedIn() && (clientId == uid() || isStaff());
+      allow create, update: if signedIn() && (clientId == uid() || isManager());
+      allow delete: if isAdmin();
+    }
+
+    match /pilots/{pilotId} {
+      allow read: if signedIn() && (pilotId == uid() || isStaff());
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        // Propietario: vincular (solo a sí mismo) y, sobre sus pilotos vinculados,
+        // nombrar encargados y asignar aeronaves.
+        || (isOwner()
+            && changedKeys().hasOnly([
+                 'owner_ids', 'isEncargado', 'managed_aircrafts', 'pilot_aircrafts',
+                 'updated_at', 'updatedAt'
+               ])
+            && onlyOwnUidChanged()
+            && (uid() in resource.data.get('owner_ids', [])
+                || uid() in request.resource.data.get('owner_ids', [])))
+        // Encargada: asignar pilotos a las aeronaves que ella gestiona (nada más).
+        || (isEncargado()
+            && changedKeys().hasOnly(['pilot_aircrafts', 'updated_at', 'updatedAt'])
+            && listDiff(resource.data.get('pilot_aircrafts', []),
+                        request.resource.data.get('pilot_aircrafts', []))
+                 .hasOnly(pilotData().get('managed_aircrafts', [])))
+        // El propio piloto: sus datos, y como mucho RENUNCIAR a vínculos y permisos.
+        || (pilotId == uid()
+            && (!('owner_ids' in changedKeys())
+                || resource.data.get('owner_ids', []).hasAll(request.resource.data.get('owner_ids', [])))
+            && (!('managed_aircrafts' in changedKeys())
+                || resource.data.get('managed_aircrafts', []).hasAll(request.resource.data.get('managed_aircrafts', [])))
+            && (!('pilot_aircrafts' in changedKeys())
+                || resource.data.get('pilot_aircrafts', []).hasAll(request.resource.data.get('pilot_aircrafts', [])))
+            && (!('isEncargado' in changedKeys()) || request.resource.data.isEncargado == false));
+    }
+
+    // Elementos agregados o quitados entre dos listas.
+    function listDiff(before, after) {
+      return after.toSet().difference(before.toSet())
+        .union(before.toSet().difference(after.toSet()));
+    }
+
+    // En owner_ids, un propietario solo puede agregarse o quitarse a sí mismo.
+    function onlyOwnUidChanged() {
+      return !('owner_ids' in changedKeys())
+        || listDiff(resource.data.get('owner_ids', []), request.resource.data.get('owner_ids', []))
+             .hasOnly([uid()]);
+    }
+
+    match /owners/{ownerId} {
+      allow read: if signedIn() && (ownerId == uid() || isStaff());
+      allow write: if isAdmin();
+    }
+
+    match /admin-users/{adminId} {
+      allow read: if signedIn() && (adminId == uid() || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // --------------------------------------------------------------- aeronaves
+    match /AircraftSpecs/{aircraftId} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+        || (isOwner() && request.resource.data.get('ownerId', '') == uid())
+        // La encargada da de alta aeronaves a nombre de un propietario con el que trabaja.
+        || (isEncargado()
+            && request.resource.data.get('ownerId', '') in pilotData().get('owner_ids', []));
+      // La tarifa publicada (pricing) la escribe el servidor desde los Ajustes de GIO.
+      allow update: if isAdmin()
+        || ((ownsAircraft(aircraftId) || managesAircraft(aircraftId))
+            && !changedKeys().hasAny(['ownerId', 'pricePerMileOverride', 'pricing']));
+      allow delete: if isAdmin() || ownsAircraft(aircraftId);
+    }
+
+    // Bloqueos de calendario. El cliente solo puede crear bloqueos de su vuelo.
+    match /aircraft-availability/{eventId} {
+      allow read: if signedIn();
+      allow create: if canManageAircraft(request.resource.data.get('aircraftId', ''))
+        || (signedIn() && request.resource.data.get('reason', '') == 'flight');
+      allow update, delete: if canManageAircraft(resource.data.get('aircraftId', ''));
+    }
+
+    // --------------------------------------------------------------- reservas
+    match /aircraft-reservation/{reservationId} {
+      allow read: if signedIn() && (resource.data.get('clientId', '') == uid() || isStaff());
+
+      // Toda reserva nace sin pagar y pendiente de aprobación operativa.
+      allow create: if signedIn()
+        && (request.resource.data.get('clientId', '') == uid()
+            || canManageAircraft(request.resource.data.get('aircraftId', '')))
+        && request.resource.data.get('client_status', '') == 'unpaid'
+        && request.resource.data.get('internal_status', '') == 'pending_approval'
+        && !request.resource.data.keys().hasAny(paymentFields());
+
+      allow update: if signedIn()
+        && !changedKeys().hasAny(paymentFields())
+        // client_status 'confirmed' / 'refunded' solo lo pone el servidor.
+        && (!('client_status' in changedKeys())
+            || request.resource.data.client_status in ['unpaid', 'canceled'])
+        && (
+          // Admin, dueño o encargada de la aeronave: precio, tripulación, estado y datos.
+          (canManageAircraft(resource.data.get('aircraftId', ''))
+            && !('clientId' in changedKeys())
+            && (!('aircraftId' in changedKeys())
+                || canManageAircraft(request.resource.data.get('aircraftId', ''))))
+          // Piloto asignado: manifiesto, notas y estados operativos (nunca precio ni aprobación).
+          || (uid() in resource.data.get('pilot_ids', [])
+              && changedKeys().hasOnly(['passengers', 'internal_status', 'status_notes'])
+              && (!('internal_status' in changedKeys())
+                  || (resource.data.get('internal_status', '') in pilotStatuses()
+                      && request.resource.data.internal_status in pilotStatuses())))
+          // El cliente: cargar su manifiesto o cancelar.
+          || (resource.data.get('clientId', '') == uid()
+              && changedKeys().hasOnly(['passengers', 'client_status', 'status_notes']))
+        );
+
+      // Solo reservas sin pagar. Las pagadas se cancelan, para no perder el rastro del cobro.
+      allow delete: if canManageAircraft(resource.data.get('aircraftId', ''))
+        && resource.data.get('client_status', '') != 'confirmed'
+        && !('paid_at' in resource.data);
+    }
+
+    // Transacciones de Bancard: exclusivas del servidor.
+    match /bancard-transactions/{shopProcessId} {
+      allow read, write: if false;
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if signedIn() && resource.data.get('userId', '') == uid();
+      allow create: if isManager();
+      allow update: if signedIn()
+        && resource.data.get('userId', '') == uid()
+        && changedKeys().hasOnly(['read']);
+      allow delete: if signedIn() && resource.data.get('userId', '') == uid();
+    }
+
+    // -------------------------------------------------------------- operación
+    match /flight-plans/{planId} {
+      allow read, write: if isStaff();
+    }
+
+    match /flight-requests/{requestId} {
+      allow read, write: if isStaff();
+    }
+
+    match /flight-maps/{mapId} {
+      allow read: if signedIn();
+      allow write: if isStaff();
+    }
+
+    match /flight-current-position/{positionId} {
+      allow read: if signedIn();
+      allow write: if isStaff();
+    }
+
+    // ------------------------------------------------- catálogos de referencia
+    match /airports/{airportId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /aircraft-templates/{templateId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /model-pricing/{modelId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // Tipo de cambio: lo escribe la Cloud Function cambioDelDia.
+    match /Contadores/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // ------------------------------------------------------------------- legal
+    // Registro inmutable de aceptación de TyC: solo se crea, nunca se modifica.
+    match /legal_logs/{logId} {
+      allow create: if signedIn() && request.resource.data.get('userId', '') == uid();
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // ------------- control operativo / GIO (OWNER, su encargada y el ADMIN)
+    // Un registro de GIO pertenece al dueño de la aeronave (ownerId) y lo pueden
+    // gestionar el propio dueño, la encargada de ESA aeronave y el admin.
+    function canUseGio(ownerId, aircraftId) {
+      return (isOwner() && ownerId == uid())
+        || ((isAdmin() || managesAircraft(aircraftId)) && aircraftOwnerId(aircraftId) == ownerId);
+    }
+
+    match /owner_aircraft_operations_config/{configId} {
+      // ID determinístico: {ownerUid}_{aircraftId}
+      allow read, delete: if canUseGio(configId.split('_')[0], configId.split('_')[1]);
+      allow create, update: if canUseGio(configId.split('_')[0], configId.split('_')[1])
+        && request.resource.data.get('ownerId', '') == configId.split('_')[0]
+        && request.resource.data.get('aircraftId', '') == configId.split('_')[1];
+    }
+
+    match /owner_operational_flights/{flightId} {
+      allow read, delete: if canUseGio(resource.data.get('ownerId', ''), resource.data.get('aircraftId', ''));
+      allow create: if canUseGio(request.resource.data.get('ownerId', ''), request.resource.data.get('aircraftId', ''));
+      allow update: if canUseGio(resource.data.get('ownerId', ''), resource.data.get('aircraftId', ''))
+        && !changedKeys().hasAny(['ownerId', 'aircraftId']);
+    }
+
+    match /owner_operational_expenses/{expenseId} {
+      allow read, delete: if canUseGio(resource.data.get('ownerId', ''), resource.data.get('aircraftId', ''));
+      allow create: if canUseGio(request.resource.data.get('ownerId', ''), request.resource.data.get('aircraftId', ''));
+      allow update: if canUseGio(resource.data.get('ownerId', ''), resource.data.get('aircraftId', ''))
+        && !changedKeys().hasAny(['ownerId', 'aircraftId']);
+    }
+
+    // Todo lo demás: denegado (comportamiento por defecto).
+  }
+}
