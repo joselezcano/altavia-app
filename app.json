@@ -63,7 +63,15 @@
           "iosUrlScheme": "com.googleusercontent.apps.169088666127-l58eau56ehobp5neabs4vm3shrqi7kk9"
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "AltaGo usa la cámara para escanear el boarding pass de los pasajeros y fotografiar el plan de vuelo.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
