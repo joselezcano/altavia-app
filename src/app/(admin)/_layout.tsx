@@ -1,4 +1,5 @@
 import UserAvatar from "@/components/user-avatar";
+import { BRAND_LOGO_ASPECT, BRAND_LOGOS } from "@/constants/brand";
 import { useResponsive } from "@/hooks/use-responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { Drawer, DrawerContentScrollView, DrawerItemList } from "expo-router/drawer";
@@ -9,7 +10,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function AdminLayout() {
     const insets = useSafeAreaInsets();
     const { isWideScreen } = useResponsive();
-    const logoUrl = "https://firebasestorage.googleapis.com/v0/b/altavia-app.firebasestorage.app/o/public%2Flogo%20altavista.jpeg?alt=media&token=7a326f0f-7ff4-4f20-a2c2-e1cb05c2d0b7";
 
     return (
         <>
@@ -24,8 +24,8 @@ export default function AdminLayout() {
                         {/* Cabecera del Panel con Logo */}
                         <View className="items-center py-5 border-b border-slate-100 mb-4 px-4">
                             <Image
-                                source={{ uri: logoUrl }}
-                                style={{ width: 180, height: 50 }}
+                                source={BRAND_LOGOS.horizontalColor}
+                                style={{ width: 168, height: 168 / BRAND_LOGO_ASPECT.horizontal }}
                                 resizeMode="contain"
                             />
                         </View>
