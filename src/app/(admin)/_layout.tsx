@@ -1,4 +1,5 @@
 import UserAvatar from "@/components/user-avatar";
+import { useResponsive } from "@/hooks/use-responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { Drawer, DrawerContentScrollView, DrawerItemList } from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
@@ -7,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AdminLayout() {
     const insets = useSafeAreaInsets();
+    const { isWideScreen } = useResponsive();
     const logoUrl = "https://firebasestorage.googleapis.com/v0/b/altavia-app.firebasestorage.app/o/public%2Flogo%20altavista.jpeg?alt=media&token=7a326f0f-7ff4-4f20-a2c2-e1cb05c2d0b7";
 
     return (
@@ -41,8 +43,12 @@ export default function AdminLayout() {
                     </DrawerContentScrollView>
                 )}
                 screenOptions={{
+                    drawerType: isWideScreen ? "permanent" : "front",
                     drawerStyle: {
                         width: 280,
+                        backgroundColor: "#FFFFFF",
+                        borderRightWidth: isWideScreen ? 1 : 0,
+                        borderRightColor: "#E2E8F0",
                     },
                     headerStyle: {
                         backgroundColor: "#0f1e3d", // brand.blue
@@ -56,6 +62,7 @@ export default function AdminLayout() {
                     drawerLabelStyle: {
                         fontWeight: "bold",
                     },
+                    headerLeft: isWideScreen ? () => null : undefined,
                 }}
             >
             <Drawer.Screen
@@ -106,6 +113,38 @@ export default function AdminLayout() {
                     drawerIcon: ({ color, size }) => (
                         <Ionicons name="paper-plane-outline" size={size} color={color} />
                     ),
+                }}
+            />
+            <Drawer.Screen
+                name="new-booking"
+                options={{
+                    drawerLabel: "Nueva Reserva",
+                    title: "Nueva Reserva",
+                    drawerIcon: ({ color, size }) => (
+                        <Ionicons name="add-circle-outline" size={size} color={color} />
+                    ),
+                    headerTitle: () => (
+                        <View className="flex-row items-center gap-2">
+                            <Ionicons name="paper-plane-outline" size={20} color="#FFFFFF" />
+                            <Text className="text-white font-bold text-lg">Despacho Telefónico</Text>
+                        </View>
+                    )
+                }}
+            />
+            <Drawer.Screen
+                name="reservations"
+                options={{
+                    drawerLabel: "Reservas y Cobros",
+                    title: "Reservas y Cobros",
+                    drawerIcon: ({ color, size }) => (
+                        <Ionicons name="calendar-outline" size={size} color={color} />
+                    ),
+                    headerTitle: () => (
+                        <View className="flex-row items-center gap-2">
+                            <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />
+                            <Text className="text-white font-bold text-lg">Reservas y Cobros</Text>
+                        </View>
+                    )
                 }}
             />
             <Drawer.Screen

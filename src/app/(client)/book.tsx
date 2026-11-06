@@ -162,21 +162,39 @@ export default function ClientDashboard() {
       className="flex-1 bg-brand-light"
     >
       <ThemedView className="flex-1 px-4 pt-2">
-        {/* Top Header with Greeting & Avatar */}
+        {/* Top Header with Back Button, Greeting & Avatar */}
         <View className="flex-row justify-between items-center mb-4">
-          <View>
-            <ThemedText
-              type="caption"
-              className="uppercase font-bold text-brand-gold tracking-widest"
+          <View className="flex-row items-center gap-3">
+            <TouchableOpacity
+              onPress={() => {
+                if (currentStep === 2) {
+                  setCurrentStep(1);
+                } else if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.push("/(client)");
+                }
+              }}
+              className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
+              activeOpacity={0.7}
             >
-              Bienvenido
-            </ThemedText>
-            <ThemedText type="title" className="mt-0.5 text-xl">
-              {user?.email?.split("@")[0] || "Pasajero"}
-            </ThemedText>
+              <Ionicons name="arrow-back" size={20} color="#0f1e3d" />
+            </TouchableOpacity>
+
+            <View>
+              <ThemedText
+                type="caption"
+                className="uppercase font-bold text-brand-gold tracking-widest text-[10px]"
+              >
+                {currentStep === 2 ? "Paso 2 de 2" : "Reservar Vuelo"}
+              </ThemedText>
+              <ThemedText type="title" className="mt-0.5 text-lg">
+                {currentStep === 2 ? "Seleccionar Horario" : (user?.email?.split("@")[0] || "Pasajero")}
+              </ThemedText>
+            </View>
           </View>
 
-          <UserAvatar size={44} />
+          <UserAvatar size={42} />
         </View>
 
         {/* Step Indicator Header */}
@@ -267,26 +285,94 @@ export default function ClientDashboard() {
                 )}
               </View>
 
-              {/* Passengers Count */}
+              {/* Passengers Count (Airbnb / E-commerce style stepper) */}
               <View>
-                <ThemedText type="caption" className="font-bold mb-1">
+                <ThemedText type="caption" className="font-bold mb-1.5">
                   Cantidad de Pasajeros
                 </ThemedText>
                 <Controller
                   control={control}
                   name="capacity.passangers"
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      value={isNaN(value) ? "" : String(value)}
-                      onChangeText={(val) => {
-                        const parsed = parseInt(val, 10);
-                        onChange(isNaN(parsed) ? 1 : parsed);
-                      }}
-                      placeholder="1"
-                      keyboardType="numeric"
-                      className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-brand-text font-medium"
-                    />
-                  )}
+                  render={({ field: { onChange, value } }) => {
+                    const count = typeof value === "number" && !isNaN(value) && value >= 1 ? value : 1;
+                    return (
+                      <View className="flex-row items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
+                        <View className="flex-row items-center gap-2.5 flex-1 mr-2">
+                          <View className="w-9 h-9 rounded-full bg-brand-blue/10 items-center justify-center">
+                            <Ionicons name="people" size={18} color="#0f1e3d" />
+                          </View>
+                          <View className="flex-1">
+                            <ThemedText className="font-bold text-brand-blue text-sm" numberOfLines={1}>
+                              {count} {count === 1 ? "pasajero" : "pasajeros"}
+                            </ThemedText>
+                            <ThemedText className="text-[11px] text-slate-500" numberOfLines={1}>
+                              Capacidad en cabina
+                            </ThemedText>
+                          </View>
+                        </View>
+
+                        <View className="flex-row items-center gap-2.5">
+                          <TouchableOpacity
+                            onPress={() => {
+                              if (count > 1) {
+                                onChange(count - 1);
+                              }
+                            }}
+                            disabled={count <= 1}
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: 18,
+                              alignItems: "center",
+                              justifyContent: "center",
+                              borderWidth: 1,
+                              borderColor: count <= 1 ? "#E2E8F0" : "#CBD5E1",
+                              backgroundColor: count <= 1 ? "#F1F5F9" : "#FFFFFF",
+                              opacity: count <= 1 ? 0.4 : 1,
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons
+                              name="remove"
+                              size={18}
+                              color={count <= 1 ? "#94A3B8" : "#0f1e3d"}
+                            />
+                          </TouchableOpacity>
+
+                          <View style={{ minWidth: 26, alignItems: "center", justifyContent: "center" }}>
+                            <ThemedText className="text-base font-bold text-brand-blue text-center">
+                              {count}
+                            </ThemedText>
+                          </View>
+
+                          <TouchableOpacity
+                            onPress={() => {
+                              if (count < 30) {
+                                onChange(count + 1);
+                              }
+                            }}
+                            disabled={count >= 30}
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: 18,
+                              alignItems: "center",
+                              justifyContent: "center",
+                              backgroundColor: count >= 30 ? "#94A3B8" : "#0f1e3d",
+                              opacity: count >= 30 ? 0.4 : 1,
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons
+                              name="add"
+                              size={18}
+                              color="#FFFFFF"
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    );
+                  }}
                 />
                 {errors.capacity?.passangers && (
                   <ThemedText className="text-red-500 text-xs mt-1">

@@ -53,7 +53,9 @@ export default function OwnerFlightsScreen() {
       selectedAircraftId === "all" || flight.aircraftId === selectedAircraftId;
     const matchesStatus =
       selectedStatus === "all" ||
-      (selectedStatus === "in_progress"
+      (selectedStatus === "pending"
+        ? ["pending", "pending_approval"].includes(flight.internal_status)
+        : selectedStatus === "in_progress"
         ? ["delayed", "in_flight", "no_show"].includes(flight.internal_status)
         : flight.internal_status === selectedStatus);
     return matchesAircraft && matchesStatus;
@@ -82,65 +84,74 @@ export default function OwnerFlightsScreen() {
       />
 
       {/* Filters Section */}
-      <View className="mb-4 gap-3">
+      <View className="mb-4" style={{ gap: 12 }}>
         {/* Aircraft Filter */}
         <View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="py-1">
             <TouchableOpacity
               onPress={() => setSelectedAircraftId("all")}
-              className={`px-4 py-2 rounded-full mr-2 border ${selectedAircraftId === "all"
-                ? "bg-brand-blue border-brand-blue"
-                : "bg-white border-slate-200"
-                }`}
+              className="px-4 py-2 rounded-full mr-2 border"
+              style={{
+                backgroundColor: selectedAircraftId === "all" ? "#0f1e3d" : "#FFFFFF",
+                borderColor: selectedAircraftId === "all" ? "#0f1e3d" : "#E2E8F0",
+              }}
             >
               <ThemedText
-                className={`text-xs font-semibold ${selectedAircraftId === "all" ? "text-white" : "text-slate-600"
-                  }`}
+                className="text-xs font-semibold"
+                style={{ color: selectedAircraftId === "all" ? "#FFFFFF" : "#475569" }}
               >
                 Todas las Aeronaves
               </ThemedText>
             </TouchableOpacity>
 
-            {aircrafts.map((ac) => (
-              <TouchableOpacity
-                key={ac.id}
-                onPress={() => setSelectedAircraftId(ac.id)}
-                className={`px-4 py-2 rounded-full mr-2 border ${selectedAircraftId === ac.id
-                  ? "bg-brand-blue border-brand-blue"
-                  : "bg-white border-slate-200"
-                  }`}
-              >
-                <ThemedText
-                  className={`text-xs font-semibold ${selectedAircraftId === ac.id ? "text-white" : "text-slate-600"
-                    }`}
+            {aircrafts.map((ac) => {
+              const isSelected = selectedAircraftId === ac.id;
+              return (
+                <TouchableOpacity
+                  key={ac.id}
+                  onPress={() => setSelectedAircraftId(ac.id)}
+                  className="px-4 py-2 rounded-full mr-2 border"
+                  style={{
+                    backgroundColor: isSelected ? "#0f1e3d" : "#FFFFFF",
+                    borderColor: isSelected ? "#0f1e3d" : "#E2E8F0",
+                  }}
                 >
-                  {ac.basic_specs?.registration} ({ac.basic_specs?.type})
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
+                  <ThemedText
+                    className="text-xs font-semibold"
+                    style={{ color: isSelected ? "#FFFFFF" : "#475569" }}
+                  >
+                    {ac.basic_specs?.registration} ({ac.basic_specs?.type})
+                  </ThemedText>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 
         {/* Status Filter */}
         <View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="py-1">
-            {STATUS_OPTIONS.map((status) => (
-              <TouchableOpacity
-                key={status.id}
-                onPress={() => setSelectedStatus(status.id)}
-                className={`px-4 py-2 rounded-full mr-2 border ${selectedStatus === status.id
-                  ? "bg-brand-gold border-brand-gold"
-                  : "bg-white border-slate-200"
-                  }`}
-              >
-                <ThemedText
-                  className={`text-xs font-semibold ${selectedStatus === status.id ? "text-white" : "text-slate-600"
-                    }`}
+            {STATUS_OPTIONS.map((status) => {
+              const isSelected = selectedStatus === status.id;
+              return (
+                <TouchableOpacity
+                  key={status.id}
+                  onPress={() => setSelectedStatus(status.id)}
+                  className="px-4 py-2 rounded-full mr-2 border"
+                  style={{
+                    backgroundColor: isSelected ? "#C5A059" : "#FFFFFF",
+                    borderColor: isSelected ? "#C5A059" : "#E2E8F0",
+                  }}
                 >
-                  {status.label}
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
+                  <ThemedText
+                    className="text-xs font-semibold"
+                    style={{ color: isSelected ? "#FFFFFF" : "#475569" }}
+                  >
+                    {status.label}
+                  </ThemedText>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
       </View>
@@ -176,7 +187,7 @@ export default function OwnerFlightsScreen() {
               </ThemedText>
             </View>
           ) : (
-            <View className="gap-4 mb-10">
+            <View className="mb-10" style={{ gap: 16 }}>
               {filteredReservations.map((item) => {
                 const status = getStatusBadge(item.internal_status);
                 const model = item.aircraftSpecs?.basic_specs?.model || "Aeronave";
@@ -190,7 +201,14 @@ export default function OwnerFlightsScreen() {
                 return (
                   <View
                     key={item.id}
-                    className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm"
+                    className="bg-brand-white rounded-3xl p-5 border border-slate-200"
+                    style={{
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.05,
+                      shadowRadius: 3,
+                      elevation: 2,
+                    }}
                   >
                     {/* Card Header: Aircraft info & status badge */}
                     <View className="flex-row items-start justify-between mb-3">
@@ -203,9 +221,19 @@ export default function OwnerFlightsScreen() {
                         </ThemedText>
                       </View>
 
-                      <View className={`${status.bg} border ${status.border} px-2.5 py-1 rounded-full flex-row items-center gap-1`}>
+                      <View
+                        className="px-2.5 py-1 rounded-full flex-row items-center border"
+                        style={{
+                          backgroundColor: status.backgroundColor,
+                          borderColor: status.borderColor,
+                          gap: 4,
+                        }}
+                      >
                         <Ionicons name={status.icon as any} size={12} color={status.iconColor} />
-                        <ThemedText className={`text-xs font-bold ${status.text}`}>
+                        <ThemedText
+                          className="text-xs font-bold"
+                          style={{ color: status.textColor }}
+                        >
                           {status.label}
                         </ThemedText>
                       </View>
@@ -244,9 +272,9 @@ export default function OwnerFlightsScreen() {
                           </View>
                         </View>
                       ) : (
-                        <View className="gap-3 mb-3">
+                        <View className="mb-3" style={{ gap: 12 }}>
                           {/* Origen Row */}
-                          <View className="flex-row items-center gap-2">
+                          <View className="flex-row items-center" style={{ gap: 8 }}>
                             <View className="w-2.5 h-2.5 rounded-full bg-brand-gold" />
                             <View className="flex-1">
                               <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
@@ -259,9 +287,9 @@ export default function OwnerFlightsScreen() {
                           </View>
 
                           {/* Connector line & icon */}
-                          <View className="flex-row items-center gap-2 pl-0.5 my-0.5">
+                          <View className="flex-row items-center pl-0.5 my-0.5" style={{ gap: 8 }}>
                             <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
-                            <View className="flex-row items-center gap-1.5 ml-3">
+                            <View className="flex-row items-center ml-3" style={{ gap: 6 }}>
                               <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#C5A059" />
                               {item.schedule.roundtrip && (
                                 <ThemedText className="text-xs font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
@@ -272,7 +300,7 @@ export default function OwnerFlightsScreen() {
                           </View>
 
                           {/* Destino Row */}
-                          <View className="flex-row items-center gap-2">
+                          <View className="flex-row items-center" style={{ gap: 8 }}>
                             <View className="w-2.5 h-2.5 rounded-full bg-brand-blue" />
                             <View className="flex-1">
                               <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
@@ -286,10 +314,10 @@ export default function OwnerFlightsScreen() {
                         </View>
                       )}
 
-                      <View className="h-px bg-slate-200/60 my-2" />
+                      <View className="h-px bg-slate-200 my-2" style={{ opacity: 0.6 }} />
 
                       {/* Schedule dates list */}
-                      <View className="gap-1.5">
+                      <View style={{ gap: 6 }}>
                         <View className="flex-row justify-between items-center">
                           <ThemedText className="text-xs text-slate-500 font-medium">Horario de Ida:</ThemedText>
                           <ThemedText className="text-xs font-bold text-slate-800">
@@ -302,7 +330,7 @@ export default function OwnerFlightsScreen() {
 
                         {item.schedule.roundtrip && item.schedule.return_flight_departure_time && (
                           <>
-                            <View className="h-px bg-slate-200/40 my-1" />
+                            <View className="h-px bg-slate-200 my-1" style={{ opacity: 0.4 }} />
                             <View className="flex-row justify-between items-center">
                               <ThemedText className="text-xs text-slate-500 font-medium">Horario de Vuelta:</ThemedText>
                               <ThemedText className="text-xs font-bold text-slate-800">
@@ -319,14 +347,14 @@ export default function OwnerFlightsScreen() {
 
                     {/* Footer Stats Grid */}
                     <View className="flex-row justify-between items-center pt-1 px-1">
-                      <View className="flex-row items-center gap-1.5">
+                      <View className="flex-row items-center" style={{ gap: 6 }}>
                         <Ionicons name="people-outline" size={16} color="#0f1e3d" />
                         <ThemedText className="text-xs font-semibold text-slate-700">
                           {item.capacity.passangers} pasajero(s)
                         </ThemedText>
                       </View>
 
-                      <View className="flex-row items-center gap-1.5">
+                      <View className="flex-row items-center" style={{ gap: 6 }}>
                         <MaterialCommunityIcons name="seat-passenger" size={16} color="#0f1e3d" />
                         <ThemedText className="text-xs font-semibold text-slate-700">
                           {aircraftPaxCapacity !== undefined ? `${aircraftPaxCapacity} asientos` : "N/A"}
@@ -334,7 +362,7 @@ export default function OwnerFlightsScreen() {
                       </View>
 
                       {distanceKm ? (
-                        <View className="flex-row items-center gap-1.5">
+                        <View className="flex-row items-center" style={{ gap: 6 }}>
                           <Ionicons name="navigate-outline" size={16} color="#0f1e3d" />
                           <ThemedText className="text-xs font-semibold text-slate-700">
                             {distanceKm} km
@@ -345,10 +373,32 @@ export default function OwnerFlightsScreen() {
                       )}
                     </View>
 
+                    {/* Action Buttons */}
+                    {(item.internal_status === "pending_approval" || item.internal_status === "pending") && (
+                      <TouchableOpacity
+                        onPress={() => router.push({ pathname: "/(owner)/flights/assign-pilots", params: { reservationId: item.id } })}
+                        className="mt-3 bg-brand-gold py-3 px-4 rounded-xl flex-row items-center justify-center"
+                        style={{
+                          gap: 8,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.1,
+                          shadowRadius: 2,
+                          elevation: 2,
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <MaterialCommunityIcons name="account-tie-hat" size={18} color="#FFFFFF" />
+                        <ThemedText className="text-xs font-bold text-white">Asignar Tripulación y Aprobar</ThemedText>
+                        <Ionicons name="arrow-forward" size={14} color="#FFFFFF" />
+                      </TouchableOpacity>
+                    )}
+
                     {/* Detalles Button */}
                     <TouchableOpacity
                       onPress={() => router.push({ pathname: "/flights/flight-details", params: { reservationId: item.id } })}
-                      className="mt-4 shadow-sm bg-brand-blue py-3 px-4 rounded-xl flex-row items-center justify-center gap-1.5"
+                      className="mt-2.5 bg-brand-blue py-3 px-4 rounded-xl flex-row items-center justify-center"
+                      style={{ gap: 6 }}
                       activeOpacity={0.8}
                     >
                       <Ionicons name="information-circle-outline" size={16} color="#FFFFFF" />

@@ -12,17 +12,103 @@ export function OwnerToolBar({
     outboundFlightPlanId,
     returnFlightPlanId,
     aircraftModel,
+    onOpenManifest,
 }: {
     reservation: ClientReservationItem;
     outboundFlightPlanId?: string;
     returnFlightPlanId?: string;
     aircraftModel?: string;
+    onOpenManifest?: () => void;
 }) {
-    const router = useRouter()
+    const router = useRouter();
+
+    const handleOutboundFpl = () => {
+        if (outboundFlightPlanId) {
+            router.push({
+                pathname: "./view-flight-plan",
+                params: {
+                    flightPlanId: outboundFlightPlanId,
+                    aircraftModel: aircraftModel,
+                },
+            });
+        } else {
+            const originIdent = reservation.trip?.origin_airport_ident || "";
+            const destIdent = reservation.trip?.destination_airport_ident || "";
+            const originIcao = reservation.originAirport?.icao_code || originIdent;
+            const destIcao = reservation.destinationAirport?.icao_code || destIdent;
+            const depTime = reservation.schedule?.outbound_flight_departure_time
+                ? (reservation.schedule.outbound_flight_departure_time instanceof Date
+                    ? reservation.schedule.outbound_flight_departure_time.toISOString()
+                    : new Date(reservation.schedule.outbound_flight_departure_time).toISOString())
+                : new Date().toISOString();
+
+            const paxCount = reservation.passengers && reservation.passengers.length > 0
+                ? String(reservation.passengers.length)
+                : String(reservation.capacity?.passangers || 1);
+
+            router.push({
+                pathname: "/flights/create-flight-plan",
+                params: {
+                    reservationId: reservation.id,
+                    legType: "outbound",
+                    originIdent,
+                    destinationIdent: destIdent,
+                    originIcaoCode: originIcao,
+                    destinationIcaoCode: destIcao,
+                    departureTime: depTime,
+                    aircraftId: reservation.aircraftId || "",
+                    paxCount,
+                },
+            });
+        }
+    };
+
+    const handleReturnFpl = () => {
+        if (returnFlightPlanId) {
+            router.push({
+                pathname: "./view-flight-plan",
+                params: {
+                    flightPlanId: returnFlightPlanId,
+                    aircraftModel: aircraftModel,
+                },
+            });
+        } else {
+            const originIdent = reservation.trip?.destination_airport_ident || "";
+            const destIdent = reservation.trip?.origin_airport_ident || "";
+            const originIcao = reservation.destinationAirport?.icao_code || originIdent;
+            const destIcao = reservation.originAirport?.icao_code || destIdent;
+            const depTime = reservation.schedule?.return_flight_departure_time
+                ? (reservation.schedule.return_flight_departure_time instanceof Date
+                    ? reservation.schedule.return_flight_departure_time.toISOString()
+                    : new Date(reservation.schedule.return_flight_departure_time).toISOString())
+                : new Date().toISOString();
+
+            const paxCount = reservation.passengers && reservation.passengers.length > 0
+                ? String(reservation.passengers.length)
+                : String(reservation.capacity?.passangers || 1);
+
+            router.push({
+                pathname: "/flights/create-flight-plan",
+                params: {
+                    reservationId: reservation.id,
+                    legType: "return",
+                    originIdent,
+                    destinationIdent: destIdent,
+                    originIcaoCode: originIcao,
+                    destinationIcaoCode: destIcao,
+                    departureTime: depTime,
+                    aircraftId: reservation.aircraftId || "",
+                    paxCount,
+                },
+            });
+        }
+    };
+
+    const passengerCount = reservation.passengers?.length || 0;
 
     return (
         <View className="flex-col gap-2">
-            <View className="flex-row items-center gap-4 mb-2">
+            <View className="flex-row items-center gap-3 mb-1">
                 {/* Tripulación Button */}
                 <TouchableOpacity
                     onPress={() =>
@@ -36,11 +122,25 @@ export function OwnerToolBar({
                     className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
                     activeOpacity={0.8}
                 >
-                    <MaterialCommunityIcons name="account-tie-hat" size={20} color="#FFFFFF" />
-                    <ThemedText className="text-sm font-bold text-white text-center" numberOfLines={1}>
+                    <MaterialCommunityIcons name="account-tie-hat" size={18} color="#FFFFFF" />
+                    <ThemedText className="text-xs font-bold text-white text-center" numberOfLines={1}>
                         Tripulación{reservation.pilot_ids && reservation.pilot_ids.length > 0 ? ` (${reservation.pilot_ids.length})` : ""}
                     </ThemedText>
                 </TouchableOpacity>
+
+                {/* Manifiesto Pasajeros DINAC Button */}
+                {onOpenManifest && (
+                    <TouchableOpacity
+                        onPress={onOpenManifest}
+                        className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
+                        activeOpacity={0.8}
+                    >
+                        <Ionicons name="people-outline" size={18} color="#FFFFFF" />
+                        <ThemedText className="text-xs font-bold text-white text-center" numberOfLines={1}>
+                            Manifiesto{passengerCount > 0 ? ` (${passengerCount})` : ""}
+                        </ThemedText>
+                    </TouchableOpacity>
+                )}
 
                 {/* Tracking de Vuelo Button */}
                 <TouchableOpacity
@@ -53,52 +153,50 @@ export function OwnerToolBar({
                     className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
                     activeOpacity={0.8}
                 >
-                    <Ionicons name="location-outline" size={20} color="#FFFFFF" />
-                    <ThemedText className="text-sm font-bold text-white text-center" numberOfLines={1}>
+                    <Ionicons name="location-outline" size={18} color="#FFFFFF" />
+                    <ThemedText className="text-xs font-bold text-white text-center" numberOfLines={1}>
                         Tracking
                     </ThemedText>
                 </TouchableOpacity>
             </View>
-            <View className="flex-row items-center gap-4 mb-2">
-                {/* Plan de Vuelo (Ida) Button */}
+
+            {/* Flight Plan Buttons */}
+            <View className="flex-row items-center gap-3 mb-2">
+                {/* Plan de Vuelo (Ida) */}
                 <TouchableOpacity
-                    onPress={() =>
-                        router.push({
-                            pathname: "./view-flight-plan",
-                            params: {
-                                flightPlanId: outboundFlightPlanId,
-                                aircraftModel: aircraftModel,
-                            },
-                        })
-                    }
-                    className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
+                    onPress={handleOutboundFpl}
+                    className="flex-1 bg-brand-blue py-3 px-2 rounded-xl items-center justify-center gap-1 shadow-sm"
                     activeOpacity={0.8}
                 >
-                    <Ionicons name="document-text-outline" size={20} color="#FFFFFF" />
-                    <ThemedText className="text-sm font-bold text-white text-center" numberOfLines={1}>
-                        Plan de Vuelo (Ida)
+                    <View className="flex-row items-center">
+                        <Ionicons name="document-text-outline" size={17} color="#FFFFFF" />
+                        {outboundFlightPlanId && (
+                            <View className="w-2 h-2 rounded-full bg-emerald-400 ml-1" />
+                        )}
+                    </View>
+                    <ThemedText className="text-xs font-bold text-white text-center" numberOfLines={1}>
+                        {outboundFlightPlanId ? "Ver FPL (Ida)" : "Crear FPL (Ida)"}
                     </ThemedText>
                 </TouchableOpacity>
 
-                {/* Plan de Vuelo (Vuelta) Button */}
-                <TouchableOpacity
-                    onPress={() =>
-                        router.push({
-                            pathname: "./view-flight-plan",
-                            params: {
-                                flightPlanId: returnFlightPlanId,
-                                aircraftModel: aircraftModel,
-                            },
-                        })
-                    }
-                    className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
-                    activeOpacity={0.8}
-                >
-                    <Ionicons name="document-text-outline" size={20} color="#FFFFFF" />
-                    <ThemedText className="text-sm font-bold text-white text-center" numberOfLines={1}>
-                        Plan de Vuelo (Vuelta)
-                    </ThemedText>
-                </TouchableOpacity>
+                {/* Plan de Vuelo (Vuelta) if roundtrip */}
+                {reservation.schedule?.roundtrip && (
+                    <TouchableOpacity
+                        onPress={handleReturnFpl}
+                        className="flex-1 bg-brand-blue py-3 px-2 rounded-xl items-center justify-center gap-1 shadow-sm"
+                        activeOpacity={0.8}
+                    >
+                        <View className="flex-row items-center">
+                            <Ionicons name="document-text-outline" size={17} color="#FFFFFF" />
+                            {returnFlightPlanId && (
+                                <View className="w-2 h-2 rounded-full bg-emerald-400 ml-1" />
+                            )}
+                        </View>
+                        <ThemedText className="text-xs font-bold text-white text-center" numberOfLines={1}>
+                            {returnFlightPlanId ? "Ver FPL (Vuelta)" : "Crear FPL (Vuelta)"}
+                        </ThemedText>
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
     );

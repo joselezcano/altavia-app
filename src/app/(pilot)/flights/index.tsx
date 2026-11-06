@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -18,10 +19,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 
 export default function FlightPlanScreen() {
-  const { user, userData } = useAuth();
+  const { user, userData, profileData } = useAuth();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
+  const isEncargado = profileData?.isEncargado === true;
 
   const {
     data: reservations = [],
@@ -148,6 +150,79 @@ export default function FlightPlanScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* Banner Operativo para Encargado de Aeronave */}
+        {isEncargado && (
+          <View style={{ marginBottom: 16, gap: 10 }}>
+            {/* Primary Action: Nueva Reserva Telefónica */}
+            <TouchableOpacity
+              onPress={() => router.push("/(pilot)/flights/new-booking" as any)}
+              style={{
+                backgroundColor: "#0f1e3d",
+                padding: 16,
+                borderRadius: 18,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 3,
+                elevation: 2,
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    backgroundColor: "#C5A059",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons name="paper-plane" size={20} color="#0f1e3d" />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 15, fontWeight: "bold", color: "#FFFFFF" }}>
+                    + Nueva Reserva Telefónica
+                  </Text>
+                  <Text style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>
+                    Alta rápida de cliente, cotización y despacho
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#C5A059" />
+            </TouchableOpacity>
+
+            {/* Secondary Action: Gestionar Reservas y Cobros */}
+            <TouchableOpacity
+              onPress={() => router.push("/(pilot)/flights/reservations" as any)}
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderWidth: 1,
+                borderColor: "#E2E8F0",
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                borderRadius: 14,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="calendar-outline" size={18} color="#0f1e3d" />
+                <Text style={{ fontSize: 13, fontWeight: "bold", color: "#0f1e3d" }}>
+                  Gestionar Reservas y Links de Pago
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
+            </TouchableOpacity>
+          </View>
+        )}
+
         <View className="mb-4 flex-row justify-between items-center">
           <ThemedText type="subtitle" className="text-lg">
             Próximos Vuelos

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AircraftPricingSchema } from "@/types/pricing";
 import { AirportSchema } from "./all-roles";
 
 
@@ -306,6 +307,12 @@ export const AircraftSpecsSchema = z.object({
 
     // Foto de perfil principal de la aeronave
     profile_photo: z.string().optional(),
+
+    // Tarifa por milla (OBSOLETA: el precio ahora es por hora, ver pricing)
+    pricePerMileOverride: z.number().nullable().optional(),
+    // Tarifa por hora (IVA incluido). La escribe el servidor desde los Ajustes de GIO.
+    pricing: AircraftPricingSchema.optional(),
+    ownerId: z.string().optional(),
 });
 
 // Extracción del tipo de TypeScript basado en el esquema de Zod

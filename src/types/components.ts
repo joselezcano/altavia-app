@@ -5,3 +5,17 @@ export interface CustomDatePickerProps {
   minimumDate?: Date | null;
   includeTime?: boolean;
 }
+
+export interface AppleAuthButtonProps {
+  onPress: () => void;
+  disabled?: boolean;
+}
+
+export interface ScreenContainerProps {
+  children: React.ReactNode;
+  maxWidth?: number;
+  style?: any;
+  contentStyle?: any;
+}
+
+

@@ -16,6 +16,7 @@ export function FlightStatusModal({
     setSelectedStatus,
     handleUpdateStatus,
     isUpdatingStatus,
+    allowedStatuses,
 }: {
     isStatusModalVisible: boolean;
     setIsStatusModalVisible: (visible: boolean) => void;
@@ -23,7 +24,13 @@ export function FlightStatusModal({
     setSelectedStatus: (status: string) => void;
     handleUpdateStatus: () => void;
     isUpdatingStatus: boolean;
+    /** Si se indica, solo se ofrecen estos estados (ej. piloto asignado). */
+    allowedStatuses?: string[];
 }) {
+    const statusOptions = allowedStatuses
+        ? INTERNAL_STATUS_DEFINITIONS.filter((def) => allowedStatuses.includes(def.id))
+        : INTERNAL_STATUS_DEFINITIONS;
+
     return (
         <Modal
             visible={isStatusModalVisible}
@@ -54,7 +61,7 @@ export function FlightStatusModal({
                     {/* Options List */}
                     <ScrollView showsVerticalScrollIndicator={false} className="mb-4">
                         <View className="gap-3 py-1">
-                            {INTERNAL_STATUS_DEFINITIONS.map((def) => {
+                            {statusOptions.map((def) => {
                                 const badge = getStatusBadge(def.id);
                                 const isSelected = selectedStatus === def.id;
 

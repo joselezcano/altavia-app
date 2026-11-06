@@ -9,6 +9,9 @@ export interface StatusBadge {
     text: string;
     icon: string;
     iconColor: string;
+    backgroundColor: string;
+    borderColor: string;
+    textColor: string;
 }
 
 
@@ -21,6 +24,33 @@ export const getStatusBadge = (internalStatus: string): StatusBadge => {
             text: "text-rose-800",
             icon: "close-circle",
             iconColor: "#9f1239",
+            backgroundColor: "#FFE4E6",
+            borderColor: "#FECDD3",
+            textColor: "#9F1239",
+        };
+    } else if (internalStatus === "pending_approval") {
+        return {
+            label: "Por Aprobar",
+            bg: "bg-amber-100",
+            border: "border-amber-200",
+            text: "text-amber-800",
+            icon: "time-outline",
+            iconColor: "#92400e",
+            backgroundColor: "#FEF3C7",
+            borderColor: "#FDE68A",
+            textColor: "#92400E",
+        };
+    } else if (internalStatus === "awaiting_payment") {
+        return {
+            label: "Listo para Pago",
+            bg: "bg-blue-100",
+            border: "border-blue-200",
+            text: "text-blue-800",
+            icon: "card-outline",
+            iconColor: "#1e40af",
+            backgroundColor: "#DBEAFE",
+            borderColor: "#BFDBFE",
+            textColor: "#1E40AF",
         };
     } else if (internalStatus === "pending") {
         return {
@@ -30,6 +60,9 @@ export const getStatusBadge = (internalStatus: string): StatusBadge => {
             text: "text-amber-800",
             icon: "time-outline",
             iconColor: "#92400e",
+            backgroundColor: "#FEF3C7",
+            borderColor: "#FDE68A",
+            textColor: "#92400E",
         };
     } else if (internalStatus === "completed") {
         return {
@@ -39,6 +72,9 @@ export const getStatusBadge = (internalStatus: string): StatusBadge => {
             text: "text-slate-700",
             icon: "checkmark-done-circle",
             iconColor: "#334155",
+            backgroundColor: "#F1F5F9",
+            borderColor: "#E2E8F0",
+            textColor: "#334155",
         };
     } else if (internalStatus === "in_flight") {
         return {
@@ -48,6 +84,9 @@ export const getStatusBadge = (internalStatus: string): StatusBadge => {
             text: "text-sky-800",
             icon: "airplane",
             iconColor: "#075985",
+            backgroundColor: "#E0F2FE",
+            borderColor: "#BAE6FD",
+            textColor: "#075985",
         };
     } else if (internalStatus === "delayed") {
         return {
@@ -57,6 +96,9 @@ export const getStatusBadge = (internalStatus: string): StatusBadge => {
             text: "text-orange-800",
             icon: "alert-circle-outline",
             iconColor: "#9a3412",
+            backgroundColor: "#FFEDD5",
+            borderColor: "#FED7AA",
+            textColor: "#9A3412",
         };
     } else if (internalStatus === "no_show") {
         return {
@@ -66,6 +108,9 @@ export const getStatusBadge = (internalStatus: string): StatusBadge => {
             text: "text-purple-800",
             icon: "person-remove-outline",
             iconColor: "#6b21a8",
+            backgroundColor: "#F3E8FF",
+            borderColor: "#E9D5FF",
+            textColor: "#6B21A8",
         };
     } else {
         return {
@@ -75,16 +120,35 @@ export const getStatusBadge = (internalStatus: string): StatusBadge => {
             text: "text-emerald-800",
             icon: "checkmark-circle",
             iconColor: "#059669",
+            backgroundColor: "#D1FAE5",
+            borderColor: "#A7F3D0",
+            textColor: "#065F46",
         };
     }
 };
 
 
+/**
+ * Estados operativos que puede mover el piloto asignado a un vuelo ya confirmado.
+ * Debe coincidir con pilotStatuses() en firestore.rules.
+ */
+export const PILOT_OPERATIONAL_STATUSES = ["confirmed", "delayed", "in_flight", "completed", "no_show"];
+
 export const INTERNAL_STATUS_DEFINITIONS = [
+    {
+        id: "pending_approval",
+        label: "Pendiente de Aprobación",
+        hint: "Reserva creada por el cliente. Requiere que el propietario o encargado apruebe y asigne la tripulación.",
+    },
+    {
+        id: "awaiting_payment",
+        label: "Esperando Pago",
+        hint: "Vuelo aprobado operativamente con tripulación asignada. Pendiente de pago por parte del cliente.",
+    },
     {
         id: "pending",
         label: "Pendiente",
-        hint: "La reserva está pendiente: el cliente no ha pagado en su totalidad, no hay piloto asignado o plan de vuelo.",
+        hint: "La reserva está pendiente: cliente no ha pagado en su totalidad, no hay piloto asignado o plan de vuelo.",
     },
     {
         id: "confirmed",

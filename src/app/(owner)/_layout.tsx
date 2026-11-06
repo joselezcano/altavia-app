@@ -1,4 +1,5 @@
 import UserAvatar from "@/components/user-avatar";
+import { useResponsive } from "@/hooks/use-responsive";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Drawer, DrawerContentScrollView, DrawerItemList } from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
@@ -7,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function OwnerLayout() {
     const insets = useSafeAreaInsets();
+    const { isWideScreen } = useResponsive();
     const logoUrl = "https://firebasestorage.googleapis.com/v0/b/altavia-app.firebasestorage.app/o/public%2Flogo%20altavista.jpeg?alt=media&token=7a326f0f-7ff4-4f20-a2c2-e1cb05c2d0b7";
 
     return (
@@ -42,8 +44,12 @@ export default function OwnerLayout() {
                 )}
                 screenOptions={{
                     headerShown: false, // Cabeceras transparentes dentro del cuerpo de la pantalla
+                    drawerType: isWideScreen ? "permanent" : "front",
                     drawerStyle: {
                         width: 280,
+                        backgroundColor: "#FFFFFF",
+                        borderRightWidth: isWideScreen ? 1 : 0,
+                        borderRightColor: "#E2E8F0",
                     },
                     drawerActiveTintColor: "#C5A059", // brand.gold
                     drawerInactiveTintColor: "#0f1e3d", // brand.blue
@@ -79,6 +85,16 @@ export default function OwnerLayout() {
                         title: "Pilotos",
                         drawerIcon: ({ color, size }) => (
                             <MaterialCommunityIcons name="account-tie-hat" size={size} color={color} />
+                        ),
+                    }}
+                />
+                <Drawer.Screen
+                    name="finances"
+                    options={{
+                        drawerLabel: "Módulo Contable",
+                        title: "Módulo Contable",
+                        drawerIcon: ({ color, size }) => (
+                            <MaterialCommunityIcons name="finance" size={size} color={color} />
                         ),
                     }}
                 />

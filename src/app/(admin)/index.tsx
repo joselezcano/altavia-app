@@ -49,7 +49,7 @@ export default function AdminDashboard() {
       value: reservations.length,
       icon: "calendar-outline" as const,
       color: "bg-amber-500/10 text-amber-600",
-      route: null,
+      route: "/(admin)/reservations",
     },
     {
       title: "Pilotos Activos",
@@ -152,17 +152,36 @@ export default function AdminDashboard() {
         <ThemedText className="font-bold text-slate-700 text-base mb-3 px-1">
           Accesos Rápidos
         </ThemedText>
+
+        {/* Primary CTA: Despacho Telefónico */}
+        <TouchableOpacity
+          onPress={() => router.push("/(admin)/new-booking")}
+          className="bg-brand-blue p-4 rounded-2xl shadow-sm flex-row items-center justify-between mb-3"
+          activeOpacity={0.8}
+        >
+          <View className="flex-row items-center gap-3">
+            <View className="w-10 h-10 rounded-xl bg-brand-gold items-center justify-center">
+              <Ionicons name="paper-plane" size={20} color="#0f1e3d" />
+            </View>
+            <View>
+              <ThemedText className="font-bold text-white text-base">Nueva Reserva Telefónica</ThemedText>
+              <ThemedText className="text-xs text-slate-300">Despacho y cotización rápida para clientes</ThemedText>
+            </View>
+          </View>
+          <Ionicons name="arrow-forward" size={18} color="#C5A059" />
+        </TouchableOpacity>
+
         <View className="flex-row gap-3 mb-6">
           <TouchableOpacity
-            onPress={() => router.push("/(admin)/templates")}
+            onPress={() => router.push("/(admin)/reservations")}
             className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex-row items-center gap-3 active:bg-slate-50"
           >
             <View className="w-10 h-10 rounded-xl bg-brand-gold/15 items-center justify-center flex-shrink-0">
-              <Ionicons name="airplane" size={20} color="#C5A059" />
+              <Ionicons name="calendar" size={20} color="#C5A059" />
             </View>
             <View className="flex-1 flex-shrink">
-              <ThemedText className="font-bold text-brand-blue text-sm" numberOfLines={1}>Aeronaves</ThemedText>
-              <ThemedText className="text-[10px] text-slate-500" numberOfLines={1}>Modelos y specs</ThemedText>
+              <ThemedText className="font-bold text-brand-blue text-sm" numberOfLines={1}>Reservas</ThemedText>
+              <ThemedText className="text-[10px] text-slate-500" numberOfLines={1}>Cobros y links</ThemedText>
             </View>
           </TouchableOpacity>
 
@@ -175,7 +194,7 @@ export default function AdminDashboard() {
             </View>
             <View className="flex-1 flex-shrink">
               <ThemedText className="font-bold text-brand-blue text-sm" numberOfLines={1}>Tarifas</ThemedText>
-              <ThemedText className="text-[10px] text-slate-500" numberOfLines={1}>Precios y comisiones</ThemedText>
+              <ThemedText className="text-[10px] text-slate-500" numberOfLines={1}>Precios y flota</ThemedText>
             </View>
           </TouchableOpacity>
         </View>
@@ -185,9 +204,11 @@ export default function AdminDashboard() {
           <ThemedText className="font-bold text-slate-700 text-base">
             Actividad Reciente
           </ThemedText>
-          <ThemedText className="text-brand-gold text-xs font-bold">
-            Ver Todo
-          </ThemedText>
+          <TouchableOpacity onPress={() => router.push("/(admin)/reservations")}>
+            <ThemedText className="text-brand-gold text-xs font-bold">
+              Ver Todo
+            </ThemedText>
+          </TouchableOpacity>
         </View>
 
         <View className="gap-3 mb-10">

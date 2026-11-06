@@ -4,26 +4,44 @@ import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerPilots } from "@/hooks/useOwnerPilots";
 import { useOwnerReservations } from "@/hooks/useOwnerReservations";
+import { usePilotReservations } from "@/hooks/usePilotReservations";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { createPaymentLink } from "@/services/bancard";
+import { Airport, ClientReservationItem } from "@/types/all-roles";
 import { PilotProfile } from "@/types/pilot";
+import { BaseUser } from "@/types/user";
+import { generateAndShareInvoicePdf } from "@/utils/electronic-invoice";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
-import { useState } from "react";
+import {
+  addDoc,
+  arrayRemove,
+  arrayUnion,
+  collection,
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Linking,
+  StyleSheet,
+  Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
+import Toast from "react-native-toast-message";
 
 export default function AssignFlightPilotsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const queryClient = useQueryClient();
   const { reservationId } = useLocalSearchParams<{
     reservationId?: string;
@@ -31,13 +49,103 @@ export default function AssignFlightPilotsScreen() {
 
   const targetReservationId = Array.isArray(reservationId) ? reservationId[0] : reservationId;
 
-  const { data: pilots = [], isLoading: isLoadingPilots } = useOwnerPilots(user?.uid);
-  const { data: reservations = [], isLoading: isLoadingReservations } = useOwnerReservations(user?.uid);
+  // Single reservation fetch fallback (Crucial for Admin role or deep link)
+  const { data: directRes, isLoading: isLoadingDirectRes } = useQuery<ClientReservationItem | null>({
+    queryKey: ["direct-reservation-detail", targetReservationId],
+    queryFn: async () => {
+      if (!targetReservationId) return null;
+      try {
+        const ref = doc(db, "aircraft-reservation", targetReservationId);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) return null;
+        const d = snap.data();
 
-  const reservation = reservations.find((r) => r.id === targetReservationId);
+        let aircraftSpecs: any = undefined;
+        if (d.aircraftId) {
+          const aRef = doc(db, "AircraftSpecs", d.aircraftId);
+          const aSnap = await getDoc(aRef);
+          if (aSnap.exists()) aircraftSpecs = aSnap.data();
+        }
+
+        let originAirport: Airport | undefined = undefined;
+        let destinationAirport: Airport | undefined = undefined;
+
+        if (d.trip?.origin_airport_ident) {
+          const oSnap = await getDoc(doc(db, "airports", d.trip.origin_airport_ident));
+          if (oSnap.exists()) originAirport = oSnap.data() as Airport;
+        }
+
+        if (d.trip?.destination_airport_ident) {
+          const dSnap = await getDoc(doc(db, "airports", d.trip.destination_airport_ident));
+          if (dSnap.exists()) destinationAirport = dSnap.data() as Airport;
+        }
+
+        return {
+          id: snap.id,
+          ...d,
+          aircraftSpecs,
+          originAirport,
+          destinationAirport,
+        } as ClientReservationItem;
+      } catch (e) {
+        console.error("Error fetching direct reservation:", e);
+        return null;
+      }
+    },
+    enabled: !!targetReservationId,
+  });
+
+  // Use appropriate reservations hook depending on role
+  const { data: ownerRes = [], isLoading: isLoadingOwnerRes } = useOwnerReservations(
+    role === "OWNER" ? user?.uid : undefined
+  );
+  const { data: pilotRes = [], isLoading: isLoadingPilotRes } = usePilotReservations(
+    role === "PILOT" ? user?.uid : undefined
+  );
+  const reservations: ClientReservationItem[] = role === "PILOT" ? pilotRes : ownerRes;
+  const isLoadingReservations = role === "PILOT" ? isLoadingPilotRes : isLoadingOwnerRes;
+
+  const reservation = directRes || reservations.find((r) => r.id === targetReservationId);
   const assignedPilotIds = reservation?.pilot_ids || [];
 
+  const { data: exchangeRateData } = useExchangeRate();
+  const currentDolar = exchangeRateData?.dolar || 7850;
+
+  // Fetch client details from 'users'
+  const { data: clientUser } = useQuery<BaseUser | null>({
+    queryKey: ["client-user-info", reservation?.clientId],
+    queryFn: async () => {
+      if (!reservation?.clientId) return null;
+      try {
+        const cRef = doc(db, "users", reservation.clientId);
+        const cSnap = await getDoc(cRef);
+        if (cSnap.exists()) return cSnap.data() as BaseUser;
+        return null;
+      } catch (e) {
+        console.error("Error fetching client user:", e);
+        return null;
+      }
+    },
+    enabled: !!reservation?.clientId,
+  });
+
+  // Fetch pilots belonging to the aircraft's owner or current owner
+  const effectiveOwnerUid = reservation?.aircraftSpecs?.ownerId || user?.uid;
+  const { data: pilots = [], isLoading: isLoadingPilots } = useOwnerPilots(effectiveOwnerUid);
+
+  // Price adjustment state
+  const [editedPrice, setEditedPrice] = useState<string>("");
+  const [isEditingPrice, setIsEditingPrice] = useState(false);
+
+  useEffect(() => {
+    if (reservation && reservation.price !== undefined) {
+      setEditedPrice(String(reservation.price));
+    }
+  }, [reservation?.price]);
+
   const [updatingPilotId, setUpdatingPilotId] = useState<string | null>(null);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
 
   const togglePilotAssignment = async (pilot: PilotProfile) => {
     const pilotUid = pilot.user?.uid;
@@ -49,17 +157,131 @@ export default function AssignFlightPilotsScreen() {
     try {
       const reservationRef = doc(db, "aircraft-reservation", targetReservationId);
       await updateDoc(reservationRef, {
-        pilot_ids: isAssigned
-          ? arrayRemove(pilotUid)
-          : arrayUnion(pilotUid),
+        pilot_ids: isAssigned ? arrayRemove(pilotUid) : arrayUnion(pilotUid),
       });
 
-      await queryClient.invalidateQueries({ queryKey: ["owner-reservations", user?.uid] });
+      await queryClient.invalidateQueries({ queryKey: ["direct-reservation-detail", targetReservationId] });
+      await queryClient.invalidateQueries({ queryKey: ["owner-reservations"] });
+      await queryClient.invalidateQueries({ queryKey: ["pilot-reservations"] });
+      await queryClient.invalidateQueries({ queryKey: ["client-reservations"] });
     } catch (error) {
       console.error("Error al actualizar tripulación del vuelo:", error);
       Alert.alert("Error", "No se pudo actualizar la tripulación del vuelo.");
     } finally {
       setUpdatingPilotId(null);
+    }
+  };
+
+  const handleApproveFlight = async () => {
+    if (!targetReservationId) return;
+    if (assignedPilotIds.length === 0) {
+      Alert.alert(
+        "Tripulación Requerida",
+        "Debes asignar al menos un piloto antes de aprobar la reserva y solicitar el pago al cliente."
+      );
+      return;
+    }
+
+    const priceNum = parseFloat(editedPrice);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      Alert.alert("Precio Inválido", "Por favor ingresa un precio válido mayor a 0.");
+      return;
+    }
+
+    setIsApproving(true);
+    try {
+      const reservationRef = doc(db, "aircraft-reservation", targetReservationId);
+      await updateDoc(reservationRef, {
+        price: priceNum,
+        internal_status: "awaiting_payment",
+        status_notes: "Vuelo aprobado operativamente con tripulación asignada. Pendiente de pago por el cliente.",
+      });
+
+      // Crear notificación para el cliente en Firestore
+      if (reservation?.clientId) {
+        try {
+          const originCode = reservation.originAirport?.iata_code || reservation.trip?.origin_airport_ident || "SGAS";
+          const destCode = reservation.destinationAirport?.iata_code || reservation.trip?.destination_airport_ident || "SGCO";
+          await addDoc(collection(db, "notifications"), {
+            userId: reservation.clientId,
+            reservationId: targetReservationId,
+            type: "flight_approved",
+            title: "¡Vuelo Aprobado! Listo para Pago",
+            message: `Tu vuelo chárter ${originCode} ➔ ${destCode} fue aprobado operativamente y tiene tripulación asignada. Completa el pago de USD $${priceNum.toLocaleString("en-US")} vía Bancard vPOS.`,
+            read: false,
+            created_at: new Date(),
+            routeText: `${originCode} ➔ ${destCode}`,
+            amountUsd: priceNum,
+          });
+        } catch (notifErr) {
+          console.warn("No se pudo registrar documento en notifications:", notifErr);
+        }
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["direct-reservation-detail", targetReservationId] });
+      await queryClient.invalidateQueries({ queryKey: ["owner-reservations"] });
+      await queryClient.invalidateQueries({ queryKey: ["pilot-reservations"] });
+      await queryClient.invalidateQueries({ queryKey: ["client-reservations"] });
+      await queryClient.invalidateQueries({ queryKey: ["client-notifications"] });
+
+      Toast.show({
+        type: "success",
+        text1: "¡Vuelo Aprobado!",
+        text2: "Listo para enviar el link de pago al cliente.",
+      });
+    } catch (error) {
+      console.error("Error al aprobar vuelo:", error);
+      Alert.alert("Error", "No se pudo actualizar el estado de la reserva.");
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  // Enviar link de pago por WhatsApp (Bancard)
+  const handleSendWhatsAppPaymentLink = async () => {
+    if (!reservation) return;
+    setIsSendingWhatsApp(true);
+    try {
+      // 1. Link de pago de un solo uso (48 h); el servidor usa el precio guardado al aprobar
+      const link = await createPaymentLink(reservation.id);
+
+      const priceVal = link.amountUsd;
+      const amountGs = link.amountPygEstimate;
+      const originName = reservation.originAirport?.name || reservation.trip?.origin_airport_ident;
+      const destName = reservation.destinationAirport?.name || reservation.trip?.destination_airport_ident;
+      const clientName = clientUser?.firstName ? `${clientUser.firstName} ${clientUser.lastName}` : "Estimado/a cliente";
+
+      // Enlace de checkout oficial de Bancard
+      const paymentUrl = link.url;
+
+      const messageText = `Hola ${clientName}! Tu vuelo chárter de ${originName} a ${destName} está confirmado por Operaciones.\n\nEl importe total es de USD $${priceVal.toLocaleString("en-US")} (aprox. ₲ ${amountGs.toLocaleString("es-PY")}).\n\nPodés abonar con tarjeta de crédito/débito a través de la pasarela segura de Bancard en el siguiente enlace:\n${paymentUrl}\n\nAtte. ALTAVIA S.A.`;
+
+      // Formatear teléfono para WhatsApp (+595)
+      const rawPhone = clientUser?.phone || "";
+      let cleanPhone = rawPhone.replace(/[^0-9]/g, "");
+      if (cleanPhone.startsWith("0")) {
+        cleanPhone = "595" + cleanPhone.slice(1);
+      } else if (!cleanPhone.startsWith("595") && cleanPhone.length === 9) {
+        cleanPhone = "595" + cleanPhone;
+      }
+
+      const whatsappDeepLink = cleanPhone
+        ? `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(messageText)}`
+        : `whatsapp://send?text=${encodeURIComponent(messageText)}`;
+
+      const canOpen = await Linking.canOpenURL(whatsappDeepLink);
+      if (canOpen) {
+        await Linking.openURL(whatsappDeepLink);
+      } else {
+        await Linking.openURL(
+          `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`
+        );
+      }
+    } catch (e: any) {
+      console.error("Error al generar enlace de WhatsApp:", e);
+      Alert.alert("Error", e?.message || "No se pudo generar el enlace de pago de Bancard.");
+    } finally {
+      setIsSendingWhatsApp(false);
     }
   };
 
@@ -73,35 +295,23 @@ export default function AssignFlightPilotsScreen() {
     const isUpdating = updatingPilotId === pilotUid;
 
     return (
-      <View className="bg-brand-white border border-slate-100 rounded-2xl p-5 mb-4 shadow-sm">
-        <View className="flex-row items-center justify-between">
+      <View style={styles.pilotCard}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           {/* Pilot Info */}
-          <View className="flex-1 pr-3">
-            <ThemedText className="font-bold text-lg text-brand-blue">
-              {fullName}
-            </ThemedText>
-            <ThemedText type="caption" className="text-slate-500 mt-0.5">
-              {item.user?.email}
-            </ThemedText>
-            <View className="flex-row items-center gap-2 mt-2">
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            <Text style={styles.pilotNameText}>{fullName}</Text>
+            <Text style={styles.pilotEmailText}>{item.user?.email}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>
               {item.aeronautical?.licence_type ? (
-                <View className="bg-slate-100 px-2.5 py-0.5 rounded-md">
-                  <ThemedText
-                    type="caption"
-                    className="text-xs font-semibold text-slate-700"
-                  >
+                <View style={styles.licenceBadge}>
+                  <Text style={styles.licenceBadgeText}>
                     {item.aeronautical.licence_type}
-                  </ThemedText>
+                  </Text>
                 </View>
               ) : null}
               {item.isEncargado ? (
-                <View className="bg-brand-gold/15 px-2.5 py-0.5 rounded-md border border-brand-gold/20">
-                  <ThemedText
-                    type="caption"
-                    className="text-xs font-bold text-brand-gold"
-                  >
-                    Encargado
-                  </ThemedText>
+                <View style={styles.encargadoBadge}>
+                  <Text style={styles.encargadoBadgeText}>Encargado</Text>
                 </View>
               ) : null}
             </View>
@@ -111,171 +321,552 @@ export default function AssignFlightPilotsScreen() {
           <TouchableOpacity
             onPress={() => togglePilotAssignment(item)}
             disabled={isUpdating}
-            className="p-2 justify-center items-center"
+            style={{ padding: 8 }}
             activeOpacity={0.7}
           >
             {isUpdating ? (
               <ActivityIndicator size="small" color="#0f1e3d" />
             ) : (
               <View
-                className={`w-7 h-7 rounded-lg border-2 items-center justify-center ${isAssigned
-                  ? "bg-brand-blue border-brand-blue"
-                  : "border-slate-300 bg-white"
-                  }`}
+                style={[
+                  styles.checkboxBase,
+                  isAssigned && styles.checkboxAssigned,
+                ]}
               >
-                {isAssigned && (
-                  <Ionicons name="checkmark" size={18} color="white" />
-                )}
+                {isAssigned && <Ionicons name="checkmark" size={18} color="#FFFFFF" />}
               </View>
             )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Footer: Perfil Button */}
-        <View className="border-t border-slate-100 pt-3 mt-3 flex-row justify-end items-center">
-          <TouchableOpacity
-            onPress={() => {
-              if (pilotUid) {
-                router.push({
-                  pathname: "./pilot-details",
-                  params: { pilotUid },
-                });
-              }
-            }}
-            className="flex-row items-center bg-slate-100 px-3.5 py-1.5 rounded-xl gap-1.5"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="person-circle-outline" size={18} color="#0f1e3d" />
-            <ThemedText className="text-brand-blue text-xs font-bold">
-              Perfil
-            </ThemedText>
-            <Ionicons name="chevron-forward" size={14} color="#0f1e3d" />
           </TouchableOpacity>
         </View>
       </View>
     );
   };
 
-  const isLoading = isLoadingPilots || isLoadingReservations;
-  const displayModel = reservation?.aircraftSpecs?.basic_specs?.model || "";
+  const isLoading = isLoadingPilots || isLoadingReservations || isLoadingDirectRes;
+  const displayModel = reservation?.aircraftSpecs?.basic_specs?.model || "Aeronave";
   const displayRegistration = reservation?.aircraftSpecs?.basic_specs?.registration || "";
-  const bothAirportsHaveIATACodes = reservation?.originAirport?.iata_code && reservation?.destinationAirport?.iata_code;
+  const originIdent = reservation?.originAirport?.iata_code || reservation?.trip?.origin_airport_ident || "SGAS";
+  const destIdent = reservation?.destinationAirport?.iata_code || reservation?.trip?.destination_airport_ident || "SGCO";
 
   return (
     <ThemedView className="flex-1 px-4 pt-2" style={{ paddingTop: insets.top }}>
       {/* Header */}
-      <View className="flex-row items-center justify-between mb-4 mt-2">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center p-1"
-        >
+      <View style={styles.topHeader}>
+        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons name="arrow-back" size={24} color="#0f1e3d" />
-          <ThemedText className="font-semibold text-brand-blue ml-1">
-            Volver
-          </ThemedText>
+          <Text style={styles.backButtonText}>Volver</Text>
         </TouchableOpacity>
-        <ThemedText className="font-bold text-brand-blue text-lg">
-          Tripulación del Vuelo
-        </ThemedText>
+        <Text style={styles.headerTitle}>Tripulación y Tarifa</Text>
         <View style={{ width: 60 }} />
       </View>
 
       {/* Target Flight Card */}
-      <View className="bg-brand-blue rounded-2xl p-4 mb-4">
-        <View className="flex-row justify-between items-center">
-          <View className="flex-1 mr-2">
-            <ThemedText type="caption" className="text-slate-300 font-medium">
-              Vuelo seleccionado:
-            </ThemedText>
-            <ThemedText className="font-bold text-lg text-white mt-0.5">
-              {displayModel}
-            </ThemedText>
+      <View style={styles.flightSummaryCard}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <View style={{ flex: 1, marginRight: 8 }}>
+            <Text style={styles.flightSummaryEyebrow}>Vuelo seleccionado:</Text>
+            <Text style={styles.flightSummaryTitle}>{displayModel}</Text>
           </View>
           {displayRegistration ? (
-            <View className="bg-brand-gold px-3 py-1 rounded-full">
-              <ThemedText className="text-brand-blue text-xs font-bold uppercase tracking-wider">
-                {displayRegistration}
-              </ThemedText>
+            <View style={styles.registrationBadge}>
+              <Text style={styles.registrationText}>{displayRegistration}</Text>
             </View>
           ) : null}
         </View>
 
-        {bothAirportsHaveIATACodes ? (
-          <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-white/10">
-            <ThemedText className="text-sm font-bold text-slate-200">
-              {reservation?.originAirport?.iata_code}
-            </ThemedText>
-            <MaterialCommunityIcons name="airplane" size={14} color="#C5A059" />
-            <ThemedText className="text-sm font-bold text-slate-200">
-              {reservation?.destinationAirport?.iata_code}
-            </ThemedText>
-            <View className="flex-1" />
-            <View className="bg-white/15 px-2 py-0.5 rounded-md">
-              <ThemedText className="text-sm font-bold text-white">
-                {assignedPilotIds.length} tripulante(s)
-              </ThemedText>
-            </View>
+        {/* Route Row */}
+        <View style={styles.routeRow}>
+          <Text style={styles.routeAirportCode}>{originIdent}</Text>
+          <MaterialCommunityIcons name="airplane" size={16} color="#C5A059" />
+          <Text style={styles.routeAirportCode}>{destIdent}</Text>
+          <View style={{ flex: 1 }} />
+          <View style={styles.crewCountBadge}>
+            <Text style={styles.crewCountText}>{assignedPilotIds.length} tripulante(s)</Text>
           </View>
-        ) : (
-          <View className="flex-row items-center justify-between gap-3 mt-3 pt-3 border-t border-white/10">
-            <View className="flex-col items-start gap-2">
-              {/* Origin Airport */}
-              <View className="flex-row items-center gap-2">
-                <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#C5A059" />
-                <ThemedText className="text-xs font-bold text-slate-200" numberOfLines={1}>
-                  {reservation?.originAirport?.name}
-                </ThemedText>
-              </View>
+        </View>
 
-              {/* Destination Airport */}
-              <View className="flex-row items-center gap-2">
-                <MaterialCommunityIcons name="airplane-landing" size={14} color="#C5A059" />
-                <ThemedText className="text-xs font-bold text-slate-200" numberOfLines={1}>
-                  {reservation?.destinationAirport?.name}
-                </ThemedText>
-              </View>
-            </View>
-            <View className="flex-row items-center gap-2 bg-white/15 p-2 rounded-md">
-              <MaterialCommunityIcons name="account-tie-hat" size={16} color="#FFFFFF" />
-              <ThemedText className="text-xs font-bold text-white">
-                {assignedPilotIds.length}
-              </ThemedText>
-            </View>
+        {/* Client preview row */}
+        {clientUser && (
+          <View style={styles.clientPreviewRow}>
+            <Ionicons name="person-circle-outline" size={16} color="#CBD5E1" />
+            <Text style={styles.clientPreviewText} numberOfLines={1}>
+              Cliente: {clientUser.firstName} {clientUser.lastName} ({clientUser.phone || clientUser.email})
+            </Text>
           </View>
         )}
       </View>
 
+      {/* PRICE ADJUSTMENT CARD */}
+      <View style={styles.priceCard}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Ionicons name="cash-outline" size={18} color="#C5A059" />
+            <Text style={styles.priceCardLabel}>Precio del Vuelo (USD)</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setIsEditingPrice(!isEditingPrice)}
+            style={styles.editPriceButton}
+          >
+            <Ionicons name={isEditingPrice ? "checkmark" : "pencil"} size={14} color="#0f1e3d" />
+            <Text style={styles.editPriceText}>{isEditingPrice ? "Listo" : "Modificar"}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {isEditingPrice ? (
+          <View style={styles.priceInputRow}>
+            <Text style={styles.priceCurrencySign}>$</Text>
+            <TextInput
+              value={editedPrice}
+              onChangeText={setEditedPrice}
+              keyboardType="numeric"
+              placeholder="0"
+              style={styles.priceInputField}
+            />
+            <Text style={styles.priceCurrencyTag}>USD</Text>
+          </View>
+        ) : (
+          <View style={{ marginTop: 4 }}>
+            <Text style={styles.priceValueDisplay}>
+              USD ${parseFloat(editedPrice || "0").toLocaleString("en-US")}
+            </Text>
+            <Text style={styles.pricePygDisplay}>
+              Aprox. ₲ {Math.round((parseFloat(editedPrice) || 0) * currentDolar).toLocaleString("es-PY")} (T.C. {currentDolar.toLocaleString("es-PY")})
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Pilots Section Title */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8, marginTop: 4 }}>
+        <Text style={styles.sectionTitle}>Pilotos Disponibles</Text>
+        <Text style={styles.sectionSubtitle}>Selecciona la tripulación</Text>
+      </View>
+
       {/* Pilots List */}
       {isLoading ? (
-        <View className="flex-1 justify-center items-center">
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color="#0f1e3d" />
-          <ThemedText className="text-slate-500 mt-2">
-            Cargando pilotos...
-          </ThemedText>
+          <Text style={{ color: "#64748B", marginTop: 8 }}>Cargando información...</Text>
         </View>
       ) : pilots.length === 0 ? (
-        <View className="flex-1 justify-center items-center px-6 pb-12">
-          <View className="w-16 h-16 bg-slate-100 rounded-full items-center justify-center mb-4">
-            <Ionicons name="people-outline" size={32} color="#94A3B8" />
-          </View>
-          <ThemedText type="subtitle" className="text-center mb-2 text-slate-700">
-            No hay pilotos registrados
-          </ThemedText>
-          <ThemedText type="caption" className="text-center text-slate-500">
-            No tienes pilotos vinculados a tu flota actualmente para asignar a este vuelo.
-          </ThemedText>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 24 }}>
+          <Ionicons name="people-outline" size={40} color="#94A3B8" />
+          <Text style={{ fontSize: 16, fontWeight: "bold", color: "#334155", marginTop: 10 }}>
+            Sin pilotos vinculados
+          </Text>
+          <Text style={{ fontSize: 12, color: "#64748B", textAlign: "center", marginTop: 4 }}>
+            No se encontraron pilotos en la flota para asignar a esta aeronave.
+          </Text>
         </View>
       ) : (
         <FlatList
           data={pilots}
           renderItem={renderPilotItem}
-          keyExtractor={(item) =>
-            item.user?.uid || item.basic?.id_number || Math.random().toString()
-          }
+          keyExtractor={(item) => item.user?.uid || item.basic?.id_number || Math.random().toString()}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 24 }}
+          contentContainerStyle={{ paddingBottom: 16 }}
         />
       )}
+
+      {/* Bottom Actions Bar */}
+      <View style={styles.bottomBarContainer}>
+        {/* Status Banners & Specific CTAs */}
+        {reservation?.internal_status === "awaiting_payment" ? (
+          <View style={{ gap: 8, marginBottom: 8 }}>
+            <View style={styles.awaitingPaymentNotice}>
+              <Ionicons name="information-circle" size={18} color="#1e40af" />
+              <Text style={styles.awaitingPaymentText}>
+                Vuelo aprobado. Pendiente de que el cliente realice el pago.
+              </Text>
+            </View>
+
+            {/* CTA 1: Enviar link de pago por WhatsApp */}
+            <TouchableOpacity
+              onPress={handleSendWhatsAppPaymentLink}
+              disabled={isSendingWhatsApp}
+              style={styles.whatsappButton}
+              activeOpacity={0.8}
+            >
+              {isSendingWhatsApp ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="logo-whatsapp" size={20} color="#FFFFFF" />
+                  <Text style={styles.whatsappButtonText}>Enviar Link de Pago por WhatsApp</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        ) : reservation?.internal_status === "confirmed" ? (
+          <View style={{ gap: 8, marginBottom: 8 }}>
+            <View style={styles.confirmedNotice}>
+              <Ionicons name="checkmark-circle" size={18} color="#059669" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.confirmedTitle}>Pago Confirmado • Bancard vPOS</Text>
+                {reservation.invoice_number && (
+                  <Text style={styles.confirmedSub}>
+                    Factura Electrónica: {reservation.invoice_number}
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            {/* CTA: Ver y Compartir Factura */}
+            <TouchableOpacity
+              onPress={() => generateAndShareInvoicePdf(reservation, clientUser?.email || undefined)}
+              style={styles.invoiceButton}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
+              <Text style={styles.invoiceButtonText}>Ver / Enviar Factura por WhatsApp (PDF)</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {/* Primary Approve Button (when pending) */}
+        {(!reservation || reservation.internal_status === "pending_approval" || reservation.internal_status === "pending") && (
+          <TouchableOpacity
+            onPress={handleApproveFlight}
+            disabled={isApproving}
+            style={[
+              styles.approveButton,
+              assignedPilotIds.length === 0 && styles.approveButtonDisabled,
+            ]}
+            activeOpacity={0.8}
+          >
+            {isApproving ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={20}
+                  color={assignedPilotIds.length === 0 ? "#94A3B8" : "#FFFFFF"}
+                />
+                <Text
+                  style={[
+                    styles.approveButtonText,
+                    assignedPilotIds.length === 0 && styles.approveButtonTextDisabled,
+                  ]}
+                >
+                  Aprobar Vuelo y Notificar Tarifa
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  topHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  backButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#0f1e3d",
+    marginLeft: 4,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: "bold",
+    color: "#0f1e3d",
+  },
+  flightSummaryCard: {
+    backgroundColor: "#0f1e3d",
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 10,
+  },
+  flightSummaryEyebrow: {
+    fontSize: 11,
+    color: "#94A3B8",
+    fontWeight: "500",
+  },
+  flightSummaryTitle: {
+    fontSize: 17,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginTop: 2,
+  },
+  registrationBadge: {
+    backgroundColor: "#C5A059",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  registrationText: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#0f1e3d",
+  },
+  routeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.12)",
+  },
+  routeAirportCode: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  crewCountBadge: {
+    backgroundColor: "rgba(255,255,255,0.15)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  crewCountText: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  clientPreviewRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.08)",
+  },
+  clientPreviewText: {
+    fontSize: 11,
+    color: "#CBD5E1",
+    flex: 1,
+  },
+  priceCard: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
+  },
+  priceCardLabel: {
+    fontSize: 13,
+    fontWeight: "bold",
+    color: "#0f1e3d",
+  },
+  editPriceButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  editPriceText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#0f1e3d",
+  },
+  priceInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#C5A059",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    marginTop: 8,
+  },
+  priceCurrencySign: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#0f1e3d",
+    marginRight: 4,
+  },
+  priceInputField: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#0f1e3d",
+    paddingVertical: 6,
+  },
+  priceCurrencyTag: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#94A3B8",
+  },
+  priceValueDisplay: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#0f1e3d",
+  },
+  pricePygDisplay: {
+    fontSize: 11,
+    color: "#059669",
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#0f1e3d",
+  },
+  sectionSubtitle: {
+    fontSize: 11,
+    color: "#64748B",
+  },
+  pilotCard: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 8,
+  },
+  pilotNameText: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#0f1e3d",
+  },
+  pilotEmailText: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 1,
+  },
+  licenceBadge: {
+    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  licenceBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#475569",
+  },
+  encargadoBadge: {
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+  },
+  encargadoBadgeText: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#92400E",
+  },
+  checkboxBase: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxAssigned: {
+    backgroundColor: "#0f1e3d",
+    borderColor: "#0f1e3d",
+  },
+  bottomBarContainer: {
+    borderTopWidth: 1,
+    borderTopColor: "#E2E8F0",
+    paddingTop: 10,
+    paddingBottom: 24,
+  },
+  awaitingPaymentNotice: {
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    borderRadius: 12,
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  awaitingPaymentText: {
+    fontSize: 12,
+    color: "#1E40AF",
+    fontWeight: "600",
+    flex: 1,
+  },
+  whatsappButton: {
+    backgroundColor: "#25D366",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 12,
+    paddingVertical: 13,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  whatsappButtonText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  confirmedNotice: {
+    backgroundColor: "#ECFDF5",
+    borderWidth: 1,
+    borderColor: "#A7F3D0",
+    borderRadius: 12,
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  confirmedTitle: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#065F46",
+  },
+  confirmedSub: {
+    fontSize: 11,
+    color: "#047857",
+  },
+  invoiceButton: {
+    backgroundColor: "#059669",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  invoiceButtonText: {
+    fontSize: 13,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  approveButton: {
+    backgroundColor: "#C5A059",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 12,
+    paddingVertical: 13,
+  },
+  approveButtonDisabled: {
+    backgroundColor: "#E2E8F0",
+  },
+  approveButtonText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  approveButtonTextDisabled: {
+    color: "#94A3B8",
+  },
+});

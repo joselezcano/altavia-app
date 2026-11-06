@@ -3,62 +3,26 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
-import { AircraftSpecs } from "@/types/owner";
+import { AircraftSpecsDoc, useOwnerAircrafts } from "@/hooks/useOwnerAircrafts";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRouter } from "expo-router";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  RefreshControl,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-interface AircraftSpecsDoc extends AircraftSpecs {
-  id: string;
-}
 
 export default function ListAircraftsScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const [aircrafts, setAircrafts] = useState<AircraftSpecsDoc[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: aircrafts = [], isLoading, isRefetching, refetch } = useOwnerAircrafts(user?.uid);
 
-  useEffect(() => {
-    if (!user) return;
-
-    // Real-time listener for the user's aircraft specifications
-    const q = query(
-      collection(db, "AircraftSpecs"),
-      where("ownerId", "==", user.uid)
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const specsList: AircraftSpecsDoc[] = [];
-        snapshot.forEach((doc) => {
-          specsList.push({
-            id: doc.id,
-            ...(doc.data() as AircraftSpecs),
-          });
-        });
-        setAircrafts(specsList);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching aircrafts:", error);
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user]);
 
   const handleAddAircraft = () => {
     router.push("/aircrafts/add-aircraft");
@@ -204,6 +168,7 @@ export default function ListAircraftsScreen() {
           renderItem={renderAircraftItem}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#0f1e3d" />}
           contentContainerStyle={{ paddingBottom: 24 }}
         />
       )}

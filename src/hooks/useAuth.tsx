@@ -1,4 +1,5 @@
 import { auth, db } from "@/config/firebase";
+import { claimPreRegisteredProfile } from "@/services/profile-claim";
 import { BaseUser } from "@/types/user";
 import {
   User,
@@ -17,6 +18,11 @@ export const USER_ROLE = {
 
 export type Role = keyof typeof USER_ROLE;
 
+interface RegistrationMetadata {
+  termsAccepted: boolean;
+  referralSource: string | null;
+}
+
 interface AuthContextType {
   user: User | null;
   role: Role | null; // Selected active role
@@ -25,6 +31,10 @@ interface AuthContextType {
   userData: BaseUser | null; // Common user data
   profileData: any | null; // Role-specific profile data (PilotProfile, etc.)
   isRoleSelectorRequired: boolean;
+  needsProfileCompletion: boolean; // Flag to indicate step 2 onboarding is required
+  registrationMetadata: RegistrationMetadata;
+  setRegistrationMetadata: (meta: RegistrationMetadata) => void;
+  refreshUserData: () => Promise<void>;
   selectRole: (role: Role) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -37,6 +47,10 @@ const AuthContext = createContext<AuthContextType>({
   userData: null,
   profileData: null,
   isRoleSelectorRequired: false,
+  needsProfileCompletion: false,
+  registrationMetadata: { termsAccepted: false, referralSource: null },
+  setRegistrationMetadata: () => { },
+  refreshUserData: async () => { },
   selectRole: async () => { },
   signOut: async () => { },
 });
@@ -49,6 +63,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profileData, setProfileData] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRoleSelectorRequired, setIsRoleSelectorRequired] = useState(false);
+  const [needsProfileCompletion, setNeedsProfileCompletion] = useState(false);
+  const [registrationMetadata, setRegistrationMetadata] = useState<RegistrationMetadata>({
+    termsAccepted: false,
+    referralSource: null,
+  });
 
   // Fetch role-specific profile data
   const fetchProfileData = async (uid: string, selectedRole: Role) => {
@@ -81,61 +100,114 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const loadUserData = async (firebaseUser: User, allowClaim = true) => {
+    try {
+      const userDocRef = doc(db, "users", firebaseUser.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      // Primer ingreso con Google / Apple: si la encargada ya lo había dado de alta
+      // con ese email, el servidor une ese perfil (y sus reservas) a esta cuenta.
+      if (!userDoc.exists() && allowClaim) {
+        const claim = await claimPreRegisteredProfile();
+        if (claim.claimed) {
+          await loadUserData(firebaseUser, false);
+          return;
+        }
+      }
+
+      if (userDoc.exists()) {
+        const data = userDoc.data() as BaseUser;
+
+        // Check if account was deleted
+        if (data.deleted) {
+          console.warn("Usuario con cuenta eliminada detectado. Cerrando sesión...");
+          await firebaseSignOut(auth);
+          setUser(null);
+          setUserData(null);
+          setRole(null);
+          setRoles([]);
+          setProfileData(null);
+          setNeedsProfileCompletion(false);
+          setIsRoleSelectorRequired(false);
+          return;
+        }
+
+        setUser(firebaseUser);
+        setUserData(data);
+
+        // Check if user needs Step 2 profile completion (Persona Física vs Empresa)
+        if (!data.personType || data.profileCompleted === false) {
+          setNeedsProfileCompletion(true);
+          setRole(null);
+          setRoles([]);
+          setProfileData(null);
+          setIsRoleSelectorRequired(false);
+          return;
+        }
+
+        setNeedsProfileCompletion(false);
+        const userRoles = (data.roles || []) as Role[];
+        setRoles(userRoles);
+
+        if (userRoles.length === 1) {
+          const active = userRoles[0];
+          const profile = await fetchProfileData(firebaseUser.uid, active);
+          setRole(active);
+          setProfileData(profile);
+          setIsRoleSelectorRequired(false);
+        } else if (userRoles.length > 1) {
+          // Multirole, needs selection
+          setIsRoleSelectorRequired(true);
+        } else {
+          // Default to client if no roles defined
+          const active = "CLIENT";
+          const profile = await fetchProfileData(firebaseUser.uid, active);
+          setRole(active);
+          setProfileData(profile);
+          setIsRoleSelectorRequired(false);
+        }
+      } else {
+        // Document doesn't exist yet (brand new Google/Apple user)
+        setUser(firebaseUser);
+        setUserData(null);
+        setRole(null);
+        setRoles([]);
+        setProfileData(null);
+        setNeedsProfileCompletion(true);
+        setIsRoleSelectorRequired(false);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      setUser(firebaseUser);
+      setUserData(null);
+      setNeedsProfileCompletion(true);
+      setRole(null);
+      setRoles([]);
+      setProfileData(null);
+      setIsRoleSelectorRequired(false);
+    }
+  };
+
+  const refreshUserData = async () => {
+    if (auth.currentUser) {
+      setIsLoading(true);
+      await loadUserData(auth.currentUser);
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setIsLoading(true);
       if (firebaseUser) {
-        try {
-          const userDocRef = doc(db, "users", firebaseUser.uid);
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            const data = userDoc.data() as BaseUser;
-            setUser(firebaseUser);
-            setUserData(data);
-            const userRoles = (data.roles || []) as Role[];
-            setRoles(userRoles);
-
-            if (userRoles.length === 1) {
-              const active = userRoles[0];
-              const profile = await fetchProfileData(firebaseUser.uid, active);
-              setRole(active);
-              setProfileData(profile);
-              setIsRoleSelectorRequired(false);
-            } else if (userRoles.length > 1) {
-              // Multirrole, needs selection
-              setIsRoleSelectorRequired(true);
-            } else {
-              // Default to client if no roles defined
-              const active = "CLIENT";
-              const profile = await fetchProfileData(firebaseUser.uid, active);
-              setRole(active);
-              setProfileData(profile);
-              setIsRoleSelectorRequired(false);
-            }
-          } else {
-            // Document doesn't exist in users
-            setUser(null);
-            setRole(null);
-            setRoles([]);
-            setUserData(null);
-            setProfileData(null);
-            setIsRoleSelectorRequired(false);
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-          setUser(null);
-          setRole(null);
-          setRoles([]);
-          setUserData(null);
-          setProfileData(null);
-          setIsRoleSelectorRequired(false);
-        }
+        await loadUserData(firebaseUser);
       } else {
         setUser(null);
         setRole(null);
         setRoles([]);
         setUserData(null);
         setProfileData(null);
+        setNeedsProfileCompletion(false);
         setIsRoleSelectorRequired(false);
       }
       setIsLoading(false);
@@ -173,6 +245,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         profileData,
         isLoading,
         isRoleSelectorRequired,
+        needsProfileCompletion,
+        registrationMetadata,
+        setRegistrationMetadata,
+        refreshUserData,
         selectRole,
         signOut,
       }}

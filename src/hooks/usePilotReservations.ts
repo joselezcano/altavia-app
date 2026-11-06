@@ -11,7 +11,7 @@ export function usePilotReservations(pilotId: string | undefined) {
       if (!pilotId) return [];
 
       try {
-        // Query by pilot_ids array containing current pilotId
+        // 1. Query by pilot_ids array containing current pilotId
         const q1 = query(
           collection(db, "aircraft-reservation"),
           where("pilot_ids", "array-contains", pilotId)
@@ -30,6 +30,40 @@ export function usePilotReservations(pilotId: string | undefined) {
           } catch (e) {
             console.error("Error querying pilots_ids fallback:", e);
           }
+        }
+
+        const reservationDocsMap = new Map<string, any>();
+        snapshot.docs.forEach((d) => reservationDocsMap.set(d.id, d));
+
+        // 2. Check if pilot is an Encargado to fetch reservations for managed aircrafts
+        try {
+          const pilotDocRef = doc(db, "pilots", pilotId);
+          const pilotDocSnap = await getDoc(pilotDocRef);
+          if (pilotDocSnap.exists()) {
+            const pilotData = pilotDocSnap.data();
+            const managedAircrafts: string[] = Array.isArray(pilotData.managed_aircrafts)
+              ? pilotData.managed_aircrafts.filter((id: any) => typeof id === "string" && id.length > 0)
+              : [];
+
+            if (pilotData.isEncargado && managedAircrafts.length > 0) {
+              // Firestore 'in' query allows up to 30 items
+              const chunks: string[][] = [];
+              for (let i = 0; i < managedAircrafts.length; i += 30) {
+                chunks.push(managedAircrafts.slice(i, i + 30));
+              }
+
+              for (const chunk of chunks) {
+                const managedQ = query(
+                  collection(db, "aircraft-reservation"),
+                  where("aircraftId", "in", chunk)
+                );
+                const managedSnap = await getDocs(managedQ);
+                managedSnap.docs.forEach((d) => reservationDocsMap.set(d.id, d));
+              }
+            }
+          }
+        } catch (encargadoErr) {
+          console.error("Error al consultar reservas de encargado:", encargadoErr);
         }
 
         const items: ClientReservationItem[] = [];
@@ -84,7 +118,7 @@ export function usePilotReservations(pilotId: string | undefined) {
           return undefined;
         };
 
-        for (const docSnap of snapshot.docs) {
+        for (const docSnap of reservationDocsMap.values()) {
           const data = docSnap.data();
 
           const outbound_flight_departure_time = data.schedule?.outbound_flight_departure_time?.toDate

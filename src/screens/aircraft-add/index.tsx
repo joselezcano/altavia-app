@@ -11,6 +11,7 @@ import { FormStep4 } from "@/screens/aircraft-add/components/form-step-4";
 import { AircraftSpecs, AircraftSpecsSchema } from "@/types/owner";
 import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
@@ -32,6 +33,7 @@ import { AircraftTypeSuggestions } from "./components/suggestions";
 export default function AddAircraftScreen() {
     const { user } = useAuth();
     const router = useRouter();
+    const queryClient = useQueryClient();
     const insets = useSafeAreaInsets();
     const [currentStep, setCurrentStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,11 +107,13 @@ export default function AddAircraftScreen() {
             const cleanData = JSON.parse(JSON.stringify(data));
 
             // Save specifications into 'AircraftSpecs' collection with owner ID
-            await addDoc(collection(db, "AircraftSpecs"), {
+            const newDocRef = await addDoc(collection(db, "AircraftSpecs"), {
                 ...cleanData,
                 ownerId: user.uid,
                 createdAt: serverTimestamp(),
             });
+
+            queryClient.invalidateQueries({ queryKey: ["owner-aircrafts", user.uid] });
 
             Toast.show({
                 type: "success",
@@ -117,7 +121,11 @@ export default function AddAircraftScreen() {
                 text2: `Matrícula: ${data.basic_specs.registration}`,
             });
 
-            router.back();
+            // Redirect directly to details to allow base airport and photos setup
+            router.replace({
+                pathname: "/aircrafts/details",
+                params: { id: newDocRef.id },
+            });
         } catch (error: any) {
             console.error("Error creating aircraft specification:", error);
             Alert.alert("Error", error.message || "No se pudo registrar la aeronave.");

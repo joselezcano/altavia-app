@@ -2,7 +2,7 @@ import SignOutButton from "@/components/sign-out-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import UserAvatar from "@/components/user-avatar";
-import { functions } from "@/config/firebase";
+import { auth, db, functions } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { StartKycSessionResponse } from "@/types/kyc";
@@ -11,20 +11,94 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
+import { deleteUser } from "firebase/auth";
+import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 import { useRef, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Modal, ScrollView, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 const DEBOUNCE_COOLDOWN_MS = 3000; // 3-second cooldown to prevent accidental double taps or spam
 
 export default function ProfileScreen() {
-  const { user, role, roles, selectRole } = useAuth();
+  const { user, role, roles, selectRole, signOut } = useAuth();
   const queryClient = useQueryClient();
   const { data: userProfile, isLoading: isLoadingProfile } = useUserProfile(user?.uid);
 
   const [isVerifying, setIsVerifying] = useState(false);
   const lastClickTimeRef = useRef<number>(0);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (!user?.uid) return;
+
+    try {
+      setIsDeleting(true);
+
+      // 1. Soft-delete and anonymize user profile in 'users/{uid}'
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, {
+        deleted: true,
+        deletedAt: serverTimestamp(),
+        email: `anonymized_${user.uid}@deleted.altavia.com.py`,
+        firstName: "Usuario",
+        lastName: "Anonimizado",
+        phone: null,
+        documentNumber: null,
+        taxId: null,
+        businessName: null,
+        representativeName: null,
+        representativeDoc: null,
+      });
+
+      // 2. Mark client profile as deleted in 'clients/{uid}'
+      try {
+        const clientDocRef = doc(db, "clients", user.uid);
+        await updateDoc(clientDocRef, {
+          deleted: true,
+          deletedAt: serverTimestamp(),
+        });
+      } catch (clientErr) {
+        console.warn("Client doc update error during deletion:", clientErr);
+      }
+
+      // NOTE: Flight history, aircraft-reservations and manifests are strictly preserved
+      // for aviation regulatory (DINAC) and operational safety compliance.
+
+      // Invalidate react-query cache
+      queryClient.clear();
+
+      // 3. Delete Firebase Auth user if authenticated
+      try {
+        if (auth.currentUser) {
+          await deleteUser(auth.currentUser);
+        }
+      } catch (authErr: any) {
+        console.warn("deleteUser warning (fallback to sign out):", authErr);
+      }
+
+      setShowDeleteModal(false);
+      setIsDeleting(false);
+
+      Toast.show({
+        type: "success",
+        text1: "Cuenta Eliminada",
+        text2: "Tus credenciales y perfil fueron cancelados exitosamente.",
+      });
+
+      // Sign out
+      await signOut();
+    } catch (error: any) {
+      setIsDeleting(false);
+      console.error("Error al eliminar cuenta:", error);
+      Alert.alert(
+        "Error",
+        "No se pudo completar la eliminación de la cuenta. Por favor intenta más tarde."
+      );
+    }
+  };
 
   const displayName =
     userProfile?.firstName && userProfile?.lastName
@@ -372,8 +446,102 @@ export default function ProfileScreen() {
           ))}
         </View>
 
+        {/* Security & Account Management (DINAC Compliance Disclosure) */}
+        <ThemedText className="text-xs font-extrabold text-slate-400 mb-2.5 uppercase tracking-wider pl-1">
+          Seguridad y Gestión de Cuenta
+        </ThemedText>
+        <View className="bg-white rounded-3xl p-4 mb-6 border border-slate-100 shadow-sm">
+          <View className="flex-row items-center gap-3 mb-2.5">
+            <View className="w-9 h-9 rounded-xl bg-rose-50 items-center justify-center">
+              <Ionicons name="shield-outline" size={18} color="#e11d48" />
+            </View>
+            <View className="flex-1">
+              <ThemedText className="font-bold text-slate-800 text-sm">Privacidad y Retención DINAC</ThemedText>
+              <ThemedText className="text-xs text-slate-500 mt-0.5">
+                Derecho al olvido y resguardo operacional
+              </ThemedText>
+            </View>
+          </View>
+          <ThemedText className="text-[11px] text-slate-500 mb-3.5 leading-relaxed">
+            Puedes eliminar tu cuenta y credenciales. Por normativas de seguridad aérea (DINAC), los registros históricos de vuelos y reservas se retienen de forma inmutable y confidencial para auditoría.
+          </ThemedText>
+          <TouchableOpacity
+            onPress={() => setShowDeleteModal(true)}
+            className="border border-rose-200 bg-rose-50/50 py-3 rounded-xl flex-row items-center justify-center gap-2 active:bg-rose-100"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="trash-outline" size={16} color="#e11d48" />
+            <ThemedText className="text-rose-600 font-bold text-xs">
+              Eliminar mi cuenta
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+
         {/* Log Out */}
         <SignOutButton />
+
+        {/* Account Deletion Confirmation Modal */}
+        <Modal
+          visible={showDeleteModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowDeleteModal(false)}
+        >
+          <View className="flex-1 bg-black/60 justify-center items-center px-6">
+            <View className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl border border-slate-100">
+              <View className="w-12 h-12 rounded-full bg-rose-100 items-center justify-center mx-auto mb-4">
+                <Ionicons name="warning-outline" size={26} color="#e11d48" />
+              </View>
+
+              <ThemedText className="text-center font-extrabold text-lg text-slate-900 mb-2">
+                ¿Eliminar tu cuenta?
+              </ThemedText>
+
+              <ThemedText className="text-xs text-slate-600 leading-relaxed text-center mb-4">
+                Esta acción cancelará tu acceso a Alta Vía y anonimizará tus datos personales de perfil.
+              </ThemedText>
+
+              {/* DINAC Legal Retention Warning Box */}
+              <View className="bg-amber-500/10 border border-amber-200 p-3 rounded-2xl mb-5">
+                <View className="flex-row items-center gap-1.5 mb-1">
+                  <Ionicons name="airplane-outline" size={14} color="#b45309" />
+                  <ThemedText className="text-[11px] font-bold text-amber-900">
+                    Aviso Legal Aeronáutico (DINAC)
+                  </ThemedText>
+                </View>
+                <ThemedText className="text-[10px] text-amber-900/80 leading-relaxed">
+                  Conforme al Código Aeronáutico (Ley N° 1860/02) y regulaciones de seguridad operacional, los registros de vuelos reservados, bitácoras y manifiestos de pasajeros NO se eliminan, quedando resguardados de forma inmutable para fines regulatorios.
+                </ThemedText>
+              </View>
+
+              <View className="gap-2.5">
+                <TouchableOpacity
+                  disabled={isDeleting}
+                  onPress={handleDeleteAccount}
+                  className="bg-rose-600 py-3.5 rounded-xl items-center justify-center active:bg-rose-700 shadow-xs"
+                >
+                  {isDeleting ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <ThemedText className="text-white font-bold text-xs">
+                      Confirmar y Eliminar Cuenta
+                    </ThemedText>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  disabled={isDeleting}
+                  onPress={() => setShowDeleteModal(false)}
+                  className="bg-slate-100 py-3 rounded-xl items-center justify-center active:bg-slate-200"
+                >
+                  <ThemedText className="text-slate-700 font-semibold text-xs">
+                    Cancelar
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </ThemedView>
   );

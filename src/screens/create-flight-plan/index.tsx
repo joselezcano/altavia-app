@@ -174,16 +174,24 @@ export default function CreateFlightPlanScreen() {
         }
 
         async function populateFromParams() {
-            const pilotName =
-                `${profileData?.basic?.id_first_name || ''} ${profileData?.basic?.id_last_name || ''}`.trim() ||
-                `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() ||
-                "";
-            const pilotContact = profileData?.basic?.telephone || "";
-
-            let aircraftSpecs: AircraftSpecs | null = null;
-            if (params.aircraftId) {
+            let resData: any = null;
+            if (params.reservationId) {
                 try {
-                    const specDocRef = doc(db, "AircraftSpecs", params.aircraftId);
+                    const resDocRef = doc(db, "aircraft-reservation", params.reservationId);
+                    const resSnap = await getDoc(resDocRef);
+                    if (resSnap.exists()) {
+                        resData = resSnap.data();
+                    }
+                } catch (e) {
+                    console.error("Error al obtener reserva para plan de vuelo:", e);
+                }
+            }
+
+            const targetAircraftId = params.aircraftId || resData?.aircraftId;
+            let aircraftSpecs: AircraftSpecs | null = null;
+            if (targetAircraftId) {
+                try {
+                    const specDocRef = doc(db, "AircraftSpecs", targetAircraftId);
                     const specSnap = await getDoc(specDocRef);
                     if (specSnap.exists()) {
                         aircraftSpecs = specSnap.data() as AircraftSpecs;
@@ -193,13 +201,40 @@ export default function CreateFlightPlanScreen() {
                 }
             }
 
-            const depIdent = params.originIcaoCode || "";
-            const arrIdent = params.destinationIcaoCode || "";
-            const depDateUtc = params.departureTime?.split('.')[0] + 'Z' || "";
+            const isReturn = params.legType === "return";
+            const depIdent = params.originIcaoCode || (isReturn ? resData?.trip?.destination_airport_ident : resData?.trip?.origin_airport_ident) || "";
+            const arrIdent = params.destinationIcaoCode || (isReturn ? resData?.trip?.origin_airport_ident : resData?.trip?.destination_airport_ident) || "";
+
+            let depDateUtc = params.departureTime ? params.departureTime.split('.')[0] + 'Z' : "";
+            if (!depDateUtc && resData) {
+                const depDate = isReturn
+                    ? resData.schedule?.return_flight_departure_time
+                    : resData.schedule?.outbound_flight_departure_time;
+                if (depDate) {
+                    const d = depDate?.toDate ? depDate.toDate() : new Date(depDate);
+                    depDateUtc = d.toISOString().split('.')[0] + 'Z';
+                }
+            }
+            if (!depDateUtc) {
+                depDateUtc = new Date().toISOString().split('.')[0] + 'Z';
+            }
+
             const depDateObj = new Date(depDateUtc);
             const offBlockTime = !isNaN(depDateObj.getTime())
                 ? String(depDateObj.getUTCHours()).padStart(2, "0") + String(depDateObj.getUTCMinutes()).padStart(2, "0")
                 : "";
+
+            // Pax count: Check manifest passengers length first!
+            let pax_count = 1;
+            if (params.paxCount) {
+                pax_count = parseInt(params.paxCount, 10);
+            } else if (resData?.passengers && Array.isArray(resData.passengers) && resData.passengers.length > 0) {
+                pax_count = resData.passengers.length;
+            } else if (resData?.capacity?.passangers) {
+                pax_count = resData.capacity.passangers;
+            } else if (aircraftSpecs?.basic_specs?.pax_count) {
+                pax_count = aircraftSpecs.basic_specs.pax_count;
+            }
 
             const registration = aircraftSpecs?.basic_specs.registration || "";
             const type = aircraftSpecs?.basic_specs.type || "";
@@ -207,10 +242,15 @@ export default function CreateFlightPlanScreen() {
             const equipment = aircraftSpecs?.technical_specs.equipment || [];
             const transponder = aircraftSpecs?.technical_specs.transponder ?? "";
             const flight_rules = aircraftSpecs?.technical_specs.flight_rules ?? "IFR";
+            const cruiseSpeed = aircraftSpecs?.operating_specs?.cruise_speed_knots || resData?.cruise_speed_knots || 0;
 
-            const pax_count = params.paxCount
-                ? parseInt(params.paxCount, 10)
-                : aircraftSpecs?.basic_specs?.pax_count || 1; // Requested seats by the client
+            const pilotName =
+                `${profileData?.basic?.id_first_name || ''} ${profileData?.basic?.id_last_name || ''}`.trim() ||
+                `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() ||
+                "";
+            const pilotContact = profileData?.basic?.telephone || "";
+
+            const encodedRoute = depIdent && arrIdent ? [depIdent, arrIdent] : [];
 
             const populatedValues: FlightPlan = {
                 flight_plan: {
@@ -237,10 +277,10 @@ export default function CreateFlightPlanScreen() {
                         alternate_icao: "",
                     },
                     route: {
-                        cruising_speed_knots: 0,
+                        cruising_speed_knots: cruiseSpeed,
                         cruising_altitude_feet: 0,
                         waypoints: [],
-                        encoded_route: [],
+                        encoded_route: encodedRoute,
                     },
                     performance: {
                         eet_hours: 0,
@@ -249,7 +289,7 @@ export default function CreateFlightPlanScreen() {
                         fuel_minutes: 0,
                     },
                     emergency: {
-                        pax_count: isNaN(pax_count) ? 1 : pax_count,
+                        pax_count: isNaN(pax_count) || pax_count <= 0 ? 1 : pax_count,
                         radio_equipment: aircraftSpecs?.emergency.radio_equipment || [],
                         survival_equipment: aircraftSpecs?.emergency.survival_equipment || [],
                         life_jacket_equipment: aircraftSpecs?.emergency.life_jacket_equipment || [],
@@ -269,8 +309,8 @@ export default function CreateFlightPlanScreen() {
                 },
                 aircraft_reservation_id: params.reservationId || undefined,
                 airports: {
-                    origin_ident: params.originIdent || "",
-                    destination_ident: params.destinationIdent || "",
+                    origin_ident: params.originIdent || resData?.trip?.origin_airport_ident || "",
+                    destination_ident: params.destinationIdent || resData?.trip?.destination_airport_ident || "",
                 },
             };
 

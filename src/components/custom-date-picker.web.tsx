@@ -1,5 +1,7 @@
-import React from 'react';
-import { CustomDatePickerProps } from '@/types/components';
+import { CustomDatePickerProps } from "@/types/components";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useId } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export function CustomDatePicker({
   value,
@@ -8,71 +10,116 @@ export function CustomDatePicker({
   minimumDate,
   includeTime = true,
 }: CustomDatePickerProps) {
-  // Helper to convert Date to local "YYYY-MM-DDTHH:mm" format for <input type="datetime-local">
-  const toLocalDatetimeString = (date: Date | undefined | null): string => {
-    if (!date) return '';
-    const tzOffset = date.getTimezoneOffset() * 60000; // in ms
-    const localTime = new Date(date.getTime() - tzOffset);
-    return localTime.toISOString().slice(0, 16);
+  const inputId = useId();
+
+  // Formato para input HTML: YYYY-MM-DDTHH:mm o YYYY-MM-DD
+  const toInputValue = (date: Date | null | undefined): string => {
+    if (!date) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    if (!includeTime) {
+      return `${year}-${month}-${day}`;
+    }
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  // Helper to convert Date to local "YYYY-MM-DD" format for <input type="date">
-  const toLocalDateString = (date: Date | undefined | null): string => {
-    if (!date) return '';
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  const toMinString = (date: Date | null | undefined): string | undefined => {
+    if (!date) return undefined;
+    return toInputValue(date);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (!val) {
       onChange(undefined);
-    } else {
-      if (includeTime) {
-        onChange(new Date(val));
-      } else {
-        const [year, month, day] = val.split('-').map(Number);
-        onChange(new Date(year, month - 1, day));
-      }
+      return;
+    }
+    // Parsear fecha respetando la zona horaria local
+    const parsed = new Date(val);
+    if (!isNaN(parsed.getTime())) {
+      onChange(parsed);
     }
   };
 
-  const minValString = minimumDate
-    ? includeTime
-      ? toLocalDatetimeString(minimumDate)
-      : toLocalDateString(minimumDate)
-    : undefined;
-
-  const currentValueString = includeTime
-    ? toLocalDatetimeString(value)
-    : toLocalDateString(value);
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange(undefined);
+  };
 
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
-      <input
-        type={includeTime ? "datetime-local" : "date"}
-        value={currentValueString}
-        min={minValString}
-        onChange={handleInputChange}
-        placeholder={placeholder}
-        style={{
-          width: '100%',
-          backgroundColor: '#F8FAFC', // slate-50
-          borderColor: '#E2E8F0', // slate-200
-          borderWidth: '1px',
-          borderStyle: 'solid',
-          borderRadius: '12px', // rounded-xl
-          padding: '12px 16px', // px-4 py-3
-          color: value ? '#0F172A' : '#94A3B8', // slate-900 / slate-400
-          fontWeight: 500,
-          fontSize: '14px',
-          fontFamily: 'inherit',
-          outline: 'none',
-          boxSizing: 'border-box',
-        }}
-      />
-    </div>
+    <View style={styles.container}>
+      <label htmlFor={inputId} style={styles.webLabelWrapper}>
+        <View style={styles.inputCard}>
+          <input
+            id={inputId}
+            type={includeTime ? "datetime-local" : "date"}
+            value={toInputValue(value)}
+            min={toMinString(minimumDate)}
+            onChange={handleInputChange}
+            style={styles.nativeHtmlInput}
+          />
+          <View style={styles.iconContainer} pointerEvents="none">
+            <Ionicons name="calendar-outline" size={18} color="#94A3B8" />
+          </View>
+        </View>
+      </label>
+
+      {value !== undefined && value !== null && (
+        <TouchableOpacity
+          onPress={handleClear as any}
+          style={styles.clearButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="close-circle" size={18} color="#94A3B8" />
+        </TouchableOpacity>
+      )}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    width: "100%",
+    position: "relative",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  webLabelWrapper: {
+    width: "100%",
+    display: "flex",
+    cursor: "pointer",
+  },
+  inputCard: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  nativeHtmlInput: {
+    width: "100%",
+    border: "none",
+    background: "transparent",
+    outline: "none",
+    fontSize: "14px",
+    fontWeight: 500,
+    color: "#0F172A",
+    fontFamily: "inherit",
+    cursor: "pointer",
+  } as any,
+  iconContainer: {
+    marginLeft: 8,
+  },
+  clearButton: {
+    position: "absolute",
+    right: 38,
+    padding: 4,
+  },
+});

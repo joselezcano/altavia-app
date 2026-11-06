@@ -1,9 +1,9 @@
 import { ThemedText } from "@/components/themed-text";
+import { USER_ROLE, useAuth } from "@/hooks/useAuth";
 import type { AircraftSpecs } from "@/types/owner";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { TouchableOpacity, View } from "react-native";
-
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 export function AircraftToolBar({
     id,
@@ -12,14 +12,17 @@ export function AircraftToolBar({
     id: string;
     basic_specs: AircraftSpecs["basic_specs"];
 }) {
+    const { role } = useAuth();
+    const isOwner = role === USER_ROLE.OWNER;
+
     return (
-        <View className="flex-col gap-1 mt-3">
-            <View className="flex-row flex gap-8 px-4 mb-6">
+        <View style={styles.container}>
+            <View style={styles.row}>
                 {/* 1. Calendario */}
                 <TouchableOpacity
                     onPress={() => {
                         router.push({
-                            pathname: "./details/calendar",
+                            pathname: "/aircrafts/details/calendar",
                             params: {
                                 id,
                                 model: basic_specs.model,
@@ -27,10 +30,10 @@ export function AircraftToolBar({
                             },
                         });
                     }}
-                    className="flex-1 bg-white p-3.5 rounded-2xl border border-slate-100 items-center justify-center shadow-sm"
+                    style={styles.card}
                     activeOpacity={0.7}
                 >
-                    <View className="w-16 h-16 rounded-xl bg-slate-100 items-center justify-center mb-2">
+                    <View style={styles.iconBox}>
                         <Ionicons name="calendar" size={28} color="#0f1e3d" />
                     </View>
                     <ThemedText className="text-sm font-semibold text-slate-700 text-center">
@@ -42,7 +45,7 @@ export function AircraftToolBar({
                 <TouchableOpacity
                     onPress={() => {
                         router.push({
-                            pathname: "./details/base-airport",
+                            pathname: "/aircrafts/details/base-airport",
                             params: {
                                 id,
                                 model: basic_specs.model,
@@ -50,10 +53,10 @@ export function AircraftToolBar({
                             },
                         });
                     }}
-                    className="flex-1 bg-white p-3.5 rounded-2xl border border-slate-100 items-center justify-center shadow-sm"
+                    style={styles.card}
                     activeOpacity={0.7}
                 >
-                    <View className="w-16 h-16 rounded-xl bg-slate-100 items-center justify-center mb-2">
+                    <View style={styles.iconBox}>
                         <Ionicons name="location" size={28} color="#0f1e3d" />
                     </View>
                     <ThemedText className="text-sm font-semibold text-slate-700 text-center">
@@ -61,12 +64,13 @@ export function AircraftToolBar({
                     </ThemedText>
                 </TouchableOpacity>
             </View>
-            <View className="flex-row flex gap-8 px-4 mb-6">
+
+            <View style={styles.row}>
                 {/* 3. Pilotos */}
                 <TouchableOpacity
                     onPress={() => {
                         router.push({
-                            pathname: "./details/pilots",
+                            pathname: "/aircrafts/details/pilots",
                             params: {
                                 id,
                                 model: basic_specs.model,
@@ -74,10 +78,10 @@ export function AircraftToolBar({
                             },
                         });
                     }}
-                    className="flex-1 bg-white p-3.5 rounded-2xl border border-slate-100 items-center justify-center shadow-sm"
+                    style={styles.card}
                     activeOpacity={0.7}
                 >
-                    <View className="w-16 h-16 rounded-xl bg-slate-100 items-center justify-center mb-2">
+                    <View style={styles.iconBox}>
                         <MaterialCommunityIcons name="account-tie-hat" size={28} color="#0f1e3d" />
                     </View>
                     <ThemedText className="text-sm font-semibold text-slate-700 text-center">
@@ -89,7 +93,7 @@ export function AircraftToolBar({
                 <TouchableOpacity
                     onPress={() => {
                         router.push({
-                            pathname: "./details/aircraft-specs",
+                            pathname: "/aircrafts/details/aircraft-specs",
                             params: {
                                 id,
                                 model: basic_specs.model,
@@ -97,10 +101,10 @@ export function AircraftToolBar({
                             },
                         });
                     }}
-                    className="flex-1 bg-white p-3.5 rounded-2xl border border-slate-100 items-center justify-center shadow-sm"
+                    style={styles.card}
                     activeOpacity={0.7}
                 >
-                    <View className="w-16 h-16 rounded-xl bg-slate-100 items-center justify-center mb-2">
+                    <View style={styles.iconBox}>
                         <MaterialCommunityIcons name="airplane-cog" size={28} color="#0f1e3d" />
                     </View>
                     <ThemedText className="text-sm font-semibold text-slate-700 text-center">
@@ -108,12 +112,13 @@ export function AircraftToolBar({
                     </ThemedText>
                 </TouchableOpacity>
             </View>
-            <View className="flex-row flex gap-8 px-4 mb-6">
+
+            <View style={styles.row}>
                 {/* 5. Fotos */}
                 <TouchableOpacity
                     onPress={() => {
                         router.push({
-                            pathname: "./details/photos",
+                            pathname: "/aircrafts/details/photos",
                             params: {
                                 id,
                                 model: basic_specs.model,
@@ -121,10 +126,10 @@ export function AircraftToolBar({
                             },
                         });
                     }}
-                    className="flex-1 bg-white p-3.5 rounded-2xl border border-slate-100 items-center justify-center shadow-sm"
+                    style={styles.card}
                     activeOpacity={0.7}
                 >
-                    <View className="w-16 h-16 rounded-xl bg-slate-100 items-center justify-center mb-2">
+                    <View style={styles.iconBox}>
                         <Ionicons name="images" size={28} color="#0f1e3d" />
                     </View>
                     <ThemedText className="text-sm font-semibold text-slate-700 text-center">
@@ -132,21 +137,81 @@ export function AircraftToolBar({
                     </ThemedText>
                 </TouchableOpacity>
 
-                {/* 6. Button */}
-                <TouchableOpacity
-                    onPress={() => { }}
-                    disabled
-                    className="invisible flex-1 bg-white p-3.5 rounded-2xl border border-slate-100 items-center justify-center shadow-sm"
-                    activeOpacity={0.7}
-                >
-                    <View className="w-16 h-16 rounded-xl bg-slate-100 items-center justify-center mb-2">
-                        <Ionicons name="list" size={28} color="#0f1e3d" />
-                    </View>
-                    <ThemedText className="text-sm font-semibold text-slate-700 text-center">
-                        Button
-                    </ThemedText>
-                </TouchableOpacity>
+                {/* 6. Rentabilidad y Costos (Exclusivo para el rol OWNER) */}
+                {isOwner ? (
+                    <TouchableOpacity
+                        onPress={() => {
+                            router.push({
+                                pathname: "/(owner)/finances",
+                                params: {
+                                    aircraftId: id,
+                                },
+                            });
+                        }}
+                        style={styles.card}
+                        activeOpacity={0.7}
+                    >
+                        <View style={styles.iconBoxBlue}>
+                            <MaterialCommunityIcons name="finance" size={28} color="#1540C9" />
+                        </View>
+                        <ThemedText className="text-sm font-semibold text-slate-700 text-center">
+                            Rentabilidad y Costos
+                        </ThemedText>
+                    </TouchableOpacity>
+                ) : (
+                    <View style={styles.invisibleCard} />
+                )}
             </View>
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        marginTop: 12,
+        gap: 4,
+    },
+    row: {
+        flexDirection: "row",
+        gap: 24,
+        paddingHorizontal: 16,
+        marginBottom: 20,
+    },
+    card: {
+        flex: 1,
+        backgroundColor: "#FFFFFF",
+        padding: 14,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "#F1F5F9",
+        alignItems: "center",
+        justifyContent: "center",
+        elevation: 1,
+        shadowColor: "#0f1e3d",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+    },
+    invisibleCard: {
+        flex: 1,
+        opacity: 0,
+    },
+    iconBox: {
+        width: 64,
+        height: 64,
+        borderRadius: 12,
+        backgroundColor: "#F1F5F9",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 8,
+    },
+    iconBoxBlue: {
+        width: 64,
+        height: 64,
+        borderRadius: 12,
+        backgroundColor: "#EEF3FE",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 8,
+    },
+});

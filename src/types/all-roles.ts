@@ -51,13 +51,38 @@ export interface AircraftAvailabilityDoc extends AircraftAvailability {
 }
 
 
+export const DocumentTypeSchema = z.enum(["CI", "PASSPORT", "DNI", "OTHER"]);
+export type DocumentType = z.infer<typeof DocumentTypeSchema>;
+
+export const PassengerManifestItemSchema = z.object({
+    id: z.string().optional(),
+    fullName: z.string().min(2, "El nombre completo es requerido"),
+    documentType: DocumentTypeSchema.default("CI"),
+    documentNumber: z.string().min(3, "Número de documento requerido"),
+    nationality: z.string().default("Paraguaya"),
+    weightKg: z.number().nonnegative().default(75),
+    luggageKg: z.number().nonnegative().default(10),
+    isPrimary: z.boolean().default(false),
+    notes: z.string().optional(),
+});
+
+export type PassengerManifestItem = z.infer<typeof PassengerManifestItemSchema>;
+
 export const AircraftReservationSchema = z.object({
     aircraftId: z.string(),
     fa_flight_id: z.string().nullable(),
     clientId: z.string().optional(),
     price: z.number().nonnegative(),
+    estimated_price: z.number().nonnegative().optional(),
+    currency: z.string().default("USD").optional(),
     distance_nm: z.number().positive(),
     cruise_speed_knots: z.number().positive(),
+    // Cotización por hora (ver src/utils/flight-pricing.ts)
+    billable_hours: z.number().nonnegative().optional(), // incluye reposicionamiento y regreso vacío
+    price_per_hour_usd: z.number().nonnegative().optional(),
+    overnight_nights: z.number().int().nonnegative().optional(),
+    overnight_fee_usd: z.number().nonnegative().optional(),
+    hangar_per_night_usd: z.number().nonnegative().optional(),
     trip: z.object({
         origin_airport_ident: z.string(),
         origin_timezone: z.string().optional(),
@@ -74,6 +99,7 @@ export const AircraftReservationSchema = z.object({
     capacity: z.object({
         passangers: z.number().positive().int(), // Requested seats by the client
     }),
+    passengers: z.array(PassengerManifestItemSchema).optional(),
     event_ids: z.array(z.string()),
     client_status: z.enum([
         "unpaid",        // Client has not paid for the flight yet
@@ -83,17 +109,26 @@ export const AircraftReservationSchema = z.object({
         "refunded",      // Reservation or flight has been refunded
     ]),
     internal_status: z.enum([
-        "pending",      // Reservation is pending: client has not paid in full yet, there is no aircraft or pilot, airport closed, or other reasons
-        "confirmed",    // Reservation is confirmed: payment complete, aircraft and pilots confirmed
-        "canceled",     // Reservation was canceled by the aircraft owner, client or another reason
-        "delayed",      // Flight was delayed
-        "in_flight",    // Flight in progress
-        "completed",    // Flight completed
-        "no_show"       // Client did not show up for the reservation
+        "pending",            // Legacy pending status
+        "pending_approval",   // Client requested reservation; pending owner/encargado operational approval & pilot assignment
+        "awaiting_payment",   // Owner/encargado approved and assigned pilots; awaiting client payment
+        "confirmed",          // Reservation is confirmed: payment complete, aircraft and pilots confirmed
+        "canceled",           // Reservation was canceled by the aircraft owner, client or another reason
+        "delayed",            // Flight was delayed
+        "in_flight",          // Flight in progress
+        "completed",          // Flight completed
+        "no_show"             // Client did not show up for the reservation
     ]),
     status_notes: z.string().optional(),
     pilot_ids: z.array(z.string()),
     created_at: z.date().optional(),
+    paid_at: z.date().optional(),
+    payment_method: z.string().optional(),
+    payment_transaction_id: z.string().optional(),
+    invoice_number: z.string().optional(),
+    invoice_timbrado: z.string().optional(),
+    invoice_cdc: z.string().optional(),
+    invoice_url: z.string().optional(),
 });
 
 export type AircraftReservation = z.infer<typeof AircraftReservationSchema>;
@@ -123,13 +158,15 @@ export const dateSchema = z.union([z.coerce.date(), z.instanceof(Timestamp)]);
 export const AircraftReservationStatusLogSchema = z.object({
     reservation_id: z.string(),
     internal_status: z.enum([
-        "pending",      // Reservation is pending: client has not paid in full yet, there is no aircraft or pilot, airport closed, or other reasons
-        "confirmed",    // Reservation is confirmed: payment complete, aircraft and pilots confirmed
-        "canceled",     // Reservation was canceled by the aircraft owner, client or another reason
-        "delayed",      // Flight was delayed
-        "in_flight",    // Flight in progress
-        "completed",    // Flight completed
-        "no_show"       // Client did not show up for the reservation
+        "pending",
+        "pending_approval",
+        "awaiting_payment",
+        "confirmed",
+        "canceled",
+        "delayed",
+        "in_flight",
+        "completed",
+        "no_show"
     ]),
     status_notes: z.string().optional(),
     created_at: dateSchema,

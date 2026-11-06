@@ -1,4 +1,6 @@
 import { db } from "@/config/firebase";
+import { FlightQuote } from "@/types/pricing";
+import { computeFlightQuote, DEFAULT_CRUISE_SPEED_KNOTS } from "@/utils/flight-pricing";
 import { AircraftAvailabilityDoc } from "@/types/all-roles";
 import { FlightSearchForm } from "@/types/client";
 import { AircraftSpecs } from "@/types/owner";
@@ -12,8 +14,13 @@ export interface AircraftSpecsDoc extends AircraftSpecs {
 
 export interface SearchResultItem {
   aircraft: AircraftSpecsDoc;
+  /** Duración del tramo con pasajeros (ida). */
   flightDurationHours: number;
   distanceNm: number;
+  /** Cotización por hora (horas facturables incluyendo regreso vacío + pernoctes). */
+  quote: FlightQuote;
+  /** Total estimado en USD (IVA incluido) o null si la aeronave no tiene tarifa por hora. */
+  estimatedPrice: number | null;
 }
 
 function isDateMatch(avail: AircraftAvailabilityDoc, targetDateStr: string): boolean {
@@ -173,6 +180,17 @@ function checkFlightOverlap(
   return false;
 }
 
+function parseTimestamp(val: any): Date | undefined {
+  if (!val) return undefined;
+  if (typeof val.toDate === "function") return val.toDate();
+  if (val instanceof Date) return isNaN(val.getTime()) ? undefined : val;
+  if (typeof val === "string" || typeof val === "number") {
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? undefined : d;
+  }
+  return undefined;
+}
+
 export function useAvailableAircrafts(searchForm: FlightSearchForm | null) {
   return useQuery<SearchResultItem[]>({
     queryKey: ["available-aircrafts", searchForm],
@@ -186,77 +204,94 @@ export function useAvailableAircrafts(searchForm: FlightSearchForm | null) {
         return [];
       }
 
-      const originIdent = searchForm.trip.origin_airport_ident;
-      const requestedPax = searchForm.capacity?.passangers || 1;
+      try {
+        const originIdent = searchForm.trip.origin_airport_ident;
+        const requestedPax = searchForm.capacity?.passangers || 1;
 
-      // First step: Get all AircraftSpecs
-      const specsSnapshot = await getDocs(collection(db, "AircraftSpecs"));
-      const candidateAircrafts: AircraftSpecsDoc[] = [];
+        // First step: Get all AircraftSpecs
+        const specsSnapshot = await getDocs(collection(db, "AircraftSpecs"));
+        const candidateAircrafts: AircraftSpecsDoc[] = [];
 
-      specsSnapshot.forEach((docSnap) => {
-        const data = docSnap.data() as AircraftSpecs;
-        // TODO: Check if pax count includes pilots in all forms.
-        // Filter 1: Aircraft base airport same as origin airport and pax_count >= capacity requested
-        if (
-          data.base_airport?.ident === originIdent &&
-          data.basic_specs &&
-          data.basic_specs.pax_count >= requestedPax
-        ) {
-          candidateAircrafts.push({
-            id: docSnap.id,
-            ...data,
-          });
-        }
-      });
-
-      if (candidateAircrafts.length === 0) {
-        return [];
-      }
-
-      // Second step: Get all unavailability docs for candidate airplanes
-      const candidateIds = candidateAircrafts.map((ac) => ac.id);
-
-      const availabilitiesByAircraft: Record<string, AircraftAvailabilityDoc[]> = {};
-      candidateIds.forEach((id) => {
-        availabilitiesByAircraft[id] = [];
-      });
-
-      const chunkSize = 10;
-      for (let i = 0; i < candidateIds.length; i += chunkSize) {
-        const chunk = candidateIds.slice(i, i + chunkSize);
-        const qAvail = query(
-          collection(db, "aircraft-availability"),
-          where("aircraftId", "in", chunk)
-        );
-        const availSnap = await getDocs(qAvail);
-
-        availSnap.forEach((docSnap) => {
-          const data = docSnap.data();
-
-          // We do not need to recalculate start and end timestamps.
-          const start_timestamp = data.start_timestamp.toDate();
-
-          const end_timestamp = data.end_timestamp.toDate();
-
-          const docObj: AircraftAvailabilityDoc = {
-            id: docSnap.id,
-            ...data,
-            start_timestamp,
-            end_timestamp,
-          } as AircraftAvailabilityDoc;
-
-          if (availabilitiesByAircraft[data.aircraftId]) {
-            availabilitiesByAircraft[data.aircraftId].push(docObj);
+        specsSnapshot.forEach((docSnap) => {
+          const data = docSnap.data() as AircraftSpecs;
+          // Filter 1: Aircraft base airport same as origin airport and pax_count >= capacity requested
+          if (
+            data.base_airport?.ident === originIdent &&
+            data.basic_specs &&
+            data.basic_specs.pax_count >= requestedPax
+          ) {
+            candidateAircrafts.push({
+              id: docSnap.id,
+              ...data,
+            });
           }
         });
-      }
 
-      // Third & Fourth steps: Calculate flight time and check for unavailability overlaps
-      const distanceNm = getDistanceBetweenAirports(
-        searchForm.trip.origin_airport,
-        searchForm.trip.destination_airport,
-        "nm"
-      );
+        if (candidateAircrafts.length === 0) {
+          return [];
+        }
+
+        // Second step: Get all unavailability docs for candidate airplanes
+        const candidateIds = candidateAircrafts.map((ac) => ac.id);
+
+        const availabilitiesByAircraft: Record<string, AircraftAvailabilityDoc[]> = {};
+        candidateIds.forEach((id) => {
+          availabilitiesByAircraft[id] = [];
+        });
+
+        const chunkSize = 10;
+        for (let i = 0; i < candidateIds.length; i += chunkSize) {
+          const chunk = candidateIds.slice(i, i + chunkSize);
+
+          // 1. Check aircraft-availability collection
+          const qAvail = query(
+            collection(db, "aircraft-availability"),
+            where("aircraftId", "in", chunk)
+          );
+          const availSnap = await getDocs(qAvail);
+
+          availSnap.forEach((docSnap) => {
+            const data = docSnap.data();
+
+            let start_timestamp = parseTimestamp(data.start_timestamp);
+            let end_timestamp = parseTimestamp(data.end_timestamp);
+
+            // Fallback for events with missing timestamps but valid selected_date and times
+            if ((!start_timestamp || !end_timestamp) && data.selected_date) {
+              const [sY, sM, sD] = data.selected_date.split("-").map(Number);
+              const [sH, sMin] = (data.start_time || "00:00").split(":").map(Number);
+              const [eH, eMin] = (data.end_time || "23:59").split(":").map(Number);
+              if (!start_timestamp && sY && sM && sD) {
+                start_timestamp = new Date(sY, sM - 1, sD, sH || 0, sMin || 0, 0);
+              }
+              if (!end_timestamp && sY && sM && sD) {
+                end_timestamp = new Date(sY, sM - 1, sD, eH || 23, eMin || 59, 59);
+              }
+            }
+
+            const docObj: AircraftAvailabilityDoc = {
+              id: docSnap.id,
+              ...data,
+              start_timestamp,
+              end_timestamp,
+            } as AircraftAvailabilityDoc;
+
+            if (availabilitiesByAircraft[data.aircraftId]) {
+              availabilitiesByAircraft[data.aircraftId].push(docObj);
+            }
+          });
+
+          // Nota: cada reserva crea sus bloqueos tipo "flight" en aircraft-availability,
+          // por eso no se consultan reservas ajenas (protegidas por las reglas de Firestore).
+        }
+
+        // Third & Fourth steps: Calculate flight time, prices and check for unavailability overlaps
+        const distanceNm = getDistanceBetweenAirports(
+          searchForm.trip.origin_airport,
+          searchForm.trip.destination_airport,
+          "nm"
+        );
+
 
       const finalResults: SearchResultItem[] = [];
 
@@ -269,7 +304,7 @@ export function useAvailableAircrafts(searchForm: FlightSearchForm | null) {
 
       for (const aircraft of candidateAircrafts) {
         // TODO: cruise_speed_knots must be mandatory in AircraftSpecs
-        const cruiseSpeedKnots = aircraft.operating_specs?.cruise_speed_knots || 120;
+        const cruiseSpeedKnots = aircraft.operating_specs?.cruise_speed_knots || DEFAULT_CRUISE_SPEED_KNOTS;
         const durationHours = distanceNm / cruiseSpeedKnots;
         const durationMs = durationHours * 3600 * 1000;
 
@@ -292,14 +327,32 @@ export function useAvailableAircrafts(searchForm: FlightSearchForm | null) {
           }
         }
 
+        // Precio por hora: horas facturables (con reposicionamiento y regreso vacío) × tarifa + pernoctes.
+        const quote = computeFlightQuote({
+          origin: searchForm.trip.origin_airport,
+          destination: searchForm.trip.destination_airport,
+          base: aircraft.base_airport,
+          roundtrip: !!searchForm.schedule.roundtrip,
+          outboundDeparture: outboundStart,
+          returnDeparture: returnStart,
+          cruiseSpeedKnots,
+          pricing: aircraft.pricing,
+        });
+
         finalResults.push({
           aircraft,
           flightDurationHours: durationHours,
           distanceNm,
+          quote,
+          estimatedPrice: quote.hasPricing ? quote.totalUsd : null,
         });
       }
 
-      return finalResults;
+        return finalResults;
+      } catch (error) {
+        console.error("Error al buscar aeronaves disponibles:", error);
+        throw error;
+      }
     },
     enabled:
       !!searchForm &&

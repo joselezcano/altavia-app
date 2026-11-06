@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/themed-text";
+import { FlightQuote } from "@/types/pricing";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,9 +9,9 @@ import { FlightSearchForm } from "@/types/client";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { addDoc, collection } from "firebase/firestore";
-import { useState } from "react";
-import { ActivityIndicator, Modal, ScrollView, TouchableOpacity, View } from "react-native";
+import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { useMemo, useState } from "react";
+import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 function formatInTimezone(date: Date, timeZone?: string) {
@@ -68,6 +69,8 @@ export default function AircraftDetailsScreen() {
     service_ceiling_feet?: string;
     base_airport_name?: string;
     base_airport_ident?: string;
+    estimatedPrice?: string;
+    quoteJson?: string;
   }>();
 
   let aircraft: AircraftSpecsDoc | null = null;
@@ -97,6 +100,16 @@ export default function AircraftDetailsScreen() {
   const flightDurationHours = params.flightDurationHours ? Number(params.flightDurationHours) : undefined;
   const distanceNm = params.distanceNm ? Number(params.distanceNm) : 0;
   const distanceKm = distanceNm ? distanceNm * 1.852 : undefined;
+  const parsedPrice = params.estimatedPrice ? Number(JSON.parse(params.estimatedPrice)) : 0;
+  const estimatedPrice = !isNaN(parsedPrice) && parsedPrice > 0 ? parsedPrice : null;
+  // Desglose de la cotización por hora (horas facturables y pernoctes) armada en el buscador.
+  const quote: FlightQuote | null = useMemo(() => {
+    try {
+      return params.quoteJson ? (JSON.parse(String(params.quoteJson)) as FlightQuote) : null;
+    } catch {
+      return null;
+    }
+  }, [params.quoteJson]);
 
   const handleReserve = async () => {
     if (!aircraft || !searchForm || !searchForm.schedule?.outbound_flight_datetime_utc) {
@@ -122,6 +135,45 @@ export default function AircraftDetailsScreen() {
       // Outbound flight dates
       const outboundStart = new Date(searchForm.schedule.outbound_flight_datetime_utc);
       const outboundEnd = new Date(outboundStart.getTime() + durationMs);
+
+      // Pre-flight collision validation: revisamos los bloqueos de vuelo ("flight") de la aeronave
+      // en aircraft-availability. No se leen reservas ajenas (las reglas de Firestore lo impiden).
+      const checkAvailQuery = query(
+        collection(db, "aircraft-availability"),
+        where("aircraftId", "==", aircraft.id),
+        where("reason", "==", "flight")
+      );
+      const flightBlocksSnap = await getDocs(checkAvailQuery);
+      let isAlreadyBooked = false;
+
+      const toDate = (v: any): Date | null => {
+        if (!v) return null;
+        const dt = v?.toDate ? v.toDate() : new Date(v);
+        return isNaN(dt.getTime()) ? null : dt;
+      };
+
+      for (const docSnap of flightBlocksSnap.docs) {
+        const d = docSnap.data();
+        const existOutStart = toDate(d.start_timestamp);
+        const existOutEnd = toDate(d.end_timestamp);
+
+        if (existOutStart && existOutEnd) {
+          if (outboundStart.getTime() < existOutEnd.getTime() && outboundEnd.getTime() > existOutStart.getTime()) {
+            isAlreadyBooked = true;
+            break;
+          }
+        }
+      }
+
+      if (isAlreadyBooked) {
+        Alert.alert(
+          "Horario no disponible",
+          "Esta aeronave ya cuenta con una reserva para ese horario. Por favor selecciona otra aeronave o modifica la fecha de tu vuelo."
+        );
+        queryClient.invalidateQueries({ queryKey: ["available-aircrafts"] });
+        setIsSubmitting(false);
+        return;
+      }
 
       const outboundStartLocal = formatInTimezone(outboundStart, originTimezone);
       const outboundEndLocal = formatInTimezone(outboundEnd, originTimezone);
@@ -196,9 +248,20 @@ export default function AircraftDetailsScreen() {
         aircraftId: aircraft.id,
         fa_flight_id: null,
         clientId: user?.uid || "",
-        price: 0,
+        price: estimatedPrice || 0,
+        estimated_price: estimatedPrice || 0,
+        currency: "USD",
         distance_nm: distanceNm,
         cruise_speed_knots: typeof cruiseSpeed === "number" ? cruiseSpeed : 120,
+        ...(quote
+          ? {
+              billable_hours: quote.billableHours,
+              price_per_hour_usd: quote.pricePerHourUsd,
+              overnight_nights: quote.nights,
+              overnight_fee_usd: quote.overnightFeeUsd,
+              hangar_per_night_usd: quote.hangarPerNightUsd,
+            }
+          : {}),
         trip: {
           origin_airport_ident: originIdent,
           origin_timezone: originTimezone || "",
@@ -217,14 +280,15 @@ export default function AircraftDetailsScreen() {
         },
         event_ids: eventIds,
         client_status: "unpaid",
-        internal_status: "pending",
-        status_notes: "",
+        internal_status: "pending_approval",
+        status_notes: "Reserva solicitada por el cliente. Pendiente de aprobación operativa y asignación de tripulación.",
         pilot_ids: [],
         created_at: new Date(),
       };
 
       await addDoc(collection(db, "aircraft-reservation"), reservationData);
 
+      queryClient.invalidateQueries({ queryKey: ["available-aircrafts"] });
       queryClient.invalidateQueries({ queryKey: ["aircraft-availability"] });
       queryClient.invalidateQueries({ queryKey: ["client-reservations"] });
 
@@ -337,11 +401,50 @@ export default function AircraftDetailsScreen() {
           </View>
         </View>
 
+        {/* Pricing Summary Card */}
+        <View className="bg-brand-blue rounded-3xl p-5 mb-4 border border-brand-blue/30 shadow-sm">
+          <View className="flex-row items-center justify-between mb-2">
+            <View>
+              <ThemedText type="caption" className="uppercase font-bold text-brand-gold tracking-widest text-[10px]">
+                Cotización de Vuelo
+              </ThemedText>
+              <ThemedText className="text-white text-lg font-bold">
+                {estimatedPrice !== null ? `USD $${estimatedPrice.toLocaleString("en-US")}` : "Cotización a Confirmar"}
+              </ThemedText>
+            </View>
+            <View className="w-10 h-10 rounded-full bg-white/10 items-center justify-center">
+              <MaterialCommunityIcons name="currency-usd" size={24} color="#D4AF37" />
+            </View>
+          </View>
+
+          <View className="h-px bg-white/10 my-3" />
+
+          <View className="flex-row justify-between items-center">
+            <ThemedText className="text-slate-300 text-xs">Modalidad:</ThemedText>
+            <ThemedText className="text-white text-xs font-bold">
+              {searchForm?.schedule?.roundtrip ? "Ida y Vuelta" : "Solo Ida"}
+            </ThemedText>
+          </View>
+
+          <View className="flex-row justify-between items-center mt-1.5">
+            <ThemedText className="text-slate-300 text-xs">Distancia total:</ThemedText>
+            <ThemedText className="text-white text-xs font-bold">
+              {(distanceNm * (searchForm?.schedule?.roundtrip ? 2 : 1)).toFixed(0)} NM ({((distanceKm || 0) * (searchForm?.schedule?.roundtrip ? 2 : 1)).toFixed(0)} km)
+            </ThemedText>
+          </View>
+
+          <ThemedText className="text-[11px] text-slate-400 mt-3 italic">
+            * El valor final se confirmará tras la aprobación del propietario o encargado del avión.
+          </ThemedText>
+        </View>
+
         {/* Reserve Button below the card */}
         <TouchableOpacity
           onPress={handleReserve}
-          disabled={isSubmitting}
-          className="bg-brand-gold py-4 rounded-xl items-center justify-center shadow-md flex-row gap-2 mb-10"
+          disabled={isSubmitting || !!createdReservation}
+          className={`py-4 rounded-xl items-center justify-center shadow-md flex-row gap-2 mb-10 ${
+            isSubmitting || !!createdReservation ? "bg-slate-300" : "bg-brand-gold"
+          }`}
           activeOpacity={0.8}
         >
           {isSubmitting ? (
@@ -349,7 +452,9 @@ export default function AircraftDetailsScreen() {
           ) : (
             <>
               <Ionicons name="checkmark-circle-outline" size={22} color="#FFFFFF" />
-              <ThemedText className="text-white font-bold text-base">Reservar</ThemedText>
+              <ThemedText className="text-white font-bold text-base">
+                {createdReservation ? "Vuelo Reservado" : "Reservar"}
+              </ThemedText>
             </>
           )}
         </TouchableOpacity>
@@ -362,79 +467,79 @@ export default function AircraftDetailsScreen() {
         visible={showConfirmation}
         onRequestClose={() => setShowConfirmation(false)}
       >
-        <View className="flex-1 bg-black/60 justify-center items-center p-4">
-          <View className="bg-white rounded-3xl p-6 w-full max-w-sm border border-slate-100 shadow-2xl items-center">
-            <View className="w-16 h-16 rounded-full bg-emerald-100 items-center justify-center mb-4 border border-emerald-200">
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.card}>
+            <View style={modalStyles.iconCircle}>
               <Ionicons name="checkmark-sharp" size={36} color="#059669" />
             </View>
 
-            <ThemedText type="subtitle" className="text-brand-blue font-bold text-xl text-center mb-1">
+            <Text style={modalStyles.title}>
               ¡Reserva Confirmada!
-            </ThemedText>
-            <ThemedText className="text-slate-500 text-xs text-center mb-5 font-medium">
+            </Text>
+            <Text style={modalStyles.subtitle}>
               Tu solicitud de vuelo ha sido registrada exitosamente en nuestro sistema.
-            </ThemedText>
+            </Text>
 
             {/* Flight Details Card */}
             {createdReservation && (
-              <View className="bg-slate-50 rounded-2xl p-4 w-full border border-slate-200 mb-6 gap-2">
-                <View className="flex-row items-center justify-between">
-                  <ThemedText className="text-slate-500 text-xs">Aeronave:</ThemedText>
-                  <ThemedText className="font-bold text-brand-blue text-sm">
+              <View style={modalStyles.detailsContainer}>
+                <View style={modalStyles.detailRow}>
+                  <Text style={modalStyles.label}>Aeronave:</Text>
+                  <Text style={modalStyles.boldValue}>
                     {model} ({registration})
-                  </ThemedText>
+                  </Text>
                 </View>
 
-                <View className="flex-row items-center justify-between">
-                  <ThemedText className="text-slate-500 text-xs">Ruta:</ThemedText>
-                  <View className="flex-row items-center gap-1">
-                    <ThemedText className="font-bold text-slate-800 text-xs">
+                <View style={modalStyles.detailRow}>
+                  <Text style={modalStyles.label}>Ruta:</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                    <Text style={modalStyles.value}>
                       {createdReservation.trip.origin_airport_ident}
-                    </ThemedText>
+                    </Text>
                     <Ionicons name="arrow-forward" size={12} color="#0f1e3d" />
-                    <ThemedText className="font-bold text-slate-800 text-xs">
+                    <Text style={modalStyles.value}>
                       {createdReservation.trip.destination_airport_ident}
-                    </ThemedText>
+                    </Text>
                   </View>
                 </View>
 
-                <View className="flex-row items-center justify-between">
-                  <ThemedText className="text-slate-500 text-xs">Pasajeros:</ThemedText>
-                  <ThemedText className="font-bold text-slate-800 text-xs">
+                <View style={modalStyles.detailRow}>
+                  <Text style={modalStyles.label}>Pasajeros:</Text>
+                  <Text style={modalStyles.value}>
                     {createdReservation.capacity.passangers}
-                  </ThemedText>
+                  </Text>
                 </View>
 
-                <View className="h-px bg-slate-200/80 my-1" />
+                <View style={modalStyles.divider} />
 
-                <View className="flex-row items-center justify-between">
-                  <ThemedText className="text-slate-500 text-xs">Ida:</ThemedText>
-                  <ThemedText className="font-bold text-slate-700 text-xs">
+                <View style={modalStyles.detailRow}>
+                  <Text style={modalStyles.label}>Ida:</Text>
+                  <Text style={modalStyles.value}>
                     {createdReservation.schedule.outbound_flight_departure_time.toLocaleString("es-ES", {
                       dateStyle: "short",
                       timeStyle: "short",
                     })}
-                  </ThemedText>
+                  </Text>
                 </View>
 
                 {createdReservation.schedule.roundtrip && createdReservation.schedule.return_flight_departure_time && (
-                  <View className="flex-row items-center justify-between">
-                    <ThemedText className="text-slate-500 text-xs">Vuelta:</ThemedText>
-                    <ThemedText className="font-bold text-slate-700 text-xs">
+                  <View style={modalStyles.detailRow}>
+                    <Text style={modalStyles.label}>Vuelta:</Text>
+                    <Text style={modalStyles.value}>
                       {createdReservation.schedule.return_flight_departure_time.toLocaleString("es-ES", {
                         dateStyle: "short",
                         timeStyle: "short",
                       })}
-                    </ThemedText>
+                    </Text>
                   </View>
                 )}
 
-                <View className="flex-row items-center justify-between mt-1">
-                  <ThemedText className="text-slate-500 text-xs">Estado:</ThemedText>
-                  <View className="bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200">
-                    <ThemedText className="text-[10px] font-bold text-amber-800 uppercase">
+                <View style={[modalStyles.detailRow, { marginTop: 4 }]}>
+                  <Text style={modalStyles.label}>Estado:</Text>
+                  <View style={modalStyles.statusBadge}>
+                    <Text style={modalStyles.statusBadgeText}>
                       {createdReservation.client_status} / {createdReservation.internal_status}
-                    </ThemedText>
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -445,11 +550,11 @@ export default function AircraftDetailsScreen() {
                 setShowConfirmation(false);
                 router.replace("/(client)/flights");
               }}
-              className="bg-brand-blue py-3.5 px-6 rounded-xl w-full items-center justify-center shadow-sm flex-row gap-2"
+              style={modalStyles.actionButton}
               activeOpacity={0.8}
             >
               <MaterialCommunityIcons name="ticket-confirmation-outline" size={20} color="#FFFFFF" />
-              <ThemedText className="text-white font-bold text-sm">Ir a Mis Vuelos</ThemedText>
+              <Text style={modalStyles.actionButtonText}>Ir a Mis Vuelos</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -457,3 +562,122 @@ export default function AircraftDetailsScreen() {
     </ThemedView>
   );
 }
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 24,
+    width: "100%",
+    maxWidth: 360,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#D1FAE5",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#A7F3D0",
+  },
+  title: {
+    color: "#0f1e3d",
+    fontWeight: "bold",
+    fontSize: 20,
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  subtitle: {
+    color: "#64748B",
+    fontSize: 12,
+    textAlign: "center",
+    marginBottom: 20,
+    fontWeight: "500",
+  },
+  detailsContainer: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 16,
+    padding: 16,
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginBottom: 24,
+    gap: 8,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  label: {
+    color: "#64748B",
+    fontSize: 12,
+  },
+  value: {
+    color: "#1E293B",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  boldValue: {
+    color: "#0f1e3d",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(226, 232, 240, 0.8)",
+    marginVertical: 4,
+  },
+  statusBadge: {
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#92400E",
+    textTransform: "uppercase",
+  },
+  actionButton: {
+    backgroundColor: "#0f1e3d",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  actionButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+});

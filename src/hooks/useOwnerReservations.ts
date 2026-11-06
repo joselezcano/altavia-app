@@ -26,6 +26,10 @@ export function useOwnerReservations(ownerId: string | undefined) {
                 ...(doc.data() as AircraftSpecs)
             }));
 
+            if (list.length === 0) {
+                return [];
+            }
+
             const q2 = query(
                 collection(db, "aircraft-reservation"),
                 where("aircraftId", "in", list.map(a => a.id))
@@ -127,6 +131,13 @@ export function useOwnerReservations(ownerId: string | undefined) {
                     status_notes: data.status_notes || "",
                     pilot_ids: data.pilot_ids || [],
                     created_at,
+                    paid_at: data.paid_at?.toDate ? data.paid_at.toDate() : (data.paid_at ? new Date(data.paid_at) : undefined),
+                    payment_method: data.payment_method,
+                    payment_transaction_id: data.payment_transaction_id,
+                    invoice_number: data.invoice_number,
+                    invoice_timbrado: data.invoice_timbrado,
+                    invoice_cdc: data.invoice_cdc,
+                    invoice_url: data.invoice_url,
                     aircraftSpecs,
                     originAirport,
                     destinationAirport,

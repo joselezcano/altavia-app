@@ -6,6 +6,7 @@ import {
   Modal,
   Platform,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -25,6 +26,7 @@ export function CustomDatePicker({
   // iOS state
   const [showIOSModal, setShowIOSModal] = useState(false);
   const [iosTempDate, setIosTempDate] = useState<Date>(new Date());
+  const [iosTab, setIosTab] = useState<'date' | 'time'>('date');
 
   const handleOpen = () => {
     const initialDate = value || new Date();
@@ -33,6 +35,7 @@ export function CustomDatePicker({
       setPickerStage('date');
     } else if (Platform.OS === 'ios') {
       setIosTempDate(initialDate);
+      setIosTab('date');
       setShowIOSModal(true);
     }
   };
@@ -140,27 +143,102 @@ export function CustomDatePicker({
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <TouchableOpacity onPress={() => setShowIOSModal(false)}>
-                  <ThemedText className="text-slate-500 font-medium">Cancelar</ThemedText>
+                  <Text style={styles.cancelButtonText}>Cancelar</Text>
                 </TouchableOpacity>
-                <ThemedText className="font-bold text-slate-900 text-sm">
-                  {includeTime ? "Seleccionar Fecha / Hora" : "Seleccionar Fecha"}
-                </ThemedText>
-                <TouchableOpacity onPress={handleIOSConfirm}>
-                  <ThemedText className="text-brand-blue font-bold">Listo</ThemedText>
+                <Text style={styles.titleText}>
+                  {includeTime ? "Seleccionar Fecha y Hora" : "Seleccionar Fecha"}
+                </Text>
+                <TouchableOpacity onPress={handleIOSConfirm} style={styles.confirmButton}>
+                  <Text style={styles.confirmButtonText}>Listo</Text>
                 </TouchableOpacity>
               </View>
 
+              {/* Segmented Switch for Fecha / Hora on iOS */}
+              {includeTime && (
+                <View style={styles.tabContainer}>
+                  <TouchableOpacity
+                    onPress={() => setIosTab('date')}
+                    style={[
+                      styles.tabButton,
+                      iosTab === 'date' ? styles.tabButtonActive : null,
+                    ]}
+                  >
+                    <Ionicons
+                      name="calendar"
+                      size={16}
+                      color={iosTab === 'date' ? '#0f1e3d' : '#64748B'}
+                    />
+                    <Text
+                      style={[
+                        styles.tabText,
+                        iosTab === 'date' ? styles.tabTextActive : null,
+                      ]}
+                    >
+                      Fecha ({iosTempDate.toLocaleDateString([], { day: '2-digit', month: '2-digit' })})
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setIosTab('time')}
+                    style={[
+                      styles.tabButton,
+                      iosTab === 'time' ? styles.tabButtonActive : null,
+                    ]}
+                  >
+                    <Ionicons
+                      name="time"
+                      size={16}
+                      color={iosTab === 'time' ? '#0f1e3d' : '#64748B'}
+                    />
+                    <Text
+                      style={[
+                        styles.tabText,
+                        iosTab === 'time' ? styles.tabTextActive : null,
+                      ]}
+                    >
+                      Hora ({iosTempDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} hs)
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
               <View style={styles.pickerContainer}>
-                <DateTimePicker
-                  value={iosTempDate}
-                  mode={includeTime ? "datetime" : "date"}
-                  minimumDate={minimumDate === null ? undefined : minimumDate}
-                  display="inline"
-                  style={styles.picker}
-                  onValueChange={(event, date) => {
-                    if (date) setIosTempDate(date);
-                  }}
-                />
+                {(!includeTime || iosTab === 'date') ? (
+                  <DateTimePicker
+                    value={iosTempDate}
+                    mode="date"
+                    minimumDate={minimumDate === null ? undefined : minimumDate}
+                    display="inline"
+                    themeVariant="light"
+                    accentColor="#0f1e3d"
+                    style={styles.datePicker}
+                    onValueChange={(event, date) => {
+                      if (date) {
+                        const updated = new Date(iosTempDate);
+                        updated.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+                        setIosTempDate(updated);
+                      }
+                    }}
+                  />
+                ) : (
+                  <View style={styles.timePickerContainer}>
+                    <DateTimePicker
+                      value={iosTempDate}
+                      mode="time"
+                      display="spinner"
+                      themeVariant="light"
+                      accentColor="#0f1e3d"
+                      style={styles.timePicker}
+                      onValueChange={(event, date) => {
+                        if (date) {
+                          const updated = new Date(iosTempDate);
+                          updated.setHours(date.getHours(), date.getMinutes(), 0, 0);
+                          setIosTempDate(updated);
+                        }
+                      }}
+                    />
+                  </View>
+                )}
               </View>
             </View>
           </View>
@@ -173,14 +251,19 @@ export function CustomDatePicker({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
     justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: 40,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 36,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -191,14 +274,82 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
+  cancelButtonText: {
+    color: '#64748B',
+    fontWeight: '500',
+    fontSize: 14,
+  },
+  titleText: {
+    fontWeight: '700',
+    color: '#0f1e3d',
+    fontSize: 16,
+  },
+  confirmButton: {
+    backgroundColor: '#0f1e3d',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  confirmButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 4,
+    backgroundColor: '#F1F5F9',
+    padding: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  tabButtonActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  tabTextActive: {
+    color: '#0f1e3d',
+  },
   pickerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
   },
-  picker: {
+  timePickerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    width: '100%',
+  },
+  datePicker: {
     width: 320,
-    height: 320,
+    height: 330,
+    alignSelf: 'center',
+  },
+  timePicker: {
+    width: '100%',
+    height: 200,
     alignSelf: 'center',
   },
 });

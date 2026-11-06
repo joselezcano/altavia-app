@@ -1,3 +1,4 @@
+import OnboardingStep2Screen from "@/screens/onboarding/onboarding-step2";
 import RoleSelectionScreen from "@/components/role-selection";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -13,7 +14,7 @@ import "../../global.css";
 
 configureReanimatedLogger({ strict: false });
 function RootLayoutNav() {
-  const { user, role, isLoading, isRoleSelectorRequired } = useAuth();
+  const { user, role, isLoading, isRoleSelectorRequired, needsProfileCompletion } = useAuth();
   if (isLoading) {
     return (
       <ThemedView
@@ -25,6 +26,10 @@ function RootLayoutNav() {
         </ThemedText>
       </ThemedView>
     );
+  }
+
+  if (user && needsProfileCompletion) {
+    return <OnboardingStep2Screen />;
   }
 
   if (isRoleSelectorRequired) {
@@ -39,6 +44,7 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={user === null}>
         <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
       </Stack.Protected>
 
       <Stack.Protected guard={user !== null}>
