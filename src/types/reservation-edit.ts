@@ -39,7 +39,8 @@ export type RoleFlightScreen =
     | "create-flight-plan"
     | "view-flight-plan"
     | "edit-reservation"
-    | "new-booking";
+    | "new-booking"
+    | "boarding-scanner";
 
 /** Ruta armada en tiempo de ejecución (se castea a Href en utils/role-routes). */
 export interface RoleRoute {

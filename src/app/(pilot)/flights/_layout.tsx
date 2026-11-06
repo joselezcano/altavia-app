@@ -12,6 +12,7 @@ export default function FlightsLayout() {
             <Stack.Screen name="reservations" />
             <Stack.Screen name="assign-pilots" />
             <Stack.Screen name="edit-reservation" />
+            <Stack.Screen name="boarding-scanner" />
         </Stack>
     );
 }

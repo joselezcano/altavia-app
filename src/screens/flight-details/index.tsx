@@ -16,6 +16,7 @@ import { useDeleteReservation } from "@/hooks/useReservationEditing";
 import { useReservationDetails } from "@/hooks/useReservationDetails";
 import { AircraftCard } from "@/screens/flight-details/components/aircraft-card";
 import { AltitudeCard } from "@/screens/flight-details/components/altitude-card";
+import { BoardingScannerCard, ClientBoardingPassCard } from "@/screens/flight-details/components/boarding-card";
 import { CruiseSpeedCard } from "@/screens/flight-details/components/cruise-speed-card";
 import { FlightAwareCard } from "@/screens/flight-details/components/flight-aware-card";
 import { FlightCard } from "@/screens/flight-details/components/flight-card";
@@ -24,6 +25,7 @@ import { OwnerToolBar } from "@/screens/flight-details/components/owner-tool-bar
 import { PilotToolBar } from "@/screens/flight-details/components/pilot-tool-bar";
 import { RouteCard } from "@/screens/flight-details/components/route-card";
 import { ScheduleCard } from "@/screens/flight-details/components/schedule-card";
+import { BOARDING_STATUSES, isCanceled, isPaidForBoarding } from "@/utils/boarding-pass";
 import { generateAndShareInvoicePdf } from "@/utils/electronic-invoice";
 import { getFlightData, getStatusBadge, PILOT_OPERATIONAL_STATUSES } from "@/utils/flight-status";
 import { buildLegWeatherRequest, buildReservationWeatherRequest } from "@/utils/flight-weather";
@@ -197,6 +199,17 @@ export default function FlightDetailsScreen() {
     // ID de FlightAware: owner, encargada o piloto asignado, en vuelos ya confirmados.
     const canEditFaFlightId =
         (canManageStatus || isAssignedPilot) && PILOT_OPERATIONAL_STATUSES.includes(reservation?.internal_status ?? "");
+
+    // Boarding pass (cliente) y escáner de embarque (piloto asignado, owner o encargada).
+    const isBoardingReady = reservation ? isPaidForBoarding(reservation) && !isCanceled(reservation) : false;
+    const showClientBoardingPass = role === "CLIENT" && isBoardingReady;
+    const boardingScannerRoute =
+        isBoardingReady &&
+        (canManageStatus || isAssignedPilot) &&
+        BOARDING_STATUSES.includes(reservation?.internal_status ?? "")
+            ? roleFlightRoute(role, "boarding-scanner", { reservationId: reservation?.id ?? "" })
+            : null;
+    const boardedCount = (reservation?.passengers || []).filter((p) => !!p.boardedAt).length;
 
     const openStatusModal = () => {
         if (reservation) {
@@ -435,6 +448,30 @@ export default function FlightDetailsScreen() {
                                             <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
                                         </TouchableOpacity>
                                     </View>
+                                )}
+
+                                {/* Boarding pass del cliente */}
+                                {reservation && showClientBoardingPass && (
+                                    <ClientBoardingPassCard
+                                        passengerCount={reservation.passengers?.length || 0}
+                                        onPress={() =>
+                                            router.push(
+                                                toHref({
+                                                    pathname: "/(client)/flights/boarding-pass",
+                                                    params: { reservationId: reservation.id },
+                                                })
+                                            )
+                                        }
+                                    />
+                                )}
+
+                                {/* Escáner de embarque (piloto asignado, owner, encargada) */}
+                                {reservation && boardingScannerRoute && (
+                                    <BoardingScannerCard
+                                        boarded={boardedCount}
+                                        total={reservation.passengers?.length || 0}
+                                        onPress={() => router.push(toHref(boardingScannerRoute))}
+                                    />
                                 )}
 
                                 {/* Confirmed Payment & Electronic Invoice Card */}

@@ -64,6 +64,11 @@ export const PassengerManifestItemSchema = z.object({
     luggageKg: z.number().nonnegative().default(10),
     isPrimary: z.boolean().default(false),
     notes: z.string().optional(),
+    // Embarque (boarding pass): token aleatorio del QR y registro del escaneo.
+    // Ver src/utils/boarding-pass.ts.
+    boardingToken: z.string().optional(),
+    boardedAt: z.string().optional(), // ISO 8601
+    boardedBy: z.string().optional(), // uid de quien escaneó
 });
 
 export type PassengerManifestItem = z.infer<typeof PassengerManifestItemSchema>;

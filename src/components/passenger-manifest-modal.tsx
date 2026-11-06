@@ -2,7 +2,8 @@ import { db } from "@/config/firebase";
 import { ClientReservationItem, DocumentType, PassengerManifestItem } from "@/types/all-roles";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { saveManifestPreservingBoarding } from "@/utils/boarding-pass";
+import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -150,6 +151,8 @@ export function PassengerManifestModal({ visible, onClose, reservation, onSaved 
     const parsedLuggage = parseFloat(luggageKg) || 0;
 
     const newPassenger: PassengerManifestItem = {
+      // Al editar se conservan los datos de embarque (boardingToken, boardedAt, boardedBy).
+      ...(editingIndex !== null ? passengers[editingIndex] : {}),
       id: editingIndex !== null ? passengers[editingIndex].id : `pax_${Date.now()}`,
       fullName: fullName.trim(),
       documentType,
@@ -220,10 +223,9 @@ export function PassengerManifestModal({ visible, onClose, reservation, onSaved 
 
     setIsSaving(true);
     try {
-      const resDocRef = doc(db, "aircraft-reservation", reservation.id);
-      await updateDoc(resDocRef, {
-        passengers: passengers,
-      });
+      // Transacción: conserva tokens de boarding pass y embarques registrados mientras el modal
+      // estaba abierto, y genera el token de los pasajeros nuevos (ver src/utils/boarding-pass.ts).
+      await saveManifestPreservingBoarding(reservation.id, passengers);
 
       // TanStack Query cache invalidations
       await queryClient.invalidateQueries({ queryKey: ["admin-all-reservations"] });
@@ -231,6 +233,7 @@ export function PassengerManifestModal({ visible, onClose, reservation, onSaved 
       await queryClient.invalidateQueries({ queryKey: ["client-reservations"] });
       await queryClient.invalidateQueries({ queryKey: ["owner-reservations"] });
       await queryClient.invalidateQueries({ queryKey: ["reservation-details", reservation.id] });
+      await queryClient.invalidateQueries({ queryKey: ["boarding-passes", reservation.id] });
 
       Toast.show({
         type: "success",

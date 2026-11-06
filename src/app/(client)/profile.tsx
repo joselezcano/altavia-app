@@ -6,16 +6,17 @@ import { auth, db, functions } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { StartKycSessionResponse } from "@/types/kyc";
-import { Ionicons } from "@expo/vector-icons";
+import { ClientBoardingPassList } from "@/components/client-boarding-pass-list";
+import { BRAND_COLORS } from "@/constants/brand";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
-import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
 import { deleteUser } from "firebase/auth";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 import { useRef, useState } from "react";
-import { ActivityIndicator, Alert, Modal, ScrollView, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 const DEBOUNCE_COOLDOWN_MS = 3000; // 3-second cooldown to prevent accidental double taps or spam
@@ -315,16 +316,18 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Boarding Pass Asset Graphic */}
-            <View className="w-24 h-24 rounded-2xl bg-amber-100/90 items-center justify-center p-2 border border-amber-200/60 shadow-xs">
-              <Image
-                source={require("@/assets/images/boarding-pass.png")}
-                style={{ width: 62, height: 62 }}
-                contentFit="contain"
-              />
+            {/* Identidad (KYC): ícono de documento con la paleta de la marca */}
+            <View style={kycIconStyles.box}>
+              <MaterialCommunityIcons name="card-account-details-outline" size={40} color={BRAND_COLORS.white} />
+              <View style={kycIconStyles.badge}>
+                <Ionicons name="shield-checkmark" size={14} color={BRAND_COLORS.white} />
+              </View>
             </View>
           </View>
         )}
+
+        {/* Accesos a los boarding pass de los próximos vuelos pagados */}
+        <ClientBoardingPassList clientId={user?.uid} />
 
         {/* Personal Details */}
         <ThemedText className="text-xs font-extrabold text-slate-400 mb-2.5 uppercase tracking-wider pl-1">
@@ -546,3 +549,27 @@ export default function ProfileScreen() {
     </ThemedView>
   );
 }
+
+const kycIconStyles = StyleSheet.create({
+  box: {
+    width: 88,
+    height: 88,
+    borderRadius: 20,
+    backgroundColor: BRAND_COLORS.navy,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badge: {
+    position: "absolute",
+    right: 10,
+    bottom: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: BRAND_COLORS.azur,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: BRAND_COLORS.navy,
+  },
+});

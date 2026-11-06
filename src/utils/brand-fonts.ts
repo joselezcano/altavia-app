@@ -31,6 +31,23 @@ export function brandFontFamily(weight: number): string | undefined {
     return "NotoSans_400Regular";
 }
 
+/**
+ * Estilo de fuente para <Text> nativo con StyleSheet (pantallas sin NativeWind o dentro de <Modal>):
+ * Noto Sans del peso pedido o, si todavía no cargó, fontWeight del sistema.
+ */
+export function brandFont(
+    weight: number
+): { fontFamily: string } | { fontWeight: "300" | "400" | "500" | "600" | "700" | "800" } {
+    const family = brandFontFamily(weight);
+    if (family) return { fontFamily: family };
+    if (weight >= 800) return { fontWeight: "800" };
+    if (weight >= 700) return { fontWeight: "700" };
+    if (weight >= 600) return { fontWeight: "600" };
+    if (weight >= 500) return { fontWeight: "500" };
+    if (weight <= 300) return { fontWeight: "300" };
+    return { fontWeight: "400" };
+}
+
 /** Peso a partir de las clases de Tailwind (font-bold, font-semibold…). */
 export function weightFromClassName(className: string): number {
     if (/\bfont-(black|extrabold)\b/.test(className)) return 800;
