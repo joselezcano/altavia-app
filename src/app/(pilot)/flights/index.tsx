@@ -1,9 +1,13 @@
+import { FlightSummaryCard } from "@/components/flight-summary-card";
 import { PilotHeader } from "@/components/pilot-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAuth } from "@/hooks/useAuth";
 import { usePilotReservations } from "@/hooks/usePilotReservations";
 import { PilotFlightLeg } from "@/types/pilot";
+import { airportCityName, airportShortCode } from "@/utils/airport-label";
+import { getStatusBadge } from "@/utils/flight-status";
+import { buildLegWeatherRequest } from "@/utils/flight-weather";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
@@ -11,6 +15,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -24,6 +29,8 @@ export default function FlightPlanScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
   const isEncargado = profileData?.isEncargado === true;
+  // Una sola card desplegada a la vez (null = todas colapsadas).
+  const [expandedLegId, setExpandedLegId] = useState<string | null>(null);
 
   const {
     data: reservations = [],
@@ -247,8 +254,8 @@ export default function FlightPlanScreen() {
             </ThemedText>
           </View>
         ) : (
-          // Next flight card
-          <View className="space-y-4 mb-8">
+          // Cards colapsables: una sola desplegada a la vez
+          <View className="mb-8" style={{ gap: 14 }}>
             {flightLegs.map((leg) => {
               const originLabel = getAirportLabel(leg.originAirport);
               const destLabel = getAirportLabel(leg.destinationAirport);
@@ -256,55 +263,54 @@ export default function FlightPlanScreen() {
               const aircraftReg = leg.aircraftSpecs?.basic_specs?.registration || "Matrícula";
               const aircraftModel = leg.aircraftSpecs?.basic_specs?.model || "Avión";
               const legBadge = leg.legType === "outbound" ? "Vuelo de Ida" : "Vuelo de Vuelta";
+              const internalStatus = leg.reservationDoc?.internal_status;
 
               return (
-                <View
+                <FlightSummaryCard
                   key={leg.id}
-                  className="bg-brand-blue rounded-2xl p-5 mb-4 shadow-md relative overflow-hidden"
+                  expanded={expandedLegId === leg.id}
+                  onToggle={() => setExpandedLegId(expandedLegId === leg.id ? null : leg.id)}
+                  eyebrow={legBadge}
+                  originCode={airportShortCode(leg.originAirport, leg.originIdent, "icao")}
+                  originName={airportCityName(leg.originAirport)}
+                  destinationCode={airportShortCode(leg.destinationAirport, leg.destinationIdent, "icao")}
+                  destinationName={airportCityName(leg.destinationAirport)}
+                  departureTime={leg.departureTime}
+                  status={internalStatus ? getStatusBadge(internalStatus) : undefined}
+                  registration={leg.aircraftSpecs?.basic_specs?.registration}
+                  passengers={leg.paxCount}
+                  weatherRequest={buildLegWeatherRequest({
+                    internalStatus,
+                    originAirport: leg.originAirport,
+                    destinationAirport: leg.destinationAirport,
+                    departureTime: leg.departureTime,
+                    arrivalTime: leg.arrivalTime,
+                  })}
+                  weatherDetail
                 >
-                  {/* Fondo decorativo sutil */}
-                  <View className="absolute right-[-20px] bottom-[-15px] opacity-10">
-                    <Ionicons name="airplane" size={150} color="#FFFFFF" />
-                  </View>
-
-                  <View className="flex-row justify-between items-center mb-1">
-                    <ThemedText className="text-slate-300 uppercase font-semibold text-xs tracking-wider">
-                      {legBadge}
-                    </ThemedText>
-                    {aircraftModel ? (
-                      <ThemedText className="text-slate-300 text-xs font-medium">
-                        {aircraftModel} ({aircraftReg})
-                      </ThemedText>
-                    ) : (
-                      <ThemedText className="text-slate-300 text-xs font-medium">
-                        {aircraftReg}
-                      </ThemedText>
-                    )}
-                  </View>
-
-                  <ThemedText className="text-white font-bold text-lg mb-4">
-                    {routeTitle}
-                  </ThemedText>
-
-                  <View className="flex-row justify-between items-center border-t border-white/10 pt-3">
-                    <View>
-                      <ThemedText className="text-slate-300 text-xs">Fecha y Hora</ThemedText>
-                      <ThemedText className="text-white text-sm font-semibold mt-0.5">
-                        {formatDate(leg.departureTime)}
+                  <View style={styles.legInfoBox}>
+                    <View style={styles.legInfoRow}>
+                      <ThemedText style={styles.legInfoLabel}>{legBadge}</ThemedText>
+                      <ThemedText style={styles.legInfoValue} numberOfLines={1}>
+                        {aircraftModel ? `${aircraftModel} (${aircraftReg})` : aircraftReg}
                       </ThemedText>
                     </View>
-
-                    <TouchableOpacity
-                      onPress={() => handleViewDetails(leg)}
-                      className="bg-brand-gold px-4 py-2.5 rounded-xl flex-row items-center gap-1 shadow-sm"
-                    >
-                      <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
-                      <ThemedText className="text-white font-semibold text-sm">
-                        Ver más
-                      </ThemedText>
-                    </TouchableOpacity>
+                    <ThemedText style={styles.legRoute}>{routeTitle}</ThemedText>
+                    <View style={styles.legInfoRow}>
+                      <ThemedText style={styles.legInfoLabel}>Fecha y Hora</ThemedText>
+                      <ThemedText style={styles.legInfoValue}>{formatDate(leg.departureTime)}</ThemedText>
+                    </View>
                   </View>
-                </View>
+
+                  <TouchableOpacity
+                    onPress={() => handleViewDetails(leg)}
+                    style={styles.viewMoreButton}
+                    activeOpacity={0.8}
+                  >
+                    <ThemedText style={styles.viewMoreText}>Ver más</ThemedText>
+                    <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </FlightSummaryCard>
               );
             })}
           </View>
@@ -313,3 +319,50 @@ export default function FlightPlanScreen() {
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  legInfoBox: {
+    backgroundColor: "#F5F8FD",
+    borderRadius: 14,
+    padding: 12,
+    gap: 6,
+  },
+  legInfoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+  },
+  legInfoLabel: {
+    fontSize: 11,
+    color: "#5B5D7A",
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  legInfoValue: {
+    fontSize: 12,
+    color: "#030436",
+    fontWeight: "600",
+    flexShrink: 1,
+    textAlign: "right",
+  },
+  legRoute: {
+    fontSize: 14,
+    color: "#030436",
+    fontWeight: "700",
+  },
+  viewMoreButton: {
+    backgroundColor: "#0165FF",
+    borderRadius: 14,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  viewMoreText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+});

@@ -1,3 +1,4 @@
+import { FlightSummaryCard } from "@/components/flight-summary-card";
 import { LoadingCard } from "@/components/loading-card";
 import { OwnerHeader } from "@/components/owner-header";
 import { ThemedText } from "@/components/themed-text";
@@ -6,7 +7,9 @@ import { UserModal } from "@/components/UserModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerAircrafts } from "@/hooks/useOwnerAircrafts";
 import { useOwnerReservations } from "@/hooks/useOwnerReservations";
+import { airportCityName, airportShortCode } from "@/utils/airport-label";
 import { getStatusBadge } from "@/utils/flight-status";
+import { buildReservationWeatherRequest } from "@/utils/flight-weather";
 import { roleFlightRoute, toHref } from "@/utils/role-routes";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRouter } from "expo-router";
@@ -47,6 +50,8 @@ export default function OwnerFlightsScreen() {
   } = useOwnerReservations(user?.uid);
 
   const [modalVisible, setModalVisible] = useState(false);
+  // Una sola card desplegada a la vez (null = todas colapsadas).
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const isLoading = isLoadingAircrafts || isLoadingReservations;
 
@@ -221,85 +226,32 @@ export default function OwnerFlightsScreen() {
                 const aircraftPaxCapacity = item.aircraftSpecs?.basic_specs?.pax_count;
 
                 return (
-                  <View
+                  <FlightSummaryCard
                     key={item.id}
-                    className="bg-brand-white rounded-3xl p-5 border border-slate-200"
-                    style={{
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.05,
-                      shadowRadius: 3,
-                      elevation: 2,
-                    }}
+                    expanded={expandedId === item.id}
+                    onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                    eyebrow={model}
+                    originCode={airportShortCode(item.originAirport, item.trip.origin_airport_ident)}
+                    originName={airportCityName(item.originAirport)}
+                    destinationCode={airportShortCode(item.destinationAirport, item.trip.destination_airport_ident)}
+                    destinationName={airportCityName(item.destinationAirport)}
+                    departureTime={item.schedule.outbound_flight_departure_time}
+                    roundtrip={item.schedule.roundtrip}
+                    status={status}
+                    registration={registration}
+                    passengers={item.capacity.passangers}
+                    priceUsd={item.price}
+                    weatherRequest={buildReservationWeatherRequest(item)}
+                    weatherDetail
                   >
-                    {/* Card Header: Aircraft info & status badge */}
-                    <View className="flex-row items-start justify-between mb-3">
-                      <View className="flex-1 mr-2">
-                        <ThemedText type="subtitle" className="text-brand-blue font-bold text-sm">
-                          {model}
-                        </ThemedText>
-                        <ThemedText className="text-xs text-slate-500 font-bold mt-0.5">
-                          {registration}
-                        </ThemedText>
-                      </View>
-
-                      <View
-                        className="px-2.5 py-1 rounded-full flex-row items-center border"
-                        style={{
-                          backgroundColor: status.backgroundColor,
-                          borderColor: status.borderColor,
-                          gap: 4,
-                        }}
-                      >
-                        <Ionicons name={status.icon as any} size={12} color={status.iconColor} />
-                        <ThemedText
-                          className="text-xs font-bold"
-                          style={{ color: status.textColor }}
-                        >
-                          {status.label}
-                        </ThemedText>
-                      </View>
-                    </View>
-
-                    {/* Route Card */}
-                    <View className="bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-3">
-                      {hasBothIata ? (
-                        <View className="flex-row justify-between items-center mb-3">
-                          <View className="flex-1">
-                            <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
-                              Origen
-                            </ThemedText>
-                            <ThemedText className="text-lg font-bold text-brand-blue">
-                              {item.originAirport!.iata_code}
-                            </ThemedText>
-                          </View>
-
-                          <View className="items-center px-2">
-                            <MaterialCommunityIcons name="airplane-takeoff" size={18} color="#0165FF" />
-                            <View className="w-12 h-0.5 bg-slate-300 my-1" />
-                            {item.schedule.roundtrip && (
-                              <ThemedText className="text-xs font-medium text-brand-gold">
-                                Ida y Vuelta
-                              </ThemedText>
-                            )}
-                          </View>
-
-                          <View className="flex-1 items-end">
-                            <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
-                              Destino
-                            </ThemedText>
-                            <ThemedText className="text-lg font-bold text-brand-blue">
-                              {item.destinationAirport!.iata_code}
-                            </ThemedText>
-                          </View>
-                        </View>
-                      ) : (
-                        <View className="mb-3" style={{ gap: 12 }}>
-                          {/* Origen Row */}
+                    {/* Aeropuertos completos y horarios */}
+                    <View className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                      {!hasBothIata && (
+                        <View className="mb-3" style={{ gap: 10 }}>
                           <View className="flex-row items-center" style={{ gap: 8 }}>
                             <View className="w-2.5 h-2.5 rounded-full bg-brand-gold" />
                             <View className="flex-1">
-                              <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
+                              <ThemedText className="text-xs uppercase tracking-wider font-bold text-slate-400">
                                 Origen
                               </ThemedText>
                               <ThemedText className="text-sm font-medium text-brand-blue" numberOfLines={2}>
@@ -307,25 +259,10 @@ export default function OwnerFlightsScreen() {
                               </ThemedText>
                             </View>
                           </View>
-
-                          {/* Connector line & icon */}
-                          <View className="flex-row items-center pl-0.5 my-0.5" style={{ gap: 8 }}>
-                            <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
-                            <View className="flex-row items-center ml-3" style={{ gap: 6 }}>
-                              <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#0165FF" />
-                              {item.schedule.roundtrip && (
-                                <ThemedText className="text-xs font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                                  Ida y Vuelta
-                                </ThemedText>
-                              )}
-                            </View>
-                          </View>
-
-                          {/* Destino Row */}
                           <View className="flex-row items-center" style={{ gap: 8 }}>
                             <View className="w-2.5 h-2.5 rounded-full bg-brand-blue" />
                             <View className="flex-1">
-                              <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
+                              <ThemedText className="text-xs uppercase tracking-wider font-bold text-slate-400">
                                 Destino
                               </ThemedText>
                               <ThemedText className="text-sm font-medium text-brand-blue" numberOfLines={2}>
@@ -333,10 +270,9 @@ export default function OwnerFlightsScreen() {
                               </ThemedText>
                             </View>
                           </View>
+                          <View className="h-px bg-slate-200" style={{ opacity: 0.6 }} />
                         </View>
                       )}
-
-                      <View className="h-px bg-slate-200 my-2" style={{ opacity: 0.6 }} />
 
                       {/* Schedule dates list */}
                       <View style={{ gap: 6 }}>
@@ -368,7 +304,7 @@ export default function OwnerFlightsScreen() {
                     </View>
 
                     {/* Footer Stats Grid */}
-                    <View className="flex-row justify-between items-center pt-1 px-1">
+                    <View className="flex-row justify-between items-center px-1">
                       <View className="flex-row items-center" style={{ gap: 6 }}>
                         <Ionicons name="people-outline" size={16} color="#030436" />
                         <ThemedText className="text-xs font-semibold text-slate-700">
@@ -399,7 +335,7 @@ export default function OwnerFlightsScreen() {
                     {(item.internal_status === "pending_approval" || item.internal_status === "pending") && (
                       <TouchableOpacity
                         onPress={() => router.push({ pathname: "/(owner)/flights/assign-pilots", params: { reservationId: item.id } })}
-                        className="mt-3 bg-brand-gold py-3 px-4 rounded-xl flex-row items-center justify-center"
+                        className="bg-brand-gold py-3 px-4 rounded-xl flex-row items-center justify-center"
                         style={{
                           gap: 8,
                           shadowColor: "#000",
@@ -419,7 +355,7 @@ export default function OwnerFlightsScreen() {
                     {/* Detalles Button */}
                     <TouchableOpacity
                       onPress={() => router.push({ pathname: "/flights/flight-details", params: { reservationId: item.id } })}
-                      className="mt-2.5 bg-brand-blue py-3 px-4 rounded-xl flex-row items-center justify-center"
+                      className="bg-brand-blue py-3 px-4 rounded-xl flex-row items-center justify-center"
                       style={{ gap: 6 }}
                       activeOpacity={0.8}
                     >
@@ -427,7 +363,7 @@ export default function OwnerFlightsScreen() {
                       <ThemedText className="text-xs font-bold text-white">Más Información</ThemedText>
                       <Ionicons name="chevron-forward" size={14} color="#FFFFFF" />
                     </TouchableOpacity>
-                  </View>
+                  </FlightSummaryCard>
                 );
               })}
             </View>

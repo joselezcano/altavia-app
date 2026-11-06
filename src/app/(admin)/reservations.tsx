@@ -1,3 +1,4 @@
+import { FlightSummaryCard } from "@/components/flight-summary-card";
 import { PassengerManifestModal } from "@/components/passenger-manifest-modal";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,6 +8,7 @@ import { AircraftSpecs } from "@/types/owner";
 import { BaseUser } from "@/types/user";
 import { generateAndShareInvoicePdf } from "@/utils/electronic-invoice";
 import { getStatusBadge } from "@/utils/flight-status";
+import { buildReservationWeatherRequest } from "@/utils/flight-weather";
 import { isReservationPaid } from "@/utils/paid-reservation";
 import { canManageReservationAircraft, NON_EDITABLE_STATUSES } from "@/utils/reservation-permissions";
 import { roleFlightRoute, toHref } from "@/utils/role-routes";
@@ -45,6 +47,8 @@ export default function AdminReservationsScreen() {
   const [sharingResId, setSharingResId] = useState<string | null>(null);
   const [selectedResForManifest, setSelectedResForManifest] = useState<ClientReservationItem | null>(null);
   const [isManifestVisible, setIsManifestVisible] = useState(false);
+  // Una sola card desplegada a la vez (null = todas colapsadas).
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Fetch all reservations from 'aircraft-reservation'
   const {
@@ -304,53 +308,24 @@ export default function AdminReservationsScreen() {
     const isSharing = sharingResId === item.id;
 
     return (
-      <View style={styles.card}>
-        {/* Card Header */}
-        <View style={styles.cardHeader}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.aircraftText}>
-              {model} {reg ? `(${reg})` : ""}
-            </Text>
-            <Text style={styles.dateText}>
-              {item.schedule.outbound_flight_departure_time.toLocaleString("es-ES", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })} hs
-            </Text>
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: badge.backgroundColor, borderColor: badge.borderColor }]}>
-            <Ionicons name={badge.icon as any} size={12} color={badge.iconColor} />
-            <Text style={[styles.statusBadgeText, { color: badge.textColor }]}>
-              {badge.label}
-            </Text>
-          </View>
-        </View>
-
-        {/* Route Row */}
-        <View style={styles.routeRow}>
-          <View style={styles.airportBox}>
-            <Text style={styles.airportCode}>{originLabel}</Text>
-            <Text style={styles.airportCity} numberOfLines={1}>
-              {item.originAirport?.municipality || item.originAirport?.name || "Origen"}
-            </Text>
-          </View>
-
-          <View style={styles.routeMiddle}>
-            <MaterialCommunityIcons name="airplane-takeoff" size={18} color="#0165FF" />
-            <View style={styles.routeLine} />
-            {item.schedule.roundtrip && (
-              <Text style={styles.roundtripTag}>Ida y Vuelta</Text>
-            )}
-          </View>
-
-          <View style={[styles.airportBox, { alignItems: "flex-end" }]}>
-            <Text style={styles.airportCode}>{destLabel}</Text>
-            <Text style={styles.airportCity} numberOfLines={1}>
-              {item.destinationAirport?.municipality || item.destinationAirport?.name || "Destino"}
-            </Text>
-          </View>
-        </View>
-
+      <View style={{ marginBottom: 12 }}>
+      <FlightSummaryCard
+        expanded={expandedId === item.id}
+        onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+        eyebrow={model}
+        originCode={originLabel}
+        originName={item.originAirport?.municipality || item.originAirport?.name || "Origen"}
+        destinationCode={destLabel}
+        destinationName={item.destinationAirport?.municipality || item.destinationAirport?.name || "Destino"}
+        departureTime={item.schedule.outbound_flight_departure_time}
+        roundtrip={item.schedule.roundtrip}
+        status={badge}
+        registration={reg || undefined}
+        passengers={item.capacity.passangers}
+        priceUsd={item.price}
+        weatherRequest={buildReservationWeatherRequest(item)}
+        weatherDetail
+      >
         {/* Price & Details Bar */}
         <View style={styles.priceRow}>
           <View>
@@ -413,7 +388,7 @@ export default function AdminReservationsScreen() {
         )}
 
         {/* Action Buttons based on status */}
-        <View style={{ marginTop: 12, gap: 8 }}>
+        <View style={{ gap: 8 }}>
           {/* Action 1: Assign pilots / Approve (when pending) */}
           {(item.internal_status === "pending_approval" || item.internal_status === "pending") && assignPilotsRoute && (
             <TouchableOpacity
@@ -547,6 +522,7 @@ export default function AdminReservationsScreen() {
           </TouchableOpacity>
           )}
         </View>
+      </FlightSummaryCard>
       </View>
     );
   };
@@ -624,6 +600,7 @@ export default function AdminReservationsScreen() {
           data={filteredReservations}
           renderItem={renderReservationCard}
           keyExtractor={(item) => item.id}
+          extraData={expandedId}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 60 }}
           refreshControl={
@@ -710,92 +687,10 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "bold",
   },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  aircraftText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#030436",
-  },
-  dateText: {
-    fontSize: 11,
-    color: "#64748B",
-    marginTop: 2,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  statusBadgeText: {
-    fontSize: 11,
-    fontWeight: "bold",
-  },
-  routeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#F8FAFC",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-  },
-  airportBox: {
-    flex: 1,
-  },
-  airportCode: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#030436",
-  },
-  airportCity: {
-    fontSize: 11,
-    color: "#64748B",
-    marginTop: 1,
-  },
-  routeMiddle: {
-    alignItems: "center",
-    paddingHorizontal: 8,
-  },
-  routeLine: {
-    width: 40,
-    height: 1,
-    backgroundColor: "#CBD5E1",
-    marginVertical: 4,
-  },
-  roundtripTag: {
-    fontSize: 9,
-    fontWeight: "bold",
-    color: "#0165FF",
-  },
   priceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
   },
   priceLabel: {
     fontSize: 10,
@@ -833,7 +728,6 @@ const styles = StyleSheet.create({
     borderColor: "#A7F3D0",
     borderRadius: 10,
     padding: 8,
-    marginTop: 10,
   },
   invoiceNumText: {
     fontSize: 11,
@@ -968,7 +862,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    marginTop: 8,
   },
   manifestSummaryText: {
     fontSize: 11,

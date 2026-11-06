@@ -1,5 +1,6 @@
 import { BancardPaymentModal } from "@/components/bancard-modal";
 import { fetchPaidReservationFields } from "@/utils/paid-reservation";
+import { FlightWeatherCard } from "@/components/flight-weather";
 import { LoadingCard } from "@/components/loading-card";
 import { PassengerManifestModal } from "@/components/passenger-manifest-modal";
 import { ThemedText } from "@/components/themed-text";
@@ -25,6 +26,7 @@ import { RouteCard } from "@/screens/flight-details/components/route-card";
 import { ScheduleCard } from "@/screens/flight-details/components/schedule-card";
 import { generateAndShareInvoicePdf } from "@/utils/electronic-invoice";
 import { getFlightData, getStatusBadge, PILOT_OPERATIONAL_STATUSES } from "@/utils/flight-status";
+import { buildLegWeatherRequest, buildReservationWeatherRequest } from "@/utils/flight-weather";
 import { isReservationPaid } from "@/utils/paid-reservation";
 import { NON_EDITABLE_STATUSES } from "@/utils/reservation-permissions";
 import { roleFlightRoute, toHref } from "@/utils/role-routes";
@@ -126,6 +128,30 @@ export default function FlightDetailsScreen() {
     );
 
     const { data: aircraft, isLoading: isLoadingAircraft } = useAircraftDetails(reservation?.aircraftId);
+
+    // Clima del tramo que se está viendo (el piloto entra por tramo; el resto, al próximo tramo).
+    const weatherRequest = useMemo(() => {
+        if (!reservation) return null;
+        if (params.legType === "return") {
+            return buildLegWeatherRequest({
+                internalStatus: reservation.internal_status,
+                originAirport: reservation.destinationAirport,
+                destinationAirport: reservation.originAirport,
+                departureTime: reservation.schedule.return_flight_departure_time,
+                arrivalTime: reservation.schedule.return_flight_arrival_time,
+            });
+        }
+        if (params.legType === "outbound") {
+            return buildLegWeatherRequest({
+                internalStatus: reservation.internal_status,
+                originAirport: reservation.originAirport,
+                destinationAirport: reservation.destinationAirport,
+                departureTime: reservation.schedule.outbound_flight_departure_time,
+                arrivalTime: reservation.schedule.outbound_flight_arrival_time,
+            });
+        }
+        return buildReservationWeatherRequest(reservation);
+    }, [reservation, params.legType]);
 
     const isLoading = (isLoadingReservation && !directReservation) || isLoadingDirectRes || isLoadingOutboundFlightPlan || isLoadingReturnFlightPlan || isLoadingAircraft;
 
@@ -587,6 +613,12 @@ export default function FlightDetailsScreen() {
 
                                 {/* Schedule Card */}
                                 <ScheduleCard reservation={reservation} />
+
+                                {/* Pronóstico del tiempo (confirmado/demorado, próximos 7 días). No muestra nada si no aplica o falla. */}
+                                <FlightWeatherCard
+                                    request={weatherRequest}
+                                    variant={role === "CLIENT" ? "compact" : "detail"}
+                                />
 
                                 {/* Flight Card */}
                                 <FlightCard
