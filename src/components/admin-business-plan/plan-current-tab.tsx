@@ -82,7 +82,7 @@ export function PlanCurrentTab({ plan, cfg, flights, expenses }: BusinessPlanTab
 
             <SectionCard
                 title="Real contra plan"
-                subtitle={`Real: GIO del mes · Plan: ${planned.input.etiqueta} (${formatHours(planned.input.horasMes)}, USD ${planned.input.tarifaHora.toLocaleString("es-PY")}/h IVA incl.)`}
+                subtitle={`Real: GIO del mes · Plan: ${planned.input.etiqueta} (${formatHours(planned.input.horasMes)}, USD ${planned.input.tarifaHora.toLocaleString("es-PY")}/h sin IVA)`}
             >
                 <KpiGrid>
                     <KpiTile
@@ -125,7 +125,7 @@ export function PlanCurrentTab({ plan, cfg, flights, expenses }: BusinessPlanTab
             </SectionCard>
 
             <InfoNote
-                text={`Ingreso real = precio cargado en GIO (IVA incluido) ÷ ${(1 + plan.ivaPct).toLocaleString("es-PY")}. Costos reales: combustible, piloto, tasas y hangaraje de cada vuelo en GIO, reserva de overhaul por hora y gastos sueltos que no son mantenimiento. Fijos: los de GIO sin seguro ni habilitaciones, más el seguro ${plan.cesaVigente ? "con" : "sin"} CESA y las inspecciones del plan.${plan.descontarBancard ? " Se descuenta la comisión de Bancard." : ""}${plan.descontarIre ? " Se descuenta el IRE estimado sobre la utilidad." : ""}`}
+                text={`Ingreso real = precio cargado en GIO (sin IVA). Costos reales: combustible, piloto, tasas y hangaraje de cada vuelo en GIO, reserva de overhaul por hora y gastos sueltos que no son mantenimiento. Fijos: los de GIO sin seguro ni habilitaciones, más el seguro ${plan.cesaVigente ? "con" : "sin"} CESA y las inspecciones del plan.${plan.descontarBancard ? " Se descuenta la comisión de Bancard." : ""}${plan.descontarIre ? " Se descuenta el IRE estimado sobre la utilidad." : ""}`}
             />
         </View>
     );

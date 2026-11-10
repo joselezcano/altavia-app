@@ -111,7 +111,8 @@ export function PlanSimulatorTab({ plan, cfg, liveTc }: BusinessPlanTabProps) {
     const [bancard, setBancard] = useState(plan.descontarBancard);
     const [ire, setIre] = useState(plan.descontarIre);
     // Hoy la tarifa de GIO es con IVA; las de CESA se cargan sin IVA (configurable en el plan).
-    const tarifaConIva = conCesa ? plan.tarifasCesaIncluyenIva === true : true;
+    // Todas las tarifas son sin IVA (salvo que el plan diga que las de CESA lo incluyen).
+    const tarifaConIva = conCesa ? plan.tarifasCesaIncluyenIva === true : false;
 
     const base = useMemo(() => buildPlanCostBase(plan, cfg, { tc: num(tc) }), [plan, cfg, tc]);
     const result = useMemo(

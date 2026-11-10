@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/themed-text";
+import { grossFromNet } from "@/utils/flight-pricing";
 import { FlightQuote } from "@/types/pricing";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
@@ -248,7 +249,9 @@ export default function AircraftDetailsScreen() {
         aircraftId: aircraft.id,
         fa_flight_id: null,
         clientId: user?.uid || "",
-        price: estimatedPrice || 0,
+        // estimatedPrice es sin IVA: la reserva guarda el total con IVA (lo que cobra Bancard).
+        price: grossFromNet(estimatedPrice || 0),
+        price_net_usd: estimatedPrice || 0,
         estimated_price: estimatedPrice || 0,
         currency: "USD",
         distance_nm: distanceNm,

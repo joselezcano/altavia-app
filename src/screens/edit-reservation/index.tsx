@@ -15,7 +15,7 @@ import { useEditReservation } from "@/hooks/useReservationEditing";
 import { useReservationDetails } from "@/hooks/useReservationDetails";
 import { Airport, ClientReservationItem } from "@/types/all-roles";
 import { getDistanceBetweenAirports } from "@/utils/flight-distance";
-import { computeFlightQuote, DEFAULT_CRUISE_SPEED_KNOTS } from "@/utils/flight-pricing";
+import { DEFAULT_CRUISE_SPEED_KNOTS, computeFlightQuote, grossFromNet, reservationNetPrice } from "@/utils/flight-pricing";
 import { isReservationPaid } from "@/utils/paid-reservation";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -125,7 +125,9 @@ function EditReservationForm({
             : ""
     );
     const [priceMode, setPriceMode] = useState<PriceMode>("current");
-    const [manualPrice, setManualPrice] = useState<string>(String(reservation.price ?? 0));
+    // Los precios se editan SIN IVA; la reserva guarda también el total con IVA.
+    const currentNetPrice = reservationNetPrice(reservation);
+    const [manualPrice, setManualPrice] = useState<string>(String(currentNetPrice));
 
     // Si cambia algo que mueve la cotización, el precio pasa a seguir al sugerido (salvo que lo hayan escrito a mano).
     const touchQuote = () => setPriceMode((m) => (m === "manual" ? m : "suggested"));
@@ -156,9 +158,9 @@ function EditReservationForm({
         [origin, destination, aircraft, roundtrip, departureDate, returnDate, cruiseSpeed, hangarInput]
     );
 
-    const suggestedPrice = quote.hasPricing && quote.totalUsd > 0 ? quote.totalUsd : reservation.price;
+    const suggestedPrice = quote.hasPricing && quote.totalUsd > 0 ? quote.totalUsd : currentNetPrice;
     const priceText =
-        priceMode === "current" ? String(reservation.price) : priceMode === "suggested" ? String(suggestedPrice) : manualPrice;
+        priceMode === "current" ? String(currentNetPrice) : priceMode === "suggested" ? String(suggestedPrice) : manualPrice;
     const priceNumber = parseFloat(priceText) || 0;
     const exchangeRateValue = exchangeRate?.dolar && exchangeRate.dolar > 0 ? exchangeRate.dolar : 0;
 
@@ -243,11 +245,11 @@ function EditReservationForm({
                 text2: isPaid ? "Se reprogramaron las fechas del vuelo." : "Se guardaron los cambios de la reserva.",
             });
             // Si ya se había enviado el link de pago, ahora cobra el precio nuevo: conviene avisar al cliente.
-            const priceChanged = !isPaid && Math.round(priceNumber) !== Math.round(Number(reservation.price) || 0);
+            const priceChanged = !isPaid && Math.round(priceNumber) !== Math.round(currentNetPrice);
             if (priceChanged && reservation.internal_status === "awaiting_payment") {
                 Alert.alert(
                     "Precio actualizado",
-                    `El link de pago va a cobrar el precio nuevo (USD ${Math.round(priceNumber).toLocaleString("es-PY")}). ` +
+                    `El link de pago va a cobrar el precio nuevo (USD ${grossFromNet(priceNumber).toLocaleString("es-PY")} con IVA). ` +
                         "Si ya se lo enviaste al cliente, reenviáselo por WhatsApp para que vea el monto correcto."
                 );
             }
@@ -266,7 +268,7 @@ function EditReservationForm({
                     <Ionicons name="lock-closed-outline" size={16} color="#92400e" />
                     <Text style={styles.infoBoxText}>
                         Reserva pagada: solo se pueden reprogramar las fechas y horas. La ruta, los pasajeros y el precio
-                        (USD {reservation.price.toLocaleString("en-US")}) quedan fijos.
+                        (USD {reservation.price.toLocaleString("en-US")} con IVA) quedan fijos.
                     </Text>
                 </View>
             )}
@@ -410,7 +412,7 @@ function EditReservationForm({
                         ))}
                         <View style={styles.quoteRow}>
                             <Text style={styles.quoteLabel}>
-                                {quote.billableHours} h × tarifa por hora (IVA incl.):
+                                {quote.billableHours} h × tarifa por hora (sin IVA):
                             </Text>
                             <Text style={styles.quoteValue}>
                                 {quote.hasPricing ? `USD ${quote.pricePerHourUsd.toLocaleString("en-US")}` : "Sin tarifa cargada"}
@@ -446,18 +448,18 @@ function EditReservationForm({
                         )}
                         <View style={styles.divider} />
                         <View style={styles.quoteRow}>
-                            <Text style={styles.suggestedTitle}>Precio sugerido:</Text>
+                            <Text style={styles.suggestedTitle}>Precio sugerido (sin IVA):</Text>
                             <Text style={styles.suggestedValue}>USD {quote.totalUsd.toLocaleString("en-US")}</Text>
                         </View>
                         <View style={styles.quoteRow}>
-                            <Text style={styles.quoteLabel}>Precio actual de la reserva:</Text>
-                            <Text style={styles.quoteValue}>USD {reservation.price.toLocaleString("en-US")}</Text>
+                            <Text style={styles.quoteLabel}>Precio actual (sin IVA):</Text>
+                            <Text style={styles.quoteValue}>USD {currentNetPrice.toLocaleString("en-US")}</Text>
                         </View>
                     </View>
 
                     <View style={{ marginTop: 14 }}>
                         <View style={styles.priceLabelRow}>
-                            <Text style={styles.inputLabel}>Precio Final (USD)</Text>
+                            <Text style={styles.inputLabel}>Precio Final (USD, sin IVA)</Text>
                             <View style={{ flexDirection: "row", gap: 12 }}>
                                 {priceMode !== "suggested" && quote.hasPricing && (
                                     <TouchableOpacity onPress={() => setPriceMode("suggested")}>
@@ -487,7 +489,7 @@ function EditReservationForm({
                         </View>
                         {priceNumber > 0 && exchangeRateValue > 0 && (
                             <Text style={styles.pygText}>
-                                Equivalente: ₲ {Math.round(priceNumber * exchangeRateValue).toLocaleString("es-PY")} (T.C.{" "}
+                                Total con IVA: USD {grossFromNet(priceNumber).toLocaleString("en-US")} · ₲ {Math.round(grossFromNet(priceNumber) * exchangeRateValue).toLocaleString("es-PY")} (T.C.{" "}
                                 {exchangeRateValue.toLocaleString("es-PY")})
                             </Text>
                         )}

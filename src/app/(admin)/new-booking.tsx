@@ -1,4 +1,5 @@
 import AirportPicker from "@/components/airport-picker";
+import { grossFromNet } from "@/utils/flight-pricing";
 import { CustomDatePicker } from "@/components/custom-date-picker";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
@@ -145,7 +146,8 @@ export default function NewBookingScreen() {
 
   const effectivePriceNumber = parseFloat(finalPriceInput) || 0;
   const exchangeRateValue = exchangeRate?.dolar && exchangeRate.dolar > 0 ? exchangeRate.dolar : 0;
-  const effectivePricePyg = Math.round(effectivePriceNumber * exchangeRateValue);
+  // El equivalente en Gs es del TOTAL con IVA (lo que paga el cliente).
+  const effectivePricePyg = Math.round(grossFromNet(effectivePriceNumber) * exchangeRateValue);
 
   // Filter clients
   const filteredClients = useMemo(() => {
@@ -342,7 +344,9 @@ export default function NewBookingScreen() {
         aircraftId: activeAircraft.id,
         fa_flight_id: null,
         clientId: selectedClient.uid,
-        price: effectivePriceNumber,
+        // El precio acordado es sin IVA; la reserva guarda el total con IVA (lo que cobra Bancard).
+        price: grossFromNet(effectivePriceNumber),
+        price_net_usd: effectivePriceNumber,
         estimated_price: suggestedPrice,
         currency: "USD",
         distance_nm: distanceNm,
@@ -396,8 +400,8 @@ export default function NewBookingScreen() {
       Alert.alert(
         "Reserva Creada",
         assignPilotsRoute
-          ? `La reserva fue registrada con éxito por USD ${effectivePriceNumber.toLocaleString("en-US")}.\n\n¿Deseas asignar tripulación y aprobarla ahora?`
-          : `La reserva fue registrada con éxito por USD ${effectivePriceNumber.toLocaleString("en-US")}.`,
+          ? `La reserva fue registrada con éxito por USD ${effectivePriceNumber.toLocaleString("en-US")} + IVA (total USD ${grossFromNet(effectivePriceNumber).toLocaleString("en-US")}).\n\n¿Deseas asignar tripulación y aprobarla ahora?`
+          : `La reserva fue registrada con éxito por USD ${effectivePriceNumber.toLocaleString("en-US")} + IVA (total USD ${grossFromNet(effectivePriceNumber).toLocaleString("en-US")}).`,
         [
           {
             text: role === "ADMIN" ? "Ir al Dashboard" : "Ir a Vuelos",
@@ -796,7 +800,7 @@ export default function NewBookingScreen() {
                 ))}
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
                   <Text style={styles.priceSublabel}>
-                    {quote.billableHours} h (factor de bloque {quote.blockFactor}) × tarifa por hora (IVA incl.):
+                    {quote.billableHours} h (factor de bloque {quote.blockFactor}) × tarifa por hora (sin IVA):
                   </Text>
                   <Text style={styles.priceSubvalue}>
                     {quote.hasPricing ? `USD $${quote.pricePerHourUsd.toLocaleString("en-US")}` : "Sin tarifa cargada"}
@@ -837,7 +841,7 @@ export default function NewBookingScreen() {
               {/* Editable Final Price Input */}
               <View style={{ marginVertical: 14 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-                  <Text style={styles.inputLabelBold}>Precio Final Acordado (USD)</Text>
+                  <Text style={styles.inputLabelBold}>Precio Final Acordado (USD, sin IVA)</Text>
                   {userOverrodePrice && (
                     <TouchableOpacity
                       onPress={() => {

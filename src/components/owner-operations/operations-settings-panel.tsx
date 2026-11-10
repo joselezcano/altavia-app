@@ -306,12 +306,12 @@ export function OperationsSettingsPanel({
                         />
 
                         <Text style={[styles.sectionHeader, { marginTop: 28 }]}>
-                            TARIFA AL CLIENTE (IVA INCLUIDO)
+                            TARIFA AL CLIENTE (SIN IVA)
                         </Text>
 
                         <SettingRow
                             label="Tarifa por hora"
-                            sub="Dólares por hora volada, incluye el regreso vacío. Se usa para cotizar"
+                            sub="Dólares por hora volada, sin IVA, incluye el regreso vacío. Se usa para cotizar"
                             value={tarifaHora}
                             onChangeText={setTarifaHora}
                         />

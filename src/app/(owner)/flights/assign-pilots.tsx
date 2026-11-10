@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/themed-text";
+import { grossFromNet, reservationNetPrice } from "@/utils/flight-pricing";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
@@ -139,7 +140,8 @@ export default function AssignFlightPilotsScreen() {
 
   useEffect(() => {
     if (reservation && reservation.price !== undefined) {
-      setEditedPrice(String(reservation.price));
+      // Se edita el precio SIN IVA; se guarda también el total con IVA.
+      setEditedPrice(String(reservationNetPrice(reservation)));
     }
   }, [reservation?.price]);
 
@@ -192,7 +194,8 @@ export default function AssignFlightPilotsScreen() {
     try {
       const reservationRef = doc(db, "aircraft-reservation", targetReservationId);
       await updateDoc(reservationRef, {
-        price: priceNum,
+        price: grossFromNet(priceNum),
+        price_net_usd: priceNum,
         internal_status: "awaiting_payment",
         status_notes: "Vuelo aprobado operativamente con tripulación asignada. Pendiente de pago por el cliente.",
       });
@@ -207,11 +210,11 @@ export default function AssignFlightPilotsScreen() {
             reservationId: targetReservationId,
             type: "flight_approved",
             title: "¡Vuelo Aprobado! Listo para Pago",
-            message: `Tu vuelo chárter ${originCode} ➔ ${destCode} fue aprobado operativamente y tiene tripulación asignada. Completa el pago de USD $${priceNum.toLocaleString("en-US")} vía Bancard vPOS.`,
+            message: `Tu vuelo chárter ${originCode} ➔ ${destCode} fue aprobado operativamente y tiene tripulación asignada. Completa el pago de USD $${grossFromNet(priceNum).toLocaleString("en-US")} (IVA incluido) vía Bancard vPOS.`,
             read: false,
             created_at: new Date(),
             routeText: `${originCode} ➔ ${destCode}`,
-            amountUsd: priceNum,
+            amountUsd: grossFromNet(priceNum),
           });
         } catch (notifErr) {
           console.warn("No se pudo registrar documento en notifications:", notifErr);
@@ -427,10 +430,10 @@ export default function AssignFlightPilotsScreen() {
         ) : (
           <View style={{ marginTop: 4 }}>
             <Text style={styles.priceValueDisplay}>
-              USD ${parseFloat(editedPrice || "0").toLocaleString("en-US")}
+              USD ${parseFloat(editedPrice || "0").toLocaleString("en-US")} + IVA
             </Text>
             <Text style={styles.pricePygDisplay}>
-              Aprox. ₲ {Math.round((parseFloat(editedPrice) || 0) * currentDolar).toLocaleString("es-PY")} (T.C. {currentDolar.toLocaleString("es-PY")})
+              Total a cobrar USD ${grossFromNet(parseFloat(editedPrice) || 0).toLocaleString("en-US")} · aprox. ₲ {Math.round(grossFromNet(parseFloat(editedPrice) || 0) * currentDolar).toLocaleString("es-PY")} (T.C. {currentDolar.toLocaleString("es-PY")})
             </Text>
           </View>
         )}

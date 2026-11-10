@@ -8,7 +8,7 @@
  *    El modo fijo se mantiene solo para verificar contra la planilla.
  *  - El seguro cambia con o sin CESA (y reemplaza la línea "Seguro" de los fijos de GIO).
  *  - Se eliminan las columnas "contado" (duplicaban HOY 8,5 hs y CESA 20 hs).
- *  - Las tarifas son IVA incluido: se trabaja con el ingreso neto de IVA.
+ *  - Las tarifas son SIN IVA (decisión del 09/11/2026): el cliente paga tarifa + IVA y se trabaja con el neto.
  *
  * Los costos operativos salen de la configuración de GIO; acá no se duplican.
  * Verificación: tests/business-plan/verify-spreadsheet.mjs
@@ -280,7 +280,7 @@ export function computeScenario(base: PlanCostBase, input: PlanScenarioInput): P
     };
 }
 
-/** Tarifa de hoy: la de venta de GIO (tarifaHora, IVA incluido). */
+/** Tarifa de hoy: la de venta de GIO (tarifaHora, sin IVA). */
 export function getTarifaHoy(cfg: AircraftOperationsConfig): number {
     return num(cfg.tarifaHora);
 }
@@ -303,8 +303,8 @@ export function buildPlanScenarioInputs(
         etiqueta: SCENARIO_LABELS[id],
         horasMes,
         tarifaHora,
-        // Hoy: tarifa de GIO (IVA incluido). Con CESA: según el plan (por defecto, sin IVA).
-        tarifaIncluyeIva: conCesa ? plan.tarifasCesaIncluyenIva === true : true,
+        // Hoy: tarifa de GIO (sin IVA). Con CESA: según el plan (por defecto, sin IVA).
+        tarifaIncluyeIva: conCesa ? plan.tarifasCesaIncluyenIva === true : false,
         conCesa,
         ...toggles,
     });
@@ -404,8 +404,8 @@ export function computeThirdPartyFees(plan: BusinessPlan): PlanThirdPartyResult 
 
 /**
  * Resultado real de un mes a partir de las estadísticas de GIO (computeMonthStats).
- * El precio cargado en GIO es IVA incluido (la fila de una reserva copia `price`), así que
- * se descuenta el IVA. Los fijos se toman de la base del plan (fijos de GIO sin las líneas
+ * El precio cargado en GIO es SIN IVA (la fila de una reserva copia el neto), así que
+ * el ingreso neto es el precio y el bruto (lo que paga el cliente, base de la comisión) es precio + IVA. Los fijos se toman de la base del plan (fijos de GIO sin las líneas
  * que reemplaza el plan + seguro e inspecciones del plan) para que real y plan sean comparables.
  * Los gastos de mantenimiento salen del fondo de overhaul (igual que en GIO).
  */
@@ -417,8 +417,8 @@ export function computeRealMonth(
 ): PlanRealMonthResult {
     const conDatos = stats.activo;
     const ivaFactor = 1 + Math.max(0, base.ivaPct);
-    const ingresoBruto = stats.ingreso;
-    const ingresoNeto = ingresoBruto / ivaFactor;
+    const ingresoNeto = stats.ingreso;
+    const ingresoBruto = ingresoNeto * ivaFactor;
     const comisionBancard = options.descontarBancard ? ingresoBruto * base.comisionBancardPct : 0;
     const fijosMes = conDatos || options.cobrarFijosSinActividad ? getFijosMes(base, options.conCesa) : 0;
     const costoTotal = stats.directo + stats.reserva + fijosMes + stats.otros + comisionBancard;

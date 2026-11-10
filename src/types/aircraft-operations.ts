@@ -44,7 +44,7 @@ export interface AircraftOperationsConfig {
     planBaseGs: number; // Gs base por plan de vuelo DINAC (ej. 180000)
     planPersonaGs: number; // Gs adicional por pasajero DINAC (ej. 15000)
     reservaHora: number; // USD por hora para fondo de overhaul (ej. 119)
-    tarifaHora: number; // USD por hora de venta al cliente, IVA incluido (ej. 1000). Base de la cotización.
+    tarifaHora: number; // USD por hora de venta al cliente, SIN IVA (ej. 900). Base de la cotización; el cliente paga + IVA.
     pernocteUsd?: number; // USD por noche que se cobra al cliente si el avión pernocta fuera (ej. 100)
     hangarNocheUsd?: number; // USD de hangaraje por noche fuera de base (variable; editable por vuelo)
     pilotoPernocteUsd?: number; // USD por noche que se le paga al piloto (costo, ej. 100)

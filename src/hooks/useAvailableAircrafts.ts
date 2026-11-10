@@ -19,7 +19,7 @@ export interface SearchResultItem {
   distanceNm: number;
   /** Cotización por hora (horas facturables incluyendo regreso vacío + pernoctes). */
   quote: FlightQuote;
-  /** Total estimado en USD (IVA incluido) o null si la aeronave no tiene tarifa por hora. */
+  /** Total estimado en USD SIN IVA (el cliente paga + IVA; ver quote.totalWithIvaUsd) o null sin tarifa. */
   estimatedPrice: number | null;
 }
 

@@ -9,7 +9,7 @@ export const ModelPricingSchema = z.object({
 export type ModelPricing = z.infer<typeof ModelPricingSchema>;
 
 /**
- * Tarifa por hora de una aeronave (IVA incluido). La escribe SOLO el servidor
+ * Tarifa por hora de una aeronave (SIN IVA; el cliente paga + IVA). La escribe SOLO el servidor
  * (Cloud Function syncAircraftPricing) a partir de los Ajustes de GIO
  * (owner_aircraft_operations_config), para que el buscador del cliente pueda leerla.
  */
@@ -33,7 +33,7 @@ export interface FlightQuoteLeg {
   kind: "positioning" | "passenger" | "return_empty";
 }
 
-/** Cotización por hora de vuelo: horas facturables × tarifa + pernoctes. Todo en USD, IVA incluido. */
+/** Cotización por hora de vuelo: horas facturables × tarifa + pernoctes. Todo en USD SIN IVA (ver totalWithIvaUsd). */
 export interface FlightQuote {
   legs: FlightQuoteLeg[];
   billableHours: number;
@@ -45,7 +45,11 @@ export interface FlightQuote {
   overnightFeeUsd: number;
   hangarPerNightUsd: number;
   overnightTotalUsd: number;
+  /** Total sin IVA. */
   totalUsd: number;
+  /** IVA (10 %) y total a pagar con IVA: lo que cobra Bancard. */
+  ivaUsd: number;
+  totalWithIvaUsd: number;
   /** false si la aeronave todavía no tiene tarifa por hora cargada. */
   hasPricing: boolean;
 }

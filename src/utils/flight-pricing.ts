@@ -6,7 +6,7 @@
  *    desde su base hasta el origen y el regreso a la base aunque vuelva vacío.
  *  - Horas estimadas = distancia haversine (NM) / velocidad crucero × factor de bloque,
  *    por tramo. El factor (ajustable por aeronave) cubre rodaje, ascenso y desvíos.
- *  - Precio = horas facturables × tarifa por hora (IVA incluido), sin mínimos.
+ *  - Precio = horas facturables × tarifa por hora (SIN IVA), sin mínimos. El cliente paga + IVA 10 %.
  *  - Si el avión pernocta fuera (ida y vuelta en días distintos), se suma por noche
  *    el pernocte (ej. USD 100) + el hangaraje (variable, editable por vuelo).
  *  - Las tasas de plan de vuelo DINAC van incluidas en la tarifa por hora.
@@ -37,6 +37,9 @@ export function countOvernights(outbound: Date | null | undefined, ret: Date | n
 
 const sameAirport = (a?: Airport | null, b?: Airport | null) =>
     !!a && !!b && (a.ident === b.ident || (a.latitude_deg === b.latitude_deg && a.longitude_deg === b.longitude_deg));
+
+/** IVA de Paraguay sobre servicios. Las tarifas son sin IVA; el cliente paga + IVA. */
+export const IVA_PCT = 0.1;
 
 /** Factor de bloque de respaldo si la aeronave no tiene uno cargado. */
 export const DEFAULT_QUOTE_BLOCK_FACTOR = 1.12;
@@ -99,8 +102,21 @@ export function computeFlightQuote(input: FlightQuoteInput): FlightQuote {
         hangarPerNightUsd,
         overnightTotalUsd,
         totalUsd: flightTotalUsd + overnightTotalUsd,
+        ivaUsd: Math.round((flightTotalUsd + overnightTotalUsd) * IVA_PCT),
+        totalWithIvaUsd: Math.round((flightTotalUsd + overnightTotalUsd) * (1 + IVA_PCT)),
         hasPricing: pricePerHourUsd > 0,
     };
+}
+
+/** Total a pagar con IVA a partir del neto (redondeado a USD). */
+export function grossFromNet(netUsd: number): number {
+    return Math.round((Number(netUsd) || 0) * (1 + IVA_PCT));
+}
+
+/** Precio sin IVA de una reserva. Las viejas no tienen price_net_usd: se deriva del total. */
+export function reservationNetPrice(r: { price?: number | null; price_net_usd?: number | null }): number {
+    if (typeof r.price_net_usd === "number" && r.price_net_usd > 0) return r.price_net_usd;
+    return Math.round(((Number(r.price) || 0) / (1 + IVA_PCT)) * 100) / 100;
 }
 
 /** Texto corto del desglose para mostrar debajo del precio. */

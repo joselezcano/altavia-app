@@ -310,7 +310,7 @@ export const AircraftSpecsSchema = z.object({
 
     // Tarifa por milla (OBSOLETA: el precio ahora es por hora, ver pricing)
     pricePerMileOverride: z.number().nullable().optional(),
-    // Tarifa por hora (IVA incluido). La escribe el servidor desde los Ajustes de GIO.
+    // Tarifa por hora (sin IVA). La escribe el servidor desde los Ajustes de GIO.
     pricing: AircraftPricingSchema.optional(),
     ownerId: z.string().optional(),
 });

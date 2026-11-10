@@ -17,7 +17,7 @@ import {
 } from "react-native";
 
 /**
- * Control de Flota: tarifa de venta POR HORA de cada aeronave (IVA incluido),
+ * Control de Flota: tarifa de venta POR HORA de cada aeronave (sin IVA; el cliente paga + IVA),
  * más pernocte y hangaraje por noche. Reemplaza la antigua tarifa por milla.
  * Es la misma configuración que el owner y la encargada ven en Contable → Ajustes.
  */
@@ -106,7 +106,7 @@ export default function FleetPricingScreen() {
           Tarifas por hora de vuelo
         </ThemedText>
         <Text style={styles.headerSub}>
-          IVA incluido. Se cobran todas las horas voladas, incluido el regreso vacío a la base, más pernocte y hangaraje por cada noche fuera.
+          Montos sin IVA (el cliente paga + IVA 10 %). Se cobran todas las horas voladas, incluido el regreso vacío a la base, más pernocte y hangaraje por cada noche fuera.
         </Text>
       </View>
 
@@ -129,7 +129,7 @@ export default function FleetPricingScreen() {
               {selected?.basic_specs.registration} · {selected?.basic_specs.model}
             </Text>
 
-            <Text style={styles.label}>Tarifa por hora (USD, IVA incluido)</Text>
+            <Text style={styles.label}>Tarifa por hora (USD, sin IVA)</Text>
             <TextInput value={tarifaInput} onChangeText={setTarifaInput} keyboardType="decimal-pad" placeholder="1000" style={styles.input} />
 
             <Text style={styles.label}>Pernocte (USD por noche fuera de base)</Text>

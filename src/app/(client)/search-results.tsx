@@ -215,7 +215,7 @@ export default function SearchResultsScreen() {
                         {estimatedPrice !== null && (
                           <View style={styles.priceBadge}>
                             <Text style={styles.priceBadgeText}>
-                              USD ${estimatedPrice.toLocaleString("en-US")}
+                              USD ${estimatedPrice.toLocaleString("en-US")} + IVA
                             </Text>
                           </View>
                         )}
@@ -239,7 +239,7 @@ export default function SearchResultsScreen() {
                                 Total Estimado
                               </Text>
                               <Text style={styles.priceValue}>
-                                USD ${estimatedPrice.toLocaleString("en-US")}
+                                USD ${estimatedPrice.toLocaleString("en-US")} + IVA
                               </Text>
                               <Text style={styles.priceBreakdown}>
                                 {describeQuote(quote)}

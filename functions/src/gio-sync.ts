@@ -82,7 +82,10 @@ export const syncReservationToGio = onDocumentWritten("aircraft-reservation/{res
       ruta,
       pasajeros: Number(after.capacity?.passangers) || (after.passengers?.length ?? 0),
       noches: Number(after.overnight_nights) || 0,
-      precio: Number(after.price) || 0,
+      // GIO registra el ingreso SIN IVA. Las reservas nuevas traen price_net_usd; las viejas, el total con IVA.
+      precio: Number(after.price_net_usd) > 0
+        ? Number(after.price_net_usd)
+        : Math.round(((Number(after.price) || 0) / 1.1) * 100) / 100,
       moneda: "USD",
       cobrado: true,
       updatedAt: new Date().toISOString(),

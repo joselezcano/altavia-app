@@ -77,7 +77,9 @@ export const AircraftReservationSchema = z.object({
     aircraftId: z.string(),
     fa_flight_id: z.string().nullable(),
     clientId: z.string().optional(),
-    price: z.number().nonnegative(),
+    price: z.number().nonnegative(), // TOTAL A PAGAR con IVA (lo que cobra Bancard)
+    price_net_usd: z.number().nonnegative().optional(), // precio sin IVA (desde el 09/11/2026)
+    quote_id: z.string().optional(), // presupuesto del que salió la reserva
     estimated_price: z.number().nonnegative().optional(),
     currency: z.string().default("USD").optional(),
     distance_nm: z.number().positive(),

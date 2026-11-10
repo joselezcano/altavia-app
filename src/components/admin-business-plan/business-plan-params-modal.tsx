@@ -216,7 +216,7 @@ export function BusinessPlanParamsModal({
                             })}
                         </View>
 
-                        <Text style={styles.section}>Tarifas a evaluar con CESA (USD/hora, IVA incluido)</Text>
+                        <Text style={styles.section}>Tarifas a evaluar con CESA (USD/hora)</Text>
                         {[0, 1, 2].map((i) => (
                             <View key={i} style={styles.fieldRow}>
                                 <Text style={styles.fieldLabel}>Tarifa {i + 1}</Text>

@@ -538,7 +538,7 @@ export function OperationalFlightModal({
                             </View>
 
                             <View style={styles.gridCol}>
-                                <Text style={styles.label}>Cuánto se cobró</Text>
+                                <Text style={styles.label}>Cuánto se cobró (sin IVA)</Text>
                                 <View style={styles.amountCurrencyRow}>
                                     <TextInput
                                         value={precio}

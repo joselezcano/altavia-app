@@ -8,7 +8,7 @@
  * - La fila de GIO (owner_operational_flights) la sincroniza el servidor (gio-sync.ts).
  */
 import { db } from "@/config/firebase";
-import { countOvernights } from "@/utils/flight-pricing";
+import { countOvernights, grossFromNet } from "@/utils/flight-pricing";
 import { AircraftAvailability, ClientReservationItem } from "@/types/all-roles";
 import { ReservationEditInput, ReservationLegBlock } from "@/types/reservation-edit";
 import { isReservationPaid } from "@/utils/paid-reservation";
@@ -215,7 +215,11 @@ export function useEditReservation() {
                 if (input.distanceNm !== undefined) update.distance_nm = input.distanceNm;
                 if (input.cruiseSpeedKnots !== undefined) update.cruise_speed_knots = input.cruiseSpeedKnots;
                 if (input.passengers !== undefined) update.capacity = { passangers: input.passengers };
-                if (input.price !== undefined) update.price = input.price;
+                // input.price es SIN IVA: se guarda el neto y el total con IVA (lo que cobra Bancard).
+                if (input.price !== undefined) {
+                    update.price = grossFromNet(input.price);
+                    update.price_net_usd = input.price;
+                }
                 if (input.quote) {
                     update.estimated_price = input.quote.totalUsd;
                     update.billable_hours = input.quote.billableHours;
