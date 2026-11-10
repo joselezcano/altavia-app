@@ -107,20 +107,28 @@ export const syncReservationToGio = onDocumentWritten("aircraft-reservation/{res
       const speed = Number(after.cruise_speed_knots) || 0;
       horas = dist > 0 && speed > 0 ? Math.round((dist / speed) * legs * 10) / 10 : 0;
     }
-    const hangarUsd = Math.round((Number(after.overnight_nights) || 0) * (Number(after.hangar_per_night_usd) || 0));
+    const hangarFromQuote = Math.round((Number(after.overnight_nights) || 0) * (Number(after.hangar_per_night_usd) || 0));
+    // Si la reserva salió de un presupuesto, sus costos estimados son el punto de partida de GIO.
+    const est = after.estimated_costs || {};
+    const fuelUsd = Number(est.fuel_usd);
+    const pilotPerHour = Number(est.pilot_per_hour_usd);
+    const hangarUsd = Number.isFinite(Number(est.hangar_usd)) && est.hangar_usd !== undefined
+      ? Math.round(Number(est.hangar_usd))
+      : hangarFromQuote;
 
     await ref.set({
       ...locked,
       horas,
       horasEstimadas: true,
       hangarUsd,
-      fuelModo: "litros",
+      // Combustible: si el presupuesto lo estimó, se carga como importe total (se corrige con la factura real).
+      fuelModo: fuelUsd > 0 ? "total" : "litros",
       litros: null,
       precioLt: null,
       precioLtCur: "GS",
-      fuelTotal: null,
-      fuelCur: "GS",
-      pilotoHora: null,
+      fuelTotal: fuelUsd > 0 ? Math.round(fuelUsd * 100) / 100 : null,
+      fuelCur: fuelUsd > 0 ? "USD" : "GS",
+      pilotoHora: pilotPerHour > 0 ? pilotPerHour : null,
       pilotoHoraCur: "USD",
       planBase: null,
       planPersona: null,

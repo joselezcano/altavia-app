@@ -80,6 +80,18 @@ export const AircraftReservationSchema = z.object({
     price: z.number().nonnegative(), // TOTAL A PAGAR con IVA (lo que cobra Bancard)
     price_net_usd: z.number().nonnegative().optional(), // precio sin IVA (desde el 09/11/2026)
     quote_id: z.string().optional(), // presupuesto del que salió la reserva
+    // Costos estimados del presupuesto (USD): GIO los usa como punto de partida de la fila del vuelo.
+    estimated_costs: z
+        .object({
+            fuel_usd: z.number().optional(),
+            pilot_per_hour_usd: z.number().optional(),
+            copilot_usd: z.number().optional(),
+            crew_overnight_usd: z.number().optional(),
+            flight_plan_usd: z.number().optional(),
+            hangar_usd: z.number().optional(),
+            other_usd: z.number().optional(),
+        })
+        .optional(),
     estimated_price: z.number().nonnegative().optional(),
     currency: z.string().default("USD").optional(),
     distance_nm: z.number().positive(),
