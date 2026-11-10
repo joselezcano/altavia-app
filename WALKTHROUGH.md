@@ -81,6 +81,12 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
   - **Totales:** subtotal sugerido o escrito a mano, sin IVA, más IVA 10 %.
   - **Hoja pública:** `createQuoteLink` y `quoteLinkApi` (`/api/quote`) sirven `hosting/public/presupuesto`, con la marca, sin costos internos, y con "Acepto el presupuesto" e imprimir/PDF. Al aceptar se notifica a quien lo armó.
   - **Reserva:** la que sale de un presupuesto lleva `quote_id` y `estimated_costs`, que GIO usa como punto de partida.
+  - **Pantallas (`src/components/quote/quote-editor.tsx`, `src/screens/quotes/*`):**
+    - **Editor:** es el paso 3 de "Nueva reserva". Tiene el interruptor de copiloto (cobro y pago por hora, 0 por defecto), las líneas con "usar sugerido" y "Mostrar en el presupuesto", "Agregar ítem", el total a mano, el IVA, los costos internos con el margen, las notas y la validez.
+    - **Recálculo (`useQuoteDraft`):** respeta los montos editados a mano.
+    - **Lista:** "Presupuestos", con chips por estado (Drawer del admin y botones junto a "Nueva Reserva" del owner y de la encargada).
+    - **Detalle:** enviar por WhatsApp (link público), compartir el PDF (`quote-sheet.ts` + expo-print), editar (nueva versión), marcar aceptado o rechazado, eliminar y "Crear reserva" (`useConvertQuote`).
+    - **"Reservar sin presupuesto"** sigue disponible. La creación de la reserva y de los bloqueos se extrajo a `usePhoneReservation`.
 
 ## 2. Rol: ADMIN
 - **Dashboard e Index (`index.tsx`, `_layout.tsx`):** Navegación por Drawer configurada con iconos (`Ionicons`), logotipo superior y safe areas. El dashboard cuenta con:
