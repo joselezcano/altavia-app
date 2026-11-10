@@ -119,6 +119,12 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
 
 - **Módulo Contable para la encargada (`(pilot)/finances`):** pestaña "Contable", visible solo si `isEncargado`. Reutiliza `OwnerOperationalControlView` sobre sus `managed_aircrafts`; los registros quedan a nombre del dueño de cada aeronave. `useOperationalFlights` y `useOperationalExpenses` filtran por `aircraftId` en Firestore para cumplir las reglas.
 - **Cambio de estado por el piloto asignado:** en el detalle del vuelo, el piloto asignado puede mover solo los estados operativos de un vuelo confirmado (`FlightStatusModal` acepta `allowedStatuses`).
+- **GIO, cuentas por pagar (pestaña "Por pagar"):** los gastos y el combustible se cargan al contado o a crédito, con el proveedor (RUC), número, fecha, vencimiento (por defecto factura + 30 días) y foto de la factura.
+  - **Pagos:** "Registrar pago" pide fecha, medio y foto del recibo de cancelación, y se puede deshacer.
+  - **Vista:** pendientes ordenados por vencimiento con los vencidos en rojo, totales en USD y Gs, y lo pagado por mes.
+  - **Resultado del mes:** sigue siendo por devengado; solo se agrega el indicador "Pendiente de pago".
+  - **Fotos:** van a `operational_flight_plans/{ownerUid}/`.
+  - **Datos viejos:** los gastos sin estos campos cuentan como contado y pagado.
 - **Mis propietarios (`(pilot)/my-owners.tsx`, oculta, se abre desde el avatar):** el piloto ve con qué propietarios está vinculado y puede desvincularse (`useUnlinkFromOwner`). Al hacerlo pierde las aeronaves de ese propietario y, si no le queda ninguno, deja de ser encargado.
 - **Alta de aeronaves por la encargada (`(pilot)/aircrafts/add-aircraft.tsx`):** la aeronave se registra a nombre de su propietario (`owner_ids`, con selector si tiene varios), con `createdBy`. El trigger `assignAircraftToCreator` (`functions/src/pilot-sync.ts`) la agrega sola a su `managed_aircrafts`. Las reglas exigen que `createdBy` sea quien crea.
 - **Desvinculación y reservas:** `removeUnlinkedPilotFromReservations` saca de `pilot_ids` al piloto que deja de estar vinculado a un propietario, en las reservas futuras y abiertas de sus aeronaves.
