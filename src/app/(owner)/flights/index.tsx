@@ -91,24 +91,37 @@ export default function OwnerFlightsScreen() {
         userInitial={userInitial}
       />
 
-      {/* Nueva reserva telefónica (alta rápida de cliente, cotización y despacho) */}
-      <TouchableOpacity
-        onPress={() => {
-          const route = roleFlightRoute(role, "new-booking");
-          if (route) router.push(toHref(route));
-        }}
-        style={styles.newBookingButton}
-        activeOpacity={0.8}
-      >
-        <View style={styles.newBookingIcon}>
-          <Ionicons name="paper-plane" size={18} color="#030436" />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.newBookingTitle}>+ Nueva Reserva</Text>
-          <Text style={styles.newBookingSubtitle}>Alta rápida de cliente, cotización y despacho</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color="#0165FF" />
-      </TouchableOpacity>
+      {/* Nueva reserva telefónica (alta rápida de cliente, cotización y despacho) y presupuestos */}
+      <View style={styles.bookingActionsRow}>
+        <TouchableOpacity
+          onPress={() => {
+            const route = roleFlightRoute(role, "new-booking");
+            if (route) router.push(toHref(route));
+          }}
+          style={[styles.newBookingButton, styles.newBookingButtonInRow]}
+          activeOpacity={0.8}
+        >
+          <View style={styles.newBookingIcon}>
+            <Ionicons name="paper-plane" size={18} color="#030436" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.newBookingTitle}>+ Nueva Reserva</Text>
+            <Text style={styles.newBookingSubtitle}>Alta rápida de cliente, cotización y despacho</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#0165FF" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            const route = roleFlightRoute(role, "quotes");
+            if (route) router.push(toHref(route));
+          }}
+          style={styles.quotesButton}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="document-text-outline" size={20} color="#0165FF" />
+          <Text style={styles.quotesButtonText}>Presupuestos</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Filters Section */}
       <View className="mb-4" style={{ gap: 12 }}>
@@ -377,6 +390,33 @@ export default function OwnerFlightsScreen() {
 }
 
 const styles = StyleSheet.create({
+  bookingActionsRow: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    gap: 8,
+    marginBottom: 12,
+  },
+  newBookingButtonInRow: {
+    flex: 1,
+    marginBottom: 0,
+  },
+  quotesButton: {
+    width: 96,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#7AB4FF",
+    backgroundColor: "#EAF3FF",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    paddingHorizontal: 6,
+  },
+  quotesButtonText: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#030436",
+    textAlign: "center",
+  },
   newBookingButton: {
     backgroundColor: "#030436",
     paddingVertical: 12,

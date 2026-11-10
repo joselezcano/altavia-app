@@ -11,6 +11,9 @@ import type { Role } from "@/hooks/useAuth";
 import type { RoleFlightScreen, RoleRoute } from "@/types/reservation-edit";
 import type { Href } from "expo-router";
 
+/** Pantallas del stack de vuelos que el ADMIN también tiene (en su Drawer). */
+const ADMIN_SCREENS: RoleFlightScreen[] = ["new-booking", "quotes", "quote-details", "quote-edit"];
+
 /** Base del stack de vuelos del rol activo. */
 function flightsBase(role: Role | null | undefined): string | null {
     if (role === "OWNER") return "/(owner)/flights";
@@ -24,8 +27,8 @@ export function roleFlightRoute(
     screen: RoleFlightScreen,
     params?: Record<string, string>
 ): RoleRoute | null {
-    if (screen === "new-booking" && role === "ADMIN") {
-        return { pathname: "/(admin)/new-booking", params };
+    if (role === "ADMIN" && ADMIN_SCREENS.includes(screen)) {
+        return { pathname: `/(admin)/${screen}`, params };
     }
     const base = flightsBase(role);
     if (!base) return null;

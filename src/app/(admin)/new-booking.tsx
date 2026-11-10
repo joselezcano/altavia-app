@@ -1,22 +1,29 @@
 import AirportPicker from "@/components/airport-picker";
-import { grossFromNet } from "@/utils/flight-pricing";
+import { QuoteEditor } from "@/components/quote/quote-editor";
+import { BRAND_COLORS } from "@/constants/brand";
 import { CustomDatePicker } from "@/components/custom-date-picker";
-import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
+import { useAircraftOperationsConfig } from "@/hooks/useAircraftOperations";
+import { useAirportByIdent } from "@/hooks/useAirportByIdent";
 import { useAllAircrafts } from "@/hooks/useAllAircrafts";
 import { useClients, useCreateQuickClient } from "@/hooks/useClients";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
-import { computeFlightQuote, DEFAULT_CRUISE_SPEED_KNOTS } from "@/utils/flight-pricing";
-import { Airport, AircraftAvailability, AircraftReservation } from "@/types/all-roles";
-import { QuickClientForm, QuickClientFormSchema } from "@/types/client";
+import { ReservationConflictError, useCreatePhoneReservation } from "@/hooks/usePhoneReservation";
+import { isItemEdited, useQuoteDraft } from "@/hooks/useQuoteDraft";
+import { QuoteInput, useQuote, useSaveQuote } from "@/hooks/useQuotes";
+import { computeFlightQuote, DEFAULT_CRUISE_SPEED_KNOTS, grossFromNet } from "@/utils/flight-pricing";
+import { Airport } from "@/types/all-roles";
+import { QuickClientFormSchema } from "@/types/client";
+import { NewBookingFormProps, QuoteEditLoaderProps } from "@/types/quote-ui";
 import { BaseUser } from "@/types/user";
-import { showNotice } from "@/utils/dialogs";
+import { brandFont } from "@/utils/brand-fonts";
+import { confirmAction, showNotice } from "@/utils/dialogs";
 import { getDistanceBetweenAirports } from "@/utils/flight-distance";
+import { DEFAULT_QUOTE_VALIDITY_DAYS } from "@/utils/quote-builder";
+import { estimatedCostsFromQuote, quoteShortNumber, toDateSafe } from "@/utils/quote-format";
 import { roleFlightRoute, roleHomeRoute, toHref } from "@/utils/role-routes";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
-import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -35,11 +42,93 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
+/**
+ * Nueva reserva telefónica / presupuesto (admin, owner y encargada por re-export).
+ * Paso 3 = editor de presupuesto: "Guardar presupuesto" (flujo nuevo) o "Reservar sin
+ * presupuesto" (la reserva directa de siempre).
+ * Con el param quoteId (ruta quote-edit) reabre el editor con un presupuesto guardado.
+ */
 export default function NewBookingScreen() {
+  const { quoteId } = useLocalSearchParams<{ quoteId?: string }>();
+  // Al guardar un presupuesto nuevo se reinicia el formulario (en el Drawer del admin la pantalla queda montada).
+  const [formKey, setFormKey] = useState(0);
+  if (quoteId) return <QuoteEditLoader quoteId={String(quoteId)} />;
+  return <NewBookingForm key={`new-${formKey}`} initialQuote={null} onQuoteSaved={() => setFormKey((k) => k + 1)} />;
+}
+
+/** Carga el presupuesto, sus aeropuertos y el cliente antes de abrir el editor. */
+function QuoteEditLoader({ quoteId }: QuoteEditLoaderProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const queryClient = useQueryClient();
+  const { role } = useAuth();
+  const { data: quote, isLoading, error } = useQuote(quoteId);
+  const origin = useAirportByIdent(quote?.trip?.origin_airport_ident);
+  const destination = useAirportByIdent(quote?.trip?.destination_airport_ident);
+  const { data: clients = [], isLoading: isLoadingClients } = useClients();
+
+  const goBack = () => {
+    const route = roleFlightRoute(role, "quote-details", { quoteId });
+    if (role !== "ADMIN" && router.canGoBack()) router.back();
+    else if (route) router.replace(toHref(route));
+  };
+
+  if (isLoading || isLoadingClients || (quote && (origin.isLoading || destination.isLoading))) {
+    return (
+      <View style={[styles.centerBox, { paddingTop: insets.top + 40 }]}>
+        <ActivityIndicator color={BRAND_COLORS.navy} />
+        <Text style={[styles.cardSubtitle, { marginTop: 10 }]}>Cargando presupuesto...</Text>
+      </View>
+    );
+  }
+  if (error || !quote || quote.status === "converted") {
+    return (
+      <View style={[styles.centerBox, { paddingTop: insets.top + 40 }]}>
+        <Ionicons name="alert-circle-outline" size={32} color="#B45309" />
+        <Text style={[styles.cardTitle, { marginTop: 10, textAlign: "center" }]}>
+          {quote?.status === "converted"
+            ? "Este presupuesto ya se convirtió en reserva y no se puede editar."
+            : "No se pudo cargar el presupuesto."}
+        </Text>
+        <TouchableOpacity onPress={goBack} style={[styles.backButton, { marginTop: 16 }]}>
+          <Ionicons name="arrow-back" size={18} color="#030436" />
+          <Text style={styles.backButtonText}>Volver</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const client: BaseUser | null =
+    clients.find((c) => c.uid === quote.clientId) ||
+    (quote.clientId
+      ? {
+          uid: quote.clientId,
+          email: quote.clientEmail || "",
+          firstName: quote.clientName,
+          lastName: "",
+          phone: quote.clientPhone,
+          roles: ["CLIENT"],
+        }
+      : null);
+
+  const updatedAt = toDateSafe(quote.updatedAt)?.getTime() ?? 0;
+  return (
+    <NewBookingForm
+      key={`${quote.id}-${updatedAt}`}
+      initialQuote={quote}
+      initialClient={client}
+      initialOrigin={origin.data ?? undefined}
+      initialDestination={destination.data ?? undefined}
+    />
+  );
+}
+
+function NewBookingForm({ initialQuote, initialClient, initialOrigin, initialDestination, onQuoteSaved }: NewBookingFormProps) {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { user, role, profileData } = useAuth();
+  const isEditingQuote = !!initialQuote;
+  const saveQuoteMutation = useSaveQuote();
+  const createReservationMutation = useCreatePhoneReservation();
 
   // Queries
   const { data: clients = [], isLoading: isLoadingClients } = useClients();
@@ -60,10 +149,10 @@ export default function NewBookingScreen() {
   const createQuickClientMutation = useCreateQuickClient();
 
   // Step state (1: Cliente, 2: Vuelo & Ruta, 3: Tarifa & Confirmación)
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(initialQuote ? 3 : 1);
 
   // Form states: Client
-  const [selectedClient, setSelectedClient] = useState<BaseUser | null>(null);
+  const [selectedClient, setSelectedClient] = useState<BaseUser | null>(initialClient ?? null);
   const [clientSearch, setClientSearch] = useState("");
   const [isQuickClientModalVisible, setIsQuickClientModalVisible] = useState(false);
 
@@ -77,15 +166,19 @@ export default function NewBookingScreen() {
   const [quickBusinessName, setQuickBusinessName] = useState("");
 
   // Form states: Flight
-  const [originAirport, setOriginAirport] = useState<Airport | undefined>(undefined);
-  const [destinationAirport, setDestinationAirport] = useState<Airport | undefined>(undefined);
-  const [roundtrip, setRoundtrip] = useState(false);
-  const [departureDate, setDepartureDate] = useState<Date | null>(null);
-  const [returnDate, setReturnDate] = useState<Date | null>(null);
-  const [passengers, setPassengers] = useState(1);
+  const [originAirport, setOriginAirport] = useState<Airport | undefined>(initialOrigin);
+  const [destinationAirport, setDestinationAirport] = useState<Airport | undefined>(initialDestination);
+  const [roundtrip, setRoundtrip] = useState(initialQuote?.schedule.roundtrip ?? false);
+  const [departureDate, setDepartureDate] = useState<Date | null>(
+    toDateSafe(initialQuote?.schedule.outbound_flight_departure_time)
+  );
+  const [returnDate, setReturnDate] = useState<Date | null>(
+    toDateSafe(initialQuote?.schedule.return_flight_departure_time)
+  );
+  const [passengers, setPassengers] = useState(initialQuote?.passengers ?? 1);
 
-  // Selected aircraft (pre-select first if only 1 exists)
-  const [selectedAircraftId, setSelectedAircraftId] = useState<string>("");
+  // Selected aircraft (pre-select first if only 1 exists). Al editar un presupuesto, la suya.
+  const [selectedAircraftId, setSelectedAircraftId] = useState<string>(initialQuote?.aircraftId ?? "");
 
   React.useEffect(() => {
     if (aircrafts.length > 0 && !selectedAircraftId) {
@@ -94,8 +187,11 @@ export default function NewBookingScreen() {
   }, [aircrafts, selectedAircraftId]);
 
   const activeAircraft = useMemo(() => {
-    return aircrafts.find((a) => a.id === selectedAircraftId) || aircrafts[0] || null;
-  }, [aircrafts, selectedAircraftId]);
+    const found = aircrafts.find((a) => a.id === selectedAircraftId);
+    // Al editar no se cambia de aeronave (las reglas no permiten cambiar aircraftId/ownerId).
+    if (isEditingQuote) return found || null;
+    return found || aircrafts[0] || null;
+  }, [aircrafts, selectedAircraftId, isEditingQuote]);
 
   // Calculations
   const distanceNm = useMemo(() => {
@@ -109,10 +205,8 @@ export default function NewBookingScreen() {
   const cruiseSpeed = activeAircraft?.operating_specs?.cruise_speed_knots || DEFAULT_CRUISE_SPEED_KNOTS;
   const flightDurationHours = distanceNm > 0 ? distanceNm / cruiseSpeed : 0;
 
-  // Hangaraje por noche de ESTE vuelo (variable). Vacío = el de la tarifa de la aeronave.
-  const [hangarInput, setHangarInput] = useState<string>("");
-
   // Cotización por hora: horas facturables (incluye reposicionamiento y regreso vacío) × tarifa + pernoctes.
+  // El hangaraje por noche ahora se ajusta en la línea "Hangaraje / estacionamiento" del presupuesto.
   const quote = useMemo(
     () =>
       computeFlightQuote({
@@ -124,30 +218,33 @@ export default function NewBookingScreen() {
         returnDeparture: roundtrip ? returnDate : null,
         cruiseSpeedKnots: cruiseSpeed,
         pricing: activeAircraft?.pricing,
-        hangarPerNightOverrideUsd: hangarInput.trim() === "" ? null : parseFloat(hangarInput) || 0,
       }),
-    [originAirport, destinationAirport, activeAircraft, roundtrip, departureDate, returnDate, cruiseSpeed, hangarInput]
+    [originAirport, destinationAirport, activeAircraft, roundtrip, departureDate, returnDate, cruiseSpeed]
   );
 
-  const suggestedPrice = quote.totalUsd;
+  // Ajustes de GIO de la aeronave (costos estimados del presupuesto).
+  const opsCfgEnabled = !!activeAircraft?.ownerId && !!activeAircraft?.id;
+  const opsCfg = useAircraftOperationsConfig(
+    activeAircraft?.ownerId,
+    activeAircraft?.id ?? "",
+    activeAircraft?.basic_specs?.registration,
+    activeAircraft?.basic_specs?.model
+  );
+  const cfgReady = !!activeAircraft && (!opsCfgEnabled || !opsCfg.isPending);
 
-  // Editable final price
-  const [finalPriceInput, setFinalPriceInput] = useState<string>("");
-  const [userOverrodePrice, setUserOverrodePrice] = useState(false);
-  const [bookingNotes, setBookingNotes] = useState("");
+  // Editor del presupuesto (líneas, costos, totales). Ver useQuoteDraft para el recálculo.
+  const draft = useQuoteDraft({
+    flightQuote: quote,
+    cfg: opsCfg.data ?? null,
+    cfgReady,
+    passengers,
+    distanceNm,
+    cruiseSpeedKnots: cruiseSpeed,
+    initial: initialQuote,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Sync suggested price if user has not manually overwritten it
-  React.useEffect(() => {
-    if (!userOverrodePrice && suggestedPrice > 0) {
-      setFinalPriceInput(String(suggestedPrice));
-    }
-  }, [suggestedPrice, userOverrodePrice]);
-
-  const effectivePriceNumber = parseFloat(finalPriceInput) || 0;
   const exchangeRateValue = exchangeRate?.dolar && exchangeRate.dolar > 0 ? exchangeRate.dolar : 0;
-  // El equivalente en Gs es del TOTAL con IVA (lo que paga el cliente).
-  const effectivePricePyg = Math.round(grossFromNet(effectivePriceNumber) * exchangeRateValue);
 
   // Filter clients
   const filteredClients = useMemo(() => {
@@ -211,183 +308,186 @@ export default function NewBookingScreen() {
     }
   };
 
-  // Submit Booking
-  const handleCreateBooking = async () => {
+  // Validaciones comunes a "Guardar presupuesto" y "Reservar sin presupuesto".
+  const validateForm = (): boolean => {
     if (!selectedClient) {
-      Alert.alert("Cliente Requerido", "Por favor selecciona o crea un cliente para la reserva.");
+      showNotice("Cliente Requerido", "Por favor selecciona o crea un cliente.");
       setCurrentStep(1);
-      return;
+      return false;
     }
     if (!originAirport || !destinationAirport) {
-      Alert.alert("Ruta Incompleta", "Debes seleccionar aeropuerto de origen y destino.");
+      showNotice("Ruta Incompleta", "Debes seleccionar aeropuerto de origen y destino.");
       setCurrentStep(2);
-      return;
+      return false;
     }
     if (!departureDate) {
-      Alert.alert("Fecha Requerida", "Debes seleccionar la fecha y hora de salida.");
+      showNotice("Fecha Requerida", "Debes seleccionar la fecha y hora de salida.");
       setCurrentStep(2);
-      return;
+      return false;
     }
     if (roundtrip && !returnDate) {
-      Alert.alert("Fecha de Retorno", "Marcaste vuelo de ida y vuelta. Selecciona la fecha de retorno.");
+      showNotice("Fecha de Retorno", "Marcaste vuelo de ida y vuelta. Selecciona la fecha de retorno.");
       setCurrentStep(2);
-      return;
+      return false;
     }
     if (roundtrip && returnDate && returnDate <= departureDate) {
-      Alert.alert("Fecha Inválida", "La fecha de retorno debe ser posterior a la de salida.");
+      showNotice("Fecha Inválida", "La fecha de retorno debe ser posterior a la de salida.");
       setCurrentStep(2);
-      return;
+      return false;
     }
     if (!activeAircraft) {
-      Alert.alert("Aeronave Requerida", "No hay una aeronave activa seleccionada.");
-      return;
+      showNotice("Aeronave Requerida", "No hay una aeronave activa seleccionada.");
+      return false;
     }
-    if (effectivePriceNumber <= 0) {
-      Alert.alert("Precio Inválido", "Por favor ingresa un precio mayor a 0 para el vuelo.");
-      return;
+    if (draft.totals.subtotalUsd <= 0) {
+      showNotice("Precio Inválido", "El subtotal (sin IVA) tiene que ser mayor a 0.");
+      return false;
     }
+    return true;
+  };
+
+  const quoteDetailsRoute = (quoteId: string) => roleFlightRoute(role, "quote-details", { quoteId });
+
+  /** Sale del editor (modo edición) hacia el detalle del presupuesto. */
+  const leaveQuoteEditor = () => {
+    if (!initialQuote) return;
+    const route = quoteDetailsRoute(initialQuote.id);
+    if (role !== "ADMIN" && router.canGoBack()) router.back();
+    else if (route) router.replace(toHref(route));
+  };
+
+  /** Arma el documento del presupuesto con lo que hay en pantalla. */
+  const buildQuoteInput = (): QuoteInput | null => {
+    if (!selectedClient || !originAirport || !destinationAirport || !departureDate || !activeAircraft) return null;
+    const validityDays = Math.max(1, parseInt(draft.validityDaysInput, 10) || DEFAULT_QUOTE_VALIDITY_DAYS);
+    const { costs: fullCosts, ...totals } = draft.totals;
+    const clientName =
+      `${selectedClient.firstName || ""} ${selectedClient.lastName || ""}`.trim() || selectedClient.businessName || "Cliente";
+
+    const base: QuoteInput = {
+      ...totals,
+      aircraftId: activeAircraft.id,
+      ownerId: initialQuote?.ownerId ?? activeAircraft.ownerId ?? "",
+      aircraftRegistration: activeAircraft.basic_specs?.registration || "",
+      aircraftModel: activeAircraft.basic_specs?.model || "",
+      clientId: selectedClient.uid || null,
+      clientName,
+      clientPhone: selectedClient.phone || undefined,
+      clientEmail: selectedClient.email || undefined,
+      trip: {
+        origin_airport_ident: originAirport.ident,
+        origin_name: originAirport.name,
+        origin_timezone: originAirport.timezone || undefined,
+        destination_airport_ident: destinationAirport.ident,
+        destination_name: destinationAirport.name,
+        destination_timezone: destinationAirport.timezone || undefined,
+      },
+      schedule: {
+        roundtrip,
+        outbound_flight_departure_time: departureDate,
+        return_flight_departure_time: roundtrip ? returnDate : null,
+      },
+      passengers,
+      withCopilot: draft.withCopilot,
+      pricing: draft.pricing,
+      // Si la admin cambió un monto, el detalle sugerido ("3 h × USD 900") ya no corresponde: no sale en la hoja.
+      lines: draft.lines.map((l) => (isItemEdited(l) ? { ...l, detail: undefined } : l)),
+      costs: fullCosts,
+      notes: draft.notes.trim(),
+      internalNotes: draft.internalNotes.trim(),
+      status: "draft",
+      validUntil: new Date(Date.now() + validityDays * 86_400_000),
+    };
+
+    if (!initialQuote) return base;
+
+    // Edición: un presupuesto ya enviado sigue "enviado" (sube la versión); si estaba aceptado,
+    // rechazado o vencido, vuelve a "enviado" y el cliente tiene que aceptarlo de nuevo.
+    const wasSent = !!initialQuote.sentAt || initialQuote.status !== "draft";
+    const reopened = ["accepted", "rejected", "expired"].includes(initialQuote.status);
+    return {
+      ...base,
+      id: initialQuote.id,
+      version: initialQuote.version ?? 1,
+      status: wasSent ? "sent" : "draft",
+      ...(reopened ? { acceptedAt: null, acceptedVia: null, acceptedBy: null, rejectedAt: null } : {}),
+    };
+  };
+
+  // Guardar presupuesto (acción principal del paso 3)
+  const handleSaveQuote = async () => {
+    if (!validateForm()) return;
+    if (initialQuote?.status === "accepted") {
+      const ok = await confirmAction({
+        title: "Presupuesto aceptado",
+        message: "El cliente ya aceptó este presupuesto. Si guardás cambios vuelve a \"Enviado\" y tiene que aceptarlo de nuevo.",
+        confirmText: "Guardar igual",
+      });
+      if (!ok) return;
+    }
+    const input = buildQuoteInput();
+    if (!input) return;
 
     setIsSubmitting(true);
     try {
-      const durationMs = (flightDurationHours || 1) * 3600 * 1000;
-      const outboundStart = new Date(departureDate);
-      const outboundEnd = new Date(outboundStart.getTime() + durationMs);
-
-      // Pre-flight collision validation
-      const checkResQuery = query(
-        collection(db, "aircraft-reservation"),
-        where("aircraftId", "==", activeAircraft.id)
-      );
-      const activeResSnap = await getDocs(checkResQuery);
-      let isAlreadyBooked = false;
-
-      for (const docSnap of activeResSnap.docs) {
-        const d = docSnap.data();
-        if (d.client_status === "canceled" || d.internal_status === "cancelled") continue;
-        const existOutStart = d.schedule?.outbound_flight_departure_time?.toDate
-          ? d.schedule.outbound_flight_departure_time.toDate()
-          : new Date(d.schedule.outbound_flight_departure_time);
-        const existOutEnd = d.schedule?.outbound_flight_arrival_time?.toDate
-          ? d.schedule.outbound_flight_arrival_time.toDate()
-          : new Date(d.schedule.outbound_flight_arrival_time);
-
-        if (existOutStart && existOutEnd && !isNaN(existOutStart.getTime()) && !isNaN(existOutEnd.getTime())) {
-          if (outboundStart.getTime() < existOutEnd.getTime() && outboundEnd.getTime() > existOutStart.getTime()) {
-            isAlreadyBooked = true;
-            break;
-          }
-        }
-      }
-
-      if (isAlreadyBooked) {
-        Alert.alert(
-          "Horario no disponible",
-          "La aeronave ya cuenta con una reserva activa para ese horario. Modifica el horario de salida."
-        );
-        setIsSubmitting(false);
+      const quoteId = await saveQuoteMutation.mutateAsync(input);
+      Toast.show({
+        type: "success",
+        text1: initialQuote ? "Presupuesto actualizado" : "Presupuesto guardado",
+        text2: `#${quoteShortNumber(quoteId)} · ${input.clientName}`,
+      });
+      if (initialQuote) {
+        leaveQuoteEditor();
         return;
       }
+      const route = quoteDetailsRoute(quoteId);
+      if (route) router.replace(toHref(route));
+      onQuoteSaved?.();
+    } catch (error: any) {
+      console.error("Error al guardar el presupuesto:", error);
+      showNotice("Error", error?.message || "No se pudo guardar el presupuesto.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-      const eventIds: string[] = [];
+  // Reservar sin presupuesto: la creación directa de la reserva de siempre.
+  const handleCreateBooking = async () => {
+    if (!validateForm() || !selectedClient || !originAirport || !destinationAirport || !departureDate || !activeAircraft) {
+      return;
+    }
+    const netPrice = draft.totals.subtotalUsd;
+    const internalNotes = draft.internalNotes.trim();
 
-      // 1. Availability Outbound
-      const outboundEvent: AircraftAvailability = {
+    setIsSubmitting(true);
+    try {
+      const { reservationId } = await createReservationMutation.mutateAsync({
         aircraftId: activeAircraft.id,
-        selected_date: outboundStart.toISOString().split("T")[0],
-        start_time: `${String(outboundStart.getHours()).padStart(2, "0")}:${String(outboundStart.getMinutes()).padStart(2, "0")}`,
-        end_time: `${String(outboundEnd.getHours()).padStart(2, "0")}:${String(outboundEnd.getMinutes()).padStart(2, "0")}`,
-        start_timestamp: outboundStart,
-        end_timestamp: outboundEnd,
-        all_day: false,
-        recurrence: {
-          period: "none",
-          interval: 1,
-          days_of_week: [],
-          ends: { type: "never", date: null, occurrences: 0 },
-        },
-        reason: "flight",
-        notes: `Vuelo telefónico de ${originAirport.ident} a ${destinationAirport.ident}`,
-      };
-      const outboundDocRef = await addDoc(collection(db, "aircraft-availability"), outboundEvent);
-      eventIds.push(outboundDocRef.id);
-
-      // 2. Availability Return (if roundtrip)
-      let returnStart: Date | null = null;
-      let returnEnd: Date | null = null;
-      if (roundtrip && returnDate) {
-        returnStart = new Date(returnDate);
-        returnEnd = new Date(returnStart.getTime() + durationMs);
-
-        const returnEvent: AircraftAvailability = {
-          aircraftId: activeAircraft.id,
-          selected_date: returnStart.toISOString().split("T")[0],
-          start_time: `${String(returnStart.getHours()).padStart(2, "0")}:${String(returnStart.getMinutes()).padStart(2, "0")}`,
-          end_time: `${String(returnEnd.getHours()).padStart(2, "0")}:${String(returnEnd.getMinutes()).padStart(2, "0")}`,
-          start_timestamp: returnStart,
-          end_timestamp: returnEnd,
-          all_day: false,
-          recurrence: {
-            period: "none",
-            interval: 1,
-            days_of_week: [],
-            ends: { type: "never", date: null, occurrences: 0 },
-          },
-          reason: "flight",
-          notes: `Retorno telefónico de ${destinationAirport.ident} a ${originAirport.ident}`,
-        };
-        const returnDocRef = await addDoc(collection(db, "aircraft-availability"), returnEvent);
-        eventIds.push(returnDocRef.id);
-      }
-
-      // 3. Aircraft Reservation Document
-      const reservationData: AircraftReservation = {
-        aircraftId: activeAircraft.id,
-        fa_flight_id: null,
         clientId: selectedClient.uid,
-        // El precio acordado es sin IVA; la reserva guarda el total con IVA (lo que cobra Bancard).
-        price: grossFromNet(effectivePriceNumber),
-        price_net_usd: effectivePriceNumber,
-        estimated_price: suggestedPrice,
-        currency: "USD",
-        distance_nm: distanceNm,
-        cruise_speed_knots: cruiseSpeed,
-        billable_hours: quote.billableHours,
-        price_per_hour_usd: quote.pricePerHourUsd,
-        overnight_nights: quote.nights,
-        overnight_fee_usd: quote.overnightFeeUsd,
-        hangar_per_night_usd: quote.hangarPerNightUsd,
+        priceNetUsd: netPrice,
+        estimatedPriceUsd: draft.totals.subtotalSuggestedUsd,
+        distanceNm,
+        cruiseSpeedKnots: cruiseSpeed,
+        billableHours: quote.billableHours,
+        pricePerHourUsd: quote.pricePerHourUsd,
+        overnightNights: quote.nights,
+        overnightFeeUsd: quote.overnightFeeUsd,
+        hangarPerNightUsd: quote.hangarPerNightUsd,
         trip: {
           origin_airport_ident: originAirport.ident,
           origin_timezone: originAirport.timezone || "",
           destination_airport_ident: destinationAirport.ident,
           destination_timezone: destinationAirport.timezone || "",
         },
-        schedule: {
-          roundtrip,
-          outbound_flight_departure_time: outboundStart,
-          outbound_flight_arrival_time: outboundEnd,
-          return_flight_departure_time: returnStart,
-          return_flight_arrival_time: returnEnd,
-        },
-        capacity: {
-          passangers: passengers,
-        },
-        event_ids: eventIds,
-        client_status: "unpaid",
-        internal_status: "pending_approval",
-        status_notes: bookingNotes.trim()
-          ? `Despacho telefónico. Notas: ${bookingNotes.trim()}`
+        roundtrip,
+        outboundDeparture: departureDate,
+        returnDeparture: roundtrip ? returnDate : null,
+        passengers,
+        statusNotes: internalNotes
+          ? `Despacho telefónico. Notas: ${internalNotes}`
           : "Reserva telefónica cargada por administración.",
-        pilot_ids: [],
-        created_at: new Date(),
-      };
-
-      const resDocRef = await addDoc(collection(db, "aircraft-reservation"), reservationData);
-
-      await queryClient.invalidateQueries({ queryKey: ["all-reservations-dashboard"] });
-      await queryClient.invalidateQueries({ queryKey: ["owner-reservations"] });
-      await queryClient.invalidateQueries({ queryKey: ["available-aircrafts"] });
-      await queryClient.invalidateQueries({ queryKey: ["aircraft-availability"] });
+        estimatedCosts: estimatedCostsFromQuote(draft.totals.costs, quote.billableHours),
+      });
 
       Toast.show({
         type: "success",
@@ -396,12 +496,11 @@ export default function NewBookingScreen() {
       });
 
       // Rutas del grupo del rol activo (el admin no tiene assign-pilots: solo vuelve al inicio).
-      const assignPilotsRoute = roleFlightRoute(role, "assign-pilots", { reservationId: resDocRef.id });
+      const assignPilotsRoute = roleFlightRoute(role, "assign-pilots", { reservationId });
+      const summary = `La reserva fue registrada con éxito por USD ${netPrice.toLocaleString("en-US")} + IVA (total USD ${grossFromNet(netPrice).toLocaleString("en-US")}).`;
       Alert.alert(
         "Reserva Creada",
-        assignPilotsRoute
-          ? `La reserva fue registrada con éxito por USD ${effectivePriceNumber.toLocaleString("en-US")} + IVA (total USD ${grossFromNet(effectivePriceNumber).toLocaleString("en-US")}).\n\n¿Deseas asignar tripulación y aprobarla ahora?`
-          : `La reserva fue registrada con éxito por USD ${effectivePriceNumber.toLocaleString("en-US")} + IVA (total USD ${grossFromNet(effectivePriceNumber).toLocaleString("en-US")}).`,
+        assignPilotsRoute ? `${summary}\n\n¿Deseas asignar tripulación y aprobarla ahora?` : summary,
         [
           {
             text: role === "ADMIN" ? "Ir al Dashboard" : "Ir a Vuelos",
@@ -419,8 +518,12 @@ export default function NewBookingScreen() {
         ]
       );
     } catch (error: any) {
+      if (error instanceof ReservationConflictError) {
+        showNotice("Horario no disponible", error.message);
+        return;
+      }
       console.error("Error al registrar reserva concierge:", error);
-      Alert.alert("Error", error?.message || "No se pudo registrar la reserva.");
+      showNotice("Error", error?.message || "No se pudo registrar la reserva.");
     } finally {
       setIsSubmitting(false);
     }
@@ -432,6 +535,17 @@ export default function NewBookingScreen() {
       style={{ flex: 1, backgroundColor: "#F8FAFC" }}
     >
       <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
+        {isEditingQuote && initialQuote && (
+          <View style={styles.editBanner}>
+            <Ionicons name="document-text-outline" size={18} color={BRAND_COLORS.azur} />
+            <Text style={[styles.editBannerText, brandFont(700)]}>
+              Editando presupuesto #{quoteShortNumber(initialQuote.id)} · v{initialQuote.version ?? 1}
+            </Text>
+            <TouchableOpacity onPress={leaveQuoteEditor} hitSlop={8}>
+              <Text style={[styles.editBannerLink, brandFont(600)]}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         {/* Step Indicator Header */}
         <View style={styles.stepHeaderContainer}>
           {[1, 2, 3].map((step) => {
@@ -470,7 +584,7 @@ export default function NewBookingScreen() {
                     isCurrent && styles.stepLabelCurrent,
                   ]}
                 >
-                  {step === 1 ? "Cliente" : step === 2 ? "Ruta" : "Tarifa"}
+                  {step === 1 ? "Cliente" : step === 2 ? "Ruta" : "Presupuesto"}
                 </Text>
               </TouchableOpacity>
             );
@@ -764,137 +878,44 @@ export default function NewBookingScreen() {
                   }}
                   style={styles.nextButtonFlex}
                 >
-                  <Text style={styles.nextButtonText}>Continuar a Cotización</Text>
+                  <Text style={styles.nextButtonText}>Continuar al Presupuesto</Text>
                   <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
             </View>
           )}
 
-          {/* STEP 3: PRICING & CONFIRMATION */}
+          {/* STEP 3: PRESUPUESTO (editor) */}
           {currentStep === 3 && (
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <Ionicons name="cash-outline" size={24} color="#030436" />
+                <Ionicons name="document-text-outline" size={24} color="#030436" />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>3. Cotización y Confirmación</Text>
+                  <Text style={styles.cardTitle}>3. Presupuesto</Text>
                   <Text style={styles.cardSubtitle}>
-                    Revisa el valor sugerido o modifica el precio final acordado.
+                    Ajustá lo que se cobra (sin IVA) y guardalo para enviarlo al cliente por WhatsApp.
                   </Text>
                 </View>
               </View>
 
-              {/* Suggested Price Card */}
-              <View style={styles.priceCalculationBox}>
-                {quote.legs.map((leg, idx) => (
-                  <View
-                    key={`${leg.from}-${leg.to}-${idx}`}
-                    style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: idx === 0 ? 0 : 4 }}
-                  >
-                    <Text style={styles.priceSublabel}>
-                      {leg.from} → {leg.to}
-                      {leg.kind === "positioning" ? " (posicionamiento)" : leg.kind === "return_empty" ? " (regreso vacío)" : ""}
-                    </Text>
-                    <Text style={styles.priceSubvalue}>{leg.hours.toFixed(1)} h</Text>
-                  </View>
-                ))}
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-                  <Text style={styles.priceSublabel}>
-                    {quote.billableHours} h (factor de bloque {quote.blockFactor}) × tarifa por hora (sin IVA):
-                  </Text>
-                  <Text style={styles.priceSubvalue}>
-                    {quote.hasPricing ? `USD $${quote.pricePerHourUsd.toLocaleString("en-US")}` : "Sin tarifa cargada"}
-                  </Text>
-                </View>
-                {quote.nights > 0 && (
-                  <>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-                      <Text style={styles.priceSublabel}>
-                        {quote.nights} {quote.nights === 1 ? "noche" : "noches"} × (pernocte USD ${quote.overnightFeeUsd} + hangaraje):
-                      </Text>
-                      <Text style={styles.priceSubvalue}>USD ${quote.overnightTotalUsd.toLocaleString("en-US")}</Text>
-                    </View>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-                      <Text style={styles.priceSublabel}>Hangaraje por noche (USD):</Text>
-                      <TextInput
-                        value={hangarInput}
-                        onChangeText={(val) => setHangarInput(val.replace(/[^0-9.]/g, ""))}
-                        placeholder={String(activeAircraft?.pricing?.hangarPerNightUsd ?? 0)}
-                        keyboardType="numeric"
-                        style={{ minWidth: 80, borderWidth: 1, borderColor: "#CBD5E1", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, textAlign: "right" }}
-                      />
-                    </View>
-                  </>
-                )}
-                {!quote.hasPricing && (
-                  <Text style={[styles.priceSublabel, { marginTop: 6, color: "#B45309" }]}>
-                    Esta aeronave no tiene tarifa por hora. Cargala en Contable → Ajustes, o escribí el precio final abajo.
-                  </Text>
-                )}
-                <View style={styles.priceDivider} />
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                  <Text style={styles.suggestedTitle}>Precio Sugerido por Sistema:</Text>
-                  <Text style={styles.suggestedValue}>USD ${suggestedPrice.toLocaleString("en-US")}</Text>
-                </View>
-              </View>
+              {isEditingQuote && !activeAircraft && !isLoadingAircrafts && (
+                <Text style={[styles.cardSubtitle, { color: "#B45309", marginBottom: 12 }]}>
+                  No tenés acceso a la aeronave de este presupuesto con el rol activo.
+                </Text>
+              )}
 
-              {/* Editable Final Price Input */}
-              <View style={{ marginVertical: 14 }}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-                  <Text style={styles.inputLabelBold}>Precio Final Acordado (USD, sin IVA)</Text>
-                  {userOverrodePrice && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        setUserOverrodePrice(false);
-                        setFinalPriceInput(String(suggestedPrice));
-                      }}
-                    >
-                      <Text style={styles.resetPriceText}>Restablecer sugerido</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-
-                <View style={styles.priceInputWrapper}>
-                  <Text style={styles.priceCurrencySymbol}>$</Text>
-                  <TextInput
-                    value={finalPriceInput}
-                    onChangeText={(val) => {
-                      setUserOverrodePrice(true);
-                      setFinalPriceInput(val.replace(/[^0-9.]/g, ""));
-                    }}
-                    placeholder="0"
-                    keyboardType="numeric"
-                    style={styles.priceTextInput}
-                  />
-                  <Text style={styles.priceCurrencyBadge}>USD</Text>
-                </View>
-
-                {effectivePriceNumber > 0 && (
-                  <Text style={styles.pygEquivalentText}>
-                    Equivalente en Guaraníes: ₲ {effectivePricePyg.toLocaleString("es-PY")} (T.C. {exchangeRateValue.toLocaleString("es-PY")})
-                  </Text>
-                )}
-              </View>
-
-              {/* Notes */}
-              <View style={{ marginVertical: 8 }}>
-                <Text style={styles.inputLabel}>Notas de la Reserva (Opcional)</Text>
-                <TextInput
-                  value={bookingNotes}
-                  onChangeText={setBookingNotes}
-                  placeholder="Ej: Cliente solicitó catering especial o espera en pista..."
-                  placeholderTextColor="#94A3B8"
-                  multiline
-                  numberOfLines={3}
-                  style={styles.notesTextInput}
-                />
-              </View>
+              <QuoteEditor
+                draft={draft}
+                flightQuote={quote}
+                exchangeRate={exchangeRateValue}
+                costsFromDefaults={cfgReady && opsCfgEnabled && !!opsCfg.data && !opsCfg.data.id}
+              />
 
               {/* Booking Summary Box */}
-              <View style={styles.summaryBox}>
+              <View style={[styles.summaryBox, { marginTop: 16 }]}>
                 <Text style={styles.summaryBoxTitle}>Resumen del Vuelo</Text>
                 <Text style={styles.summaryBoxLine}>
-                  • <Text style={{ fontWeight: "bold" }}>Cliente:</Text> {selectedClient?.firstName} {selectedClient?.lastName} ({selectedClient?.phone || selectedClient?.email})
+                  • <Text style={{ fontWeight: "bold" }}>Cliente:</Text> {selectedClient?.firstName} {selectedClient?.lastName} ({selectedClient?.phone || selectedClient?.email || "sin contacto"})
                 </Text>
                 <Text style={styles.summaryBoxLine}>
                   • <Text style={{ fontWeight: "bold" }}>Ruta:</Text> {originAirport?.name || originAirport?.ident} ➔ {destinationAirport?.name || destinationAirport?.ident}
@@ -915,7 +936,7 @@ export default function NewBookingScreen() {
                 </Text>
               </View>
 
-              {/* Submit CTA */}
+              {/* Acciones */}
               <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
                 <TouchableOpacity
                   onPress={() => setCurrentStep(2)}
@@ -927,8 +948,8 @@ export default function NewBookingScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={handleCreateBooking}
-                  style={[styles.confirmButtonFlex, isSubmitting && { opacity: 0.7 }]}
+                  onPress={handleSaveQuote}
+                  style={[styles.saveQuoteButton, isSubmitting && { opacity: 0.7 }]}
                   disabled={isSubmitting}
                   activeOpacity={0.8}
                 >
@@ -936,12 +957,31 @@ export default function NewBookingScreen() {
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
                     <>
-                      <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                      <Text style={styles.confirmButtonText}>Crear Reserva</Text>
+                      <Ionicons name="document-text" size={20} color="#FFFFFF" />
+                      <Text style={[styles.confirmButtonText, brandFont(700)]}>
+                        {isEditingQuote ? "Guardar cambios" : "Guardar presupuesto"}
+                      </Text>
                     </>
                   )}
                 </TouchableOpacity>
               </View>
+
+              {!isEditingQuote && (
+                <TouchableOpacity
+                  onPress={handleCreateBooking}
+                  style={[styles.directBookingButton, isSubmitting && { opacity: 0.6 }]}
+                  disabled={isSubmitting}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="checkmark-circle-outline" size={18} color="#059669" />
+                  <Text style={[styles.directBookingText, brandFont(700)]}>Reservar sin presupuesto</Text>
+                </TouchableOpacity>
+              )}
+              {!isEditingQuote && (
+                <Text style={styles.directBookingHint}>
+                  Crea la reserva directa (como hasta ahora) por {draft.totals.subtotalUsd.toLocaleString("es-PY")} USD + IVA.
+                </Text>
+              )}
             </View>
           )}
         </ScrollView>
@@ -1543,6 +1583,67 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "bold",
     fontSize: 14,
+  },
+
+  // Presupuesto
+  saveQuoteButton: {
+    flex: 1,
+    backgroundColor: "#0165FF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 12,
+    paddingVertical: 13,
+  },
+  directBookingButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: "#059669",
+    backgroundColor: "#FFFFFF",
+  },
+  directBookingText: {
+    color: "#059669",
+    fontSize: 14,
+  },
+  directBookingHint: {
+    fontSize: 11,
+    color: "#64748B",
+    textAlign: "center",
+    marginTop: 4,
+  },
+  editBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#EAF3FF",
+    borderWidth: 1,
+    borderColor: "#7AB4FF",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 12,
+  },
+  editBannerText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#030436",
+  },
+  editBannerLink: {
+    fontSize: 13,
+    color: "#0165FF",
+  },
+  centerBox: {
+    flex: 1,
+    alignItems: "center",
+    paddingHorizontal: 24,
+    backgroundColor: "#F8FAFC",
   },
 
   // Modal styles (native styling for NativeWind v4 compatibility)

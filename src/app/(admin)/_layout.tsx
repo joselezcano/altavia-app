@@ -132,6 +132,39 @@ export default function AdminLayout() {
                 }}
             />
             <Drawer.Screen
+                name="quotes"
+                options={{
+                    drawerLabel: "Presupuestos",
+                    title: "Presupuestos",
+                    drawerIcon: ({ color, size }) => (
+                        <Ionicons name="document-text-outline" size={size} color={color} />
+                    ),
+                    headerTitle: () => (
+                        <View style={styles.headerTitleRow}>
+                            <Ionicons name="document-text-outline" size={20} color="#FFFFFF" />
+                            <Text style={styles.headerTitleText}>Presupuestos</Text>
+                        </View>
+                    )
+                }}
+            />
+            {/* Detalle y edición del presupuesto: header propio con "volver" (ocultos del menú). */}
+            <Drawer.Screen
+                name="quote-details"
+                options={{
+                    drawerItemStyle: { display: "none" },
+                    title: "Presupuesto",
+                    headerShown: false,
+                }}
+            />
+            <Drawer.Screen
+                name="quote-edit"
+                options={{
+                    drawerItemStyle: { display: "none" },
+                    title: "Editar presupuesto",
+                    headerShown: false,
+                }}
+            />
+            <Drawer.Screen
                 name="reservations"
                 options={{
                     drawerLabel: "Reservas y Cobros",

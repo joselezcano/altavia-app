@@ -203,6 +203,31 @@ export default function FlightPlanScreen() {
               <Ionicons name="chevron-forward" size={18} color="#0165FF" />
             </TouchableOpacity>
 
+            {/* Presupuestos (cotizaciones enviadas por WhatsApp) */}
+            <TouchableOpacity
+              onPress={() => router.push("/(pilot)/flights/quotes" as any)}
+              style={{
+                backgroundColor: "#EAF3FF",
+                borderWidth: 1,
+                borderColor: "#7AB4FF",
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                borderRadius: 14,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="document-text-outline" size={18} color="#0165FF" />
+                <Text style={{ fontSize: 13, fontWeight: "bold", color: "#030436" }}>
+                  Presupuestos
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="#0165FF" />
+            </TouchableOpacity>
+
             {/* Secondary Action: Gestionar Reservas y Cobros */}
             <TouchableOpacity
               onPress={() => router.push("/(pilot)/flights/reservations" as any)}

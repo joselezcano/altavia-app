@@ -40,7 +40,11 @@ export type RoleFlightScreen =
     | "view-flight-plan"
     | "edit-reservation"
     | "new-booking"
-    | "boarding-scanner";
+    | "boarding-scanner"
+    // Presupuestos (también existen en (admin), ver utils/role-routes.ts)
+    | "quotes"
+    | "quote-details"
+    | "quote-edit";
 
 /** Ruta armada en tiempo de ejecución (se castea a Href en utils/role-routes). */
 export interface RoleRoute {

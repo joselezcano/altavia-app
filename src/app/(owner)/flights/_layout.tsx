@@ -12,6 +12,9 @@ export default function FlightsLayout() {
       <Stack.Screen name="new-booking" />
       <Stack.Screen name="edit-reservation" />
       <Stack.Screen name="boarding-scanner" />
+      <Stack.Screen name="quotes" />
+      <Stack.Screen name="quote-details" />
+      <Stack.Screen name="quote-edit" />
     </Stack>
   );
 }
