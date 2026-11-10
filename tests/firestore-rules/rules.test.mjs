@@ -447,3 +447,45 @@ describe("Facturación y plan de negocio (ADMIN)", () => {
             where("ownerId", "==", UIDS.otherOwner), where("aircraftId", "==", "ac1"))));
     });
 });
+
+describe("Presupuestos (quotes)", () => {
+    const quote = (over = {}) => ({
+        aircraftId: "ac1", ownerId: UIDS.owner, createdBy: UIDS.encargada, status: "draft",
+        clientName: "Ana", subtotalUsd: 1800, totalUsd: 1980, lines: [], costs: [], ...over,
+    });
+    test("la encargada de la aeronave crea, edita y lista presupuestos", async () => {
+        const db = as(UIDS.encargada);
+        const ref = await assertSucceeds(addDoc(collection(db, "quotes"), quote()));
+        await assertSucceeds(updateDoc(doc(db, "quotes", ref.id), { status: "accepted", subtotalUsd: 1700 }));
+        await assertSucceeds(getDocs(query(collection(db, "quotes"), where("aircraftId", "==", "ac1"))));
+    });
+    test("el owner lista los de sus aeronaves por ownerId", async () => {
+        await assertSucceeds(addDoc(collection(as(UIDS.owner), "quotes"), quote({ createdBy: UIDS.owner })));
+        await assertSucceeds(getDocs(query(collection(as(UIDS.owner), "quotes"), where("ownerId", "==", UIDS.owner))));
+        await assertFails(getDocs(query(collection(as(UIDS.otherOwner), "quotes"), where("ownerId", "==", UIDS.owner))));
+    });
+    test("no se crean con dueño falso, para otra aeronave o a nombre de otro", async () => {
+        const db = as(UIDS.encargada);
+        await assertFails(addDoc(collection(db, "quotes"), quote({ ownerId: UIDS.otherOwner })));
+        await assertFails(addDoc(collection(db, "quotes"), quote({ aircraftId: "ac2", ownerId: UIDS.otherOwner })));
+        await assertFails(addDoc(collection(db, "quotes"), quote({ createdBy: UIDS.owner })));
+        await assertFails(addDoc(collection(db, "quotes"), quote({ status: "accepted" })));
+    });
+    test("pilotos comunes y clientes no acceden; no se mueve de aeronave", async () => {
+        let id;
+        await env.withSecurityRulesDisabled(async (ctx) => {
+            id = (await addDoc(collection(ctx.firestore(), "quotes"), quote())).id;
+        });
+        await assertFails(getDoc(doc(as(UIDS.pilot), "quotes", id)));
+        await assertFails(getDoc(doc(as(UIDS.client), "quotes", id)));
+        await assertFails(updateDoc(doc(as(UIDS.encargada), "quotes", id), { aircraftId: "ac2" }));
+    });
+    test("uno convertido en reserva no se borra; los links son solo del servidor", async () => {
+        let id;
+        await env.withSecurityRulesDisabled(async (ctx) => {
+            id = (await addDoc(collection(ctx.firestore(), "quotes"), quote({ status: "converted" }))).id;
+        });
+        await assertFails(deleteDoc(doc(as(UIDS.owner), "quotes", id)));
+        await assertFails(getDoc(doc(as(UIDS.admin), "quote-links", "x")));
+    });
+});

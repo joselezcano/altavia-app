@@ -7,6 +7,7 @@ admin.initializeApp();
 
 export { bancardConfirm, bancardGetConfirmation, bancardSingleBuy } from "./bancard";
 export { createPaymentLink, paymentLinkApi } from "./payment-links";
+export { createQuoteLink, quoteLinkApi } from "./quote-links";
 export { claimPreRegisteredProfile } from "./profile-claim";
 export { syncReservationToGio } from "./gio-sync";
 export { syncAircraftPricing } from "./pricing-sync";

@@ -361,6 +361,29 @@ service cloud.firestore {
         && request.resource.data.get('aircraftId', '') == aircraftId;
     }
 
+    // ------------------------------------------------------ presupuestos
+    // Los arma la admin, el dueño o la encargada de la aeronave. ownerId es el dueño real
+    // de la aeronave (permite al owner listar los suyos con where ownerId == uid).
+    match /quotes/{quoteId} {
+      allow read: if isAdmin()
+        || (isOwner() && resource.data.get('ownerId', '') == uid())
+        || managesAircraft(resource.data.get('aircraftId', ''));
+      allow create: if canManageAircraft(request.resource.data.get('aircraftId', ''))
+        && request.resource.data.get('ownerId', '') == aircraftOwnerId(request.resource.data.get('aircraftId', ''))
+        && request.resource.data.get('createdBy', '') == uid()
+        && request.resource.data.get('status', '') in ['draft', 'sent'];
+      allow update: if canManageAircraft(resource.data.get('aircraftId', ''))
+        && !changedKeys().hasAny(['aircraftId', 'ownerId', 'createdBy']);
+      // Un presupuesto ya convertido en reserva no se borra (queda el rastro).
+      allow delete: if canManageAircraft(resource.data.get('aircraftId', ''))
+        && resource.data.get('status', '') != 'converted';
+    }
+
+    // Links públicos de presupuestos: solo el servidor (createQuoteLink / quoteLinkApi).
+    match /quote-links/{tokenHash} {
+      allow read, write: if false;
+    }
+
     // Todo lo demás: denegado (comportamiento por defecto).
   }
 }
