@@ -69,6 +69,19 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
   - **Piloto asignado, owner y encargada:** "Escanear pasajeros" con `expo-camera`. Valida contra Firestore la reserva, el pago, el pasajero y el token; pide confirmación si el vuelo no es hoy; marca `boardedAt`/`boardedBy` en una transacción y lleva un contador de embarcados. Tiene linterna y antirrebote.
   - **Manifiesto:** se guarda en una transacción que conserva los datos de embarque.
 
+- **Tarifas sin IVA (09/11):**
+  - La tarifa por hora (Ajustes de GIO, Control de Flota) es **sin IVA** y el cliente paga + IVA 10 %.
+  - **Reserva:** guarda `price` (total con IVA, lo que cobra Bancard) y `price_net_usd` (sin IVA). Los helpers son `grossFromNet` y `reservationNetPrice` en `flight-pricing.ts`.
+  - **Pantallas:** el buscador, la reserva telefónica, la aprobación y la edición trabajan con el precio sin IVA.
+  - **GIO** registra el ingreso sin IVA. El plan de negocio toma la tarifa de hoy como neta.
+- **Presupuestos (`quotes`):** documento previo a la reserva.
+  - **Base:** `src/types/quote.ts`, `src/utils/quote-builder.ts` y `src/hooks/useQuotes.ts`.
+  - **Lo que se cobra:** líneas sugeridas editables (servicio de vuelo, copiloto, pernocte, hangaraje, comisión de la pasarela y otros), cada una visible u oculta. Las ocultas se suman a "Servicio de vuelo" en la hoja del cliente.
+  - **Costos estimados internos:** combustible, piloto, copiloto, pernocte de la tripulación, plan de vuelo DINAC, hangaraje, overhaul y comisión, con el margen.
+  - **Totales:** subtotal sugerido o escrito a mano, sin IVA, más IVA 10 %.
+  - **Hoja pública:** `createQuoteLink` y `quoteLinkApi` (`/api/quote`) sirven `hosting/public/presupuesto`, con la marca, sin costos internos, y con "Acepto el presupuesto" e imprimir/PDF. Al aceptar se notifica a quien lo armó.
+  - **Reserva:** la que sale de un presupuesto lleva `quote_id` y `estimated_costs`, que GIO usa como punto de partida.
+
 ## 2. Rol: ADMIN
 - **Dashboard e Index (`index.tsx`, `_layout.tsx`):** Navegación por Drawer configurada con iconos (`Ionicons`), logotipo superior y safe areas. El dashboard cuenta con:
   - Consumo en tiempo real de la base de datos para la cantidad de Modelos Base, Flota Activa y **Vuelos Reservados** (consultando la colección `aircraft-reservation` en Firestore mediante TanStack Query).
