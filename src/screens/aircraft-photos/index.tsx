@@ -126,7 +126,7 @@ export default function AircraftPhotosScreen() {
         </ThemedText>
         <TouchableOpacity
           onPress={() => router.back()}
-          className="bg-brand-blue px-6 py-2.5 rounded-xl flex-row items-center gap-2"
+          className="bg-brand-blue px-6 py-2.5 rounded-xl flex-row items-center" style={{ gap: 8 }}
         >
           <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
           <ThemedText className="text-white font-semibold">Regresar</ThemedText>
@@ -155,7 +155,7 @@ export default function AircraftPhotosScreen() {
         <TouchableOpacity
           onPress={handleUploadPhoto}
           disabled={isUploading}
-          className="bg-brand-blue/5 border border-dashed border-brand-blue/30 rounded-2xl p-5 mb-6 items-center justify-center flex-row gap-3"
+          className="bg-[rgba(3,4,54,0.05)] border border-dashed border-[rgba(3,4,54,0.3)] rounded-2xl p-5 mb-6 items-center justify-center flex-row" style={{ gap: 12 }}
           activeOpacity={0.7}
         >
           {isUploading ? (
@@ -169,7 +169,7 @@ export default function AircraftPhotosScreen() {
             </>
           ) : (
             <>
-              <View className="w-10 h-10 rounded-full bg-brand-blue/10 items-center justify-center">
+              <View className="w-10 h-10 rounded-full bg-[rgba(3,4,54,0.1)] items-center justify-center">
                 <Ionicons name="cloud-upload" size={22} color="#030436" />
               </View>
               <View>
@@ -202,7 +202,7 @@ export default function AircraftPhotosScreen() {
             <TouchableOpacity
               onPress={handleUploadPhoto}
               disabled={isUploading}
-              className="bg-brand-blue px-6 py-3 rounded-xl flex-row items-center gap-2"
+              className="bg-brand-blue px-6 py-3 rounded-xl flex-row items-center" style={{ gap: 8 }}
             >
               <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
               <ThemedText className="text-white font-bold text-sm">
@@ -221,7 +221,7 @@ export default function AircraftPhotosScreen() {
               </ThemedText>
             </View>
 
-            <View className="flex-row flex-wrap gap-3">
+            <View className="flex-row flex-wrap" style={{ gap: 12 }}>
               {photos.map((photoUrl, index) => {
                 const isProfile = profile_photo === photoUrl;
 
@@ -229,7 +229,7 @@ export default function AircraftPhotosScreen() {
                   <View
                     key={`${photoUrl}-${index}`}
                     style={{ width: TILE_SIZE, height: TILE_SIZE }}
-                    className={`rounded-2xl overflow-hidden bg-slate-100 border relative ${isProfile ? "border-amber-500 border-2" : "border-slate-200/80"
+                    className={`rounded-2xl overflow-hidden bg-slate-100 border relative ${isProfile ? "border-amber-500 border-2" : "border-slate-200"
                       }`}
                   >
                     <TouchableOpacity
@@ -250,7 +250,7 @@ export default function AircraftPhotosScreen() {
                       disabled={setProfilePhotoMutation.isPending}
                       className={`absolute top-2 left-2 flex-row items-center gap-1 px-2.5 py-1 rounded-full ${isProfile
                         ? "bg-amber-500"
-                        : "bg-black/60"
+                        : "bg-[rgba(0,0,0,0.6)]"
                         }`}
                       activeOpacity={0.7}
                     >
@@ -270,7 +270,7 @@ export default function AircraftPhotosScreen() {
                     <TouchableOpacity
                       onPress={() => handleDeletePhoto(photoUrl)}
                       disabled={deletePhotoMutation.isPending}
-                      className="absolute top-2 right-2 bg-black/60 p-2 rounded-full"
+                      className="absolute top-2 right-2 bg-[rgba(0,0,0,0.6)] p-2 rounded-full"
                       activeOpacity={0.7}
                     >
                       <Ionicons name="trash-outline" size={16} color="#FFFFFF" />
@@ -291,13 +291,13 @@ export default function AircraftPhotosScreen() {
         onRequestClose={() => setSelectedPhoto(null)}
       >
         <Pressable
-          className="flex-1 bg-black/95 justify-center items-center relative"
+          className="flex-1 bg-[rgba(0,0,0,0.95)] justify-center items-center relative"
           onPress={() => setSelectedPhoto(null)}
         >
           {/* Close Button */}
           <TouchableOpacity
             onPress={() => setSelectedPhoto(null)}
-            className="absolute top-12 right-6 z-10 bg-white/20 p-3 rounded-full"
+            className="absolute top-12 right-6 z-10 bg-[rgba(255,255,255,0.2)] p-3 rounded-full"
             activeOpacity={0.7}
           >
             <Ionicons name="close" size={26} color="#FFFFFF" />
@@ -305,10 +305,10 @@ export default function AircraftPhotosScreen() {
 
           {/* Delete & Profile Picture Header Actions inside Lightbox */}
           {selectedPhoto && (
-            <View className="absolute top-12 left-6 z-10 flex-row items-center gap-2">
+            <View className="absolute top-12 left-6 z-10 flex-row items-center" style={{ gap: 8 }}>
               <TouchableOpacity
                 onPress={() => handleDeletePhoto(selectedPhoto)}
-                className="bg-red-600/80 p-3 rounded-full flex-row items-center gap-1 px-4"
+                className="bg-red-600 p-3 rounded-full flex-row items-center px-4" style={{ gap: 4 }}
                 activeOpacity={0.7}
               >
                 <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
@@ -319,7 +319,7 @@ export default function AircraftPhotosScreen() {
                 onPress={() => handleSetProfilePhoto(selectedPhoto)}
                 className={`p-3 rounded-full flex-row items-center gap-1 px-4 ${profile_photo === selectedPhoto
                   ? "bg-amber-500"
-                  : "bg-white/20"
+                  : "bg-[rgba(255,255,255,0.2)]"
                   }`}
                 activeOpacity={0.7}
               >

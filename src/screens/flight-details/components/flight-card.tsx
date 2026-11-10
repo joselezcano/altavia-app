@@ -30,7 +30,7 @@ export function FlightCard({
     };
 
     return (
-        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm gap-3">
+        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200" style={{ gap: 12 }}>
             <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-1">
                 Vuelo
             </ThemedText>
@@ -99,7 +99,7 @@ export function CardRow({
 }) {
     return (
         <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
-            <View className="flex-row items-center gap-2.5">
+            <View className="flex-row items-center" style={{ gap: 10 }}>
                 <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
                     {icon}
                 </View>

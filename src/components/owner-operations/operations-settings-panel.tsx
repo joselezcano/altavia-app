@@ -478,13 +478,14 @@ const styles = StyleSheet.create({
     },
     accordionTitle: {
         fontSize: 14.5,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#091626",
     },
     accordionBody: {
         paddingBottom: 24,
     },
     paragraph: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14.5,
         color: "#52647A",
         lineHeight: 23,
@@ -492,7 +493,7 @@ const styles = StyleSheet.create({
     },
     boldText: {
         color: "#091626",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
     },
     formulaBox: {
         backgroundColor: "#F4F7FC",
@@ -513,7 +514,7 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
         textTransform: "uppercase",
         color: "#52647A",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         marginTop: 8,
         marginBottom: 6,
     },
@@ -527,10 +528,11 @@ const styles = StyleSheet.create({
     },
     settingLabel: {
         fontSize: 15,
-        fontWeight: "500",
+        fontFamily: "NotoSans_500Medium",
         color: "#091626",
     },
     settingSub: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12.5,
         color: "#52647A",
         marginTop: 2,
@@ -545,7 +547,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 8,
         fontSize: 14,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#091626",
         textAlign: "right",
     },
@@ -566,7 +568,7 @@ const styles = StyleSheet.create({
     },
     addFixedBtnText: {
         fontSize: 12.5,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#1540C9",
     },
     fixedRow: {
@@ -583,7 +585,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 8,
         fontSize: 13.5,
-        fontWeight: "500",
+        fontFamily: "NotoSans_500Medium",
         color: "#091626",
     },
     fixedAmountInput: {
@@ -602,13 +604,14 @@ const styles = StyleSheet.create({
     },
     fixedCurrencyBtnText: {
         fontSize: 13,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#1540C9",
     },
     removeFixedBtn: {
         padding: 4,
     },
     liveSummaryMsg: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14,
         color: "#52647A",
         marginTop: 14,
@@ -636,9 +639,10 @@ const styles = StyleSheet.create({
     saveBtnText: {
         color: "#FFFFFF",
         fontSize: 15,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     footerNote: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: "#52647A",
         marginTop: 28,

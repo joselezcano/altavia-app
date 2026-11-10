@@ -345,9 +345,9 @@ export default function AircraftDetailsScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {/* Card containing aircraft model and registration */}
-        <View className="bg-brand-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-6">
-          <View className="flex-row items-center gap-3 mb-4">
-            <View className="w-12 h-12 rounded-xl bg-brand-blue/10 items-center justify-center">
+        <View className="bg-brand-white rounded-2xl p-6 border border-slate-200 mb-6">
+          <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
+            <View className="w-12 h-12 rounded-xl bg-[rgba(3,4,54,0.1)] items-center justify-center">
               <Ionicons name="airplane" size={24} color="#030436" />
             </View>
             <View className="flex-1">
@@ -365,7 +365,7 @@ export default function AircraftDetailsScreen() {
           <View className="h-px bg-slate-100 my-4" />
 
           {/* Specs breakdown grid */}
-          <View className="gap-3">
+          <View className="" style={{ gap: 12 }}>
             <View className="flex-row justify-between items-center">
               <ThemedText className="text-slate-500 text-sm font-medium">Capacidad de Pasajeros:</ThemedText>
               <ThemedText className="font-bold text-brand-blue">{paxCount}</ThemedText>
@@ -405,7 +405,7 @@ export default function AircraftDetailsScreen() {
         </View>
 
         {/* Pricing Summary Card */}
-        <View className="bg-brand-blue rounded-3xl p-5 mb-4 border border-brand-blue/30 shadow-sm">
+        <View className="bg-brand-blue rounded-3xl p-5 mb-4 border border-[rgba(3,4,54,0.3)]">
           <View className="flex-row items-center justify-between mb-2">
             <View>
               <ThemedText type="caption" className="uppercase font-bold text-brand-gold tracking-widest text-[10px]">
@@ -415,12 +415,12 @@ export default function AircraftDetailsScreen() {
                 {estimatedPrice !== null ? `USD $${estimatedPrice.toLocaleString("en-US")}` : "Cotización a Confirmar"}
               </ThemedText>
             </View>
-            <View className="w-10 h-10 rounded-full bg-white/10 items-center justify-center">
+            <View className="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.1)] items-center justify-center">
               <MaterialCommunityIcons name="currency-usd" size={24} color="#0165FF" />
             </View>
           </View>
 
-          <View className="h-px bg-white/10 my-3" />
+          <View className="h-px bg-[rgba(255,255,255,0.1)] my-3" />
 
           <View className="flex-row justify-between items-center">
             <ThemedText className="text-slate-300 text-xs">Modalidad:</ThemedText>
@@ -445,7 +445,7 @@ export default function AircraftDetailsScreen() {
         <TouchableOpacity
           onPress={handleReserve}
           disabled={isSubmitting || !!createdReservation}
-          className={`py-4 rounded-xl items-center justify-center shadow-md flex-row gap-2 mb-10 ${
+          className={`py-4 rounded-xl items-center justify-center  flex-row gap-2 mb-10 ${
             isSubmitting || !!createdReservation ? "bg-slate-300" : "bg-brand-gold"
           }`}
           activeOpacity={0.8}
@@ -602,7 +602,7 @@ const modalStyles = StyleSheet.create({
   },
   title: {
     color: "#030436",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 20,
     textAlign: "center",
     marginBottom: 4,
@@ -612,7 +612,7 @@ const modalStyles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
     marginBottom: 20,
-    fontWeight: "500",
+    fontFamily: "NotoSans_500Medium",
   },
   detailsContainer: {
     backgroundColor: "#F8FAFC",
@@ -630,18 +630,19 @@ const modalStyles = StyleSheet.create({
     justifyContent: "space-between",
   },
   label: {
+    fontFamily: "NotoSans_400Regular",
     color: "#64748B",
     fontSize: 12,
   },
   value: {
     color: "#1E293B",
     fontSize: 12,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   boldValue: {
     color: "#030436",
     fontSize: 14,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   divider: {
     height: 1,
@@ -658,7 +659,7 @@ const modalStyles = StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 10,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#92400E",
     textTransform: "uppercase",
   },
@@ -680,7 +681,7 @@ const modalStyles = StyleSheet.create({
   },
   actionButtonText: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 14,
   },
 });

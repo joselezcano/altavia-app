@@ -11,7 +11,7 @@ export function AircraftDetailsTitleCard({
     registration: string;
 }) {
     return (
-        <View className="bg-brand-blue rounded-3xl p-5 mb-5 flex-row justify-between items-center shadow-sm">
+        <View className="bg-brand-blue rounded-3xl p-5 mb-5 flex-row justify-between items-center">
             <View className="flex-1 mr-4">
                 <ThemedText className="font-bold text-xl text-white">
                     {model || "Aeronave"}

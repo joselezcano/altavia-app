@@ -37,7 +37,7 @@ export default function RoleSelectionScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 justify-center px-4 bg-brand-light ">
+    <ThemedView className="flex-1 justify-center px-4 bg-brand-light">
       <View className="mb-10 items-center">
         <ThemedText type="title" className="text-3xl text-brand-blue font-bold mb-2">
           Acceder como...
@@ -47,16 +47,16 @@ export default function RoleSelectionScreen() {
         </ThemedText>
       </View>
 
-      <View className="space-y-4 gap-2">
+      <View className="space-y-4" style={{ gap: 8 }}>
         {roles.map((role) => {
           const info = getRoleInfo(role);
           return (
             <TouchableOpacity
               key={role}
               onPress={() => selectRole(role)}
-              className="bg-brand-white border border-slate-200 rounded-2xl p-5 flex-row items-center shadow-sm active:bg-slate-50"
+              className="bg-brand-white border border-slate-200 rounded-2xl p-5 flex-row items-center active:bg-slate-50"
             >
-              <View className="w-12 h-12 rounded-xl bg-brand-blue/5 justify-center items-center mr-4">
+              <View className="w-12 h-12 rounded-xl bg-[rgba(3,4,54,0.05)] justify-center items-center mr-4">
                 <Ionicons name={info.icon} size={24} color="#030436" />
               </View>
               <View className="flex-1">

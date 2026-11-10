@@ -392,14 +392,14 @@ export default function EventRecurrenceEditScreen() {
                         {/* 2. Time Range Selector Card */}
                         <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
                             <View className="flex-row items-center justify-between mb-4">
-                                <View className="flex-row items-center gap-2">
+                                <View className="flex-row items-center" style={{ gap: 8 }}>
                                     <Ionicons name="time" size={20} color="#030436" />
                                     <ThemedText type="subtitle" className="font-bold text-brand-blue">
                                         Rango Horario
                                     </ThemedText>
                                 </View>
                                 {/* All-Day Switch */}
-                                <View className="flex-row items-center gap-2">
+                                <View className="flex-row items-center" style={{ gap: 8 }}>
                                     <ThemedText className="text-xs font-semibold text-slate-600">
                                         Todo el día
                                     </ThemedText>
@@ -426,7 +426,7 @@ export default function EventRecurrenceEditScreen() {
                                 <ThemedText type="caption" className="text-slate-500 font-medium">
                                     Hora de Inicio
                                 </ThemedText>
-                                <View className="flex-row items-center gap-2">
+                                <View className="flex-row items-center" style={{ gap: 8 }}>
                                     <TimeSpinner
                                         value={startHour}
                                         onInc={() => adjustStartHour(1)}
@@ -448,7 +448,7 @@ export default function EventRecurrenceEditScreen() {
                                 <ThemedText type="caption" className="text-slate-500 font-medium">
                                     Hora de Fin
                                 </ThemedText>
-                                <View className="flex-row items-center gap-2">
+                                <View className="flex-row items-center" style={{ gap: 8 }}>
                                     <TimeSpinner
                                         value={endHour}
                                         onInc={() => adjustEndHour(1)}
@@ -468,7 +468,7 @@ export default function EventRecurrenceEditScreen() {
 
                         {/* 3. Repeat Period Selector Card */}
                         <ThemedView variant="card" className="p-5 mb-4 border border-slate-100 bg-white">
-                            <View className="flex-row items-center gap-2 mb-4">
+                            <View className="flex-row items-center mb-4" style={{ gap: 8 }}>
                                 <Ionicons name="repeat-sharp" size={20} color="#030436" />
                                 <ThemedText type="subtitle" className="font-bold text-brand-blue">
                                     Frecuencia y Período
@@ -476,7 +476,7 @@ export default function EventRecurrenceEditScreen() {
                             </View>
 
                             {/* Chips period list */}
-                            <View className="flex-row flex-wrap gap-2 mb-4">
+                            <View className="flex-row flex-wrap mb-4" style={{ gap: 8 }}>
                                 {PERIOD_LABELS.map((item) => {
                                     const isActive = period === item.value;
                                     return (
@@ -506,7 +506,7 @@ export default function EventRecurrenceEditScreen() {
                                     <ThemedText type="caption" className="text-slate-500 font-medium">
                                         Repetir cada
                                     </ThemedText>
-                                    <View className="flex-row items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                    <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1" style={{ gap: 4 }}>
                                         <TouchableOpacity
                                             onPress={() => setInterval((prev) => Math.max(1, prev - 1))}
                                             className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
@@ -571,7 +571,7 @@ export default function EventRecurrenceEditScreen() {
                         {/* 4. Ends Selector Card */}
                         {period !== "none" && (
                             <ThemedView variant="card" className="p-5 mb-6 border border-slate-100 bg-white">
-                                <View className="flex-row items-center gap-2 mb-4">
+                                <View className="flex-row items-center mb-4" style={{ gap: 8 }}>
                                     <Ionicons name="flag" size={20} color="#030436" />
                                     <ThemedText type="subtitle" className="font-bold text-brand-blue">
                                         Finalización del Evento
@@ -626,7 +626,7 @@ export default function EventRecurrenceEditScreen() {
                                 <View className="py-2.5 flex-row justify-between items-center">
                                     <TouchableOpacity
                                         onPress={() => setEndsType("occurrences")}
-                                        className="flex-row items-center gap-2"
+                                        className="flex-row items-center" style={{ gap: 8 }}
                                         activeOpacity={0.7}
                                     >
                                         <Ionicons
@@ -640,7 +640,7 @@ export default function EventRecurrenceEditScreen() {
                                     </TouchableOpacity>
 
                                     {endsType === "occurrences" && (
-                                        <View className="flex-row items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                        <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1" style={{ gap: 4 }}>
                                             <TouchableOpacity
                                                 onPress={() => setEndsOccurrences((prev) => Math.max(1, prev - 1))}
                                                 className="w-8 h-8 items-center justify-center bg-white border border-slate-100 rounded-lg"
@@ -667,7 +667,7 @@ export default function EventRecurrenceEditScreen() {
 
                         {/* 5. Unavailability Reason & Notes Card */}
                         <ThemedView variant="card" className="p-5 mb-6 border border-slate-100 bg-white">
-                            <View className="flex-row items-center gap-2 mb-4">
+                            <View className="flex-row items-center mb-4" style={{ gap: 8 }}>
                                 <Ionicons name="alert-circle" size={20} color="#030436" />
                                 <ThemedText type="subtitle" className="font-bold text-brand-blue">
                                     Motivo de Indisponibilidad
@@ -675,7 +675,7 @@ export default function EventRecurrenceEditScreen() {
                             </View>
 
                             {/* Radio Buttons Options */}
-                            <View className="gap-2 mb-4">
+                            <View className="mb-4" style={{ gap: 8 }}>
                                 {REASON_OPTIONS.map((option) => {
                                     const isSelected = reason === option.value;
                                     return (
@@ -688,7 +688,7 @@ export default function EventRecurrenceEditScreen() {
                                                 }`}
                                             activeOpacity={0.7}
                                         >
-                                            <View className="flex-row items-center gap-2.5">
+                                            <View className="flex-row items-center" style={{ gap: 10 }}>
                                                 <Ionicons
                                                     name={option.icon as any}
                                                     size={18}

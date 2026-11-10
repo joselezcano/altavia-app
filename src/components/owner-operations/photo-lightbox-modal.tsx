@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 26,
         lineHeight: 28,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
     },
     imageContainer: {
         width: "100%",
@@ -99,6 +99,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     captionText: {
+        fontFamily: "NotoSans_400Regular",
         color: "#93A3B6",
         fontSize: 13,
         marginTop: 14,

@@ -203,7 +203,7 @@ export default function Test() {
             <Text className="text-gray-900 dark:text-white">Flight Current Position</Text>
             <TouchableOpacity
                 onPress={handleFetchFlightPosition}
-                className="bg-brand-gold px-6 py-4 rounded-xl shadow-md mt-4"
+                className="bg-brand-gold px-6 py-4 rounded-xl mt-4"
                 activeOpacity={0.8}
                 disabled={loading}
             >
@@ -211,7 +211,7 @@ export default function Test() {
             </TouchableOpacity>
             <TouchableOpacity
                 onPress={handleLoadFlightPositionSample}
-                className="bg-brand-gold px-6 py-4 rounded-xl shadow-md mt-4"
+                className="bg-brand-gold px-6 py-4 rounded-xl mt-4"
                 activeOpacity={0.8}
                 disabled={loading}
             >
@@ -219,7 +219,7 @@ export default function Test() {
             </TouchableOpacity>
             <TouchableOpacity
                 onPress={handleSearchFlights}
-                className="bg-brand-gold px-6 py-4 rounded-xl shadow-md mt-4"
+                className="bg-brand-gold px-6 py-4 rounded-xl mt-4"
                 activeOpacity={0.8}
                 disabled={loading}
             >
@@ -227,7 +227,7 @@ export default function Test() {
             </TouchableOpacity>
             <TouchableOpacity
                 onPress={handleFetchFlightMap}
-                className="bg-brand-gold px-6 py-4 rounded-xl shadow-md mt-4"
+                className="bg-brand-gold px-6 py-4 rounded-xl mt-4"
                 activeOpacity={0.8}
                 disabled={loading}
             >
@@ -235,7 +235,7 @@ export default function Test() {
             </TouchableOpacity>
             <TouchableOpacity
                 onPress={handleSearchFlightByAircraftRegistration}
-                className="bg-brand-gold px-6 py-4 rounded-xl shadow-md mt-4"
+                className="bg-brand-gold px-6 py-4 rounded-xl mt-4"
                 activeOpacity={0.8}
                 disabled={loading}
             >
@@ -243,7 +243,7 @@ export default function Test() {
             </TouchableOpacity>
             <TouchableOpacity
                 onPress={loadAirports}
-                className="bg-brand-gold px-6 py-4 rounded-xl shadow-md mt-4"
+                className="bg-brand-gold px-6 py-4 rounded-xl mt-4"
                 activeOpacity={0.8}
                 disabled={loading}
             >
@@ -251,7 +251,7 @@ export default function Test() {
             </TouchableOpacity>
             <TouchableOpacity
                 onPress={loadTemplates}
-                className="bg-brand-gold px-6 py-4 rounded-xl shadow-md mt-4"
+                className="bg-brand-gold px-6 py-4 rounded-xl mt-4"
                 activeOpacity={0.8}
                 disabled={loading}
             >

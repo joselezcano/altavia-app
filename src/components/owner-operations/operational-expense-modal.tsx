@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 19,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#091626",
     },
     closeBtn: {
@@ -641,6 +641,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     closeBtnText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 22,
         color: "#52647A",
         lineHeight: 24,
@@ -653,11 +654,12 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 14.5,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#091626",
         marginBottom: 8,
     },
     hint: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13.5,
         color: "#52647A",
         marginTop: 7,
@@ -672,7 +674,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 12,
         fontSize: 16,
-        fontWeight: "500",
+        fontFamily: "NotoSans_500Medium",
     },
     dateRow: {
         flexDirection: "row",
@@ -689,7 +691,7 @@ const styles = StyleSheet.create({
     },
     todayChipText: {
         color: "#1540C9",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         fontSize: 14,
     },
     amountCurrencyRow: {
@@ -710,7 +712,7 @@ const styles = StyleSheet.create({
     },
     currencyToggleText: {
         fontSize: 15,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#1540C9",
     },
     segmentedRow: {
@@ -733,7 +735,7 @@ const styles = StyleSheet.create({
     },
     segButtonText: {
         fontSize: 15,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#091626",
     },
     segButtonTextActive: {
@@ -753,6 +755,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
     },
     statusBoxText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13.5,
         color: "#091626",
         lineHeight: 19,
@@ -763,7 +766,7 @@ const styles = StyleSheet.create({
     },
     linkButtonText: {
         color: "#1540C9",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         fontSize: 14,
     },
     facturaBox: {
@@ -775,7 +778,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         letterSpacing: 1,
         color: "#52647A",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         marginBottom: 12,
     },
     photoPickerBtn: {
@@ -792,7 +795,7 @@ const styles = StyleSheet.create({
     },
     photoPickerBtnText: {
         color: "#1540C9",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         fontSize: 14,
     },
     photoWrap: {
@@ -807,7 +810,7 @@ const styles = StyleSheet.create({
     },
     removePhotoText: {
         color: "#BC3324",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         fontSize: 13.5,
     },
     deleteBtn: {
@@ -820,7 +823,7 @@ const styles = StyleSheet.create({
     },
     deleteBtnText: {
         color: "#BC3324",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         fontSize: 15,
     },
     saveBtn: {
@@ -838,7 +841,7 @@ const styles = StyleSheet.create({
     },
     saveBtnText: {
         color: "#FFFFFF",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         fontSize: 15.5,
     },
 });

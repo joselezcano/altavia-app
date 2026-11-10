@@ -264,8 +264,8 @@ export default function ProfileScreen() {
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
 
         {/* User Card */}
-        <View className="bg-white rounded-3xl p-5 mb-5 border border-slate-100 shadow-sm items-center">
-          <View className="w-20 h-20 rounded-full bg-brand-blue items-center justify-center mb-3 shadow-md">
+        <View className="bg-white rounded-3xl p-5 mb-5 border border-slate-100 items-center">
+          <View className="w-20 h-20 rounded-full bg-brand-blue items-center justify-center mb-3">
             <ThemedText className="text-white font-bold text-3xl">
               {userInitial}
             </ThemedText>
@@ -276,7 +276,7 @@ export default function ProfileScreen() {
           <ThemedText className="text-sm text-slate-500 mt-0.5">
             {user?.email}
           </ThemedText>
-          <View className="mt-2.5 bg-brand-gold/15 px-3 py-1 rounded-full border border-brand-gold/20">
+          <View className="mt-2.5 bg-[rgba(1,101,255,0.15)] px-3 py-1 rounded-full border border-[rgba(1,101,255,0.2)]">
             <ThemedText className="text-brand-gold text-xs font-bold uppercase tracking-wider">
               {role ? getRoleLabel(role) : "Cliente"}
             </ThemedText>
@@ -285,21 +285,21 @@ export default function ProfileScreen() {
 
         {/* KYC Verification Required Alert Banner (Positioned below User Card) */}
         {!userProfile?.kycVerified && (
-          <View className="bg-amber-500/10 border border-amber-200/70 rounded-3xl p-5 mb-5 flex-row items-center gap-4 overflow-hidden relative">
+          <View className="bg-[rgba(245,158,11,0.1)] border border-amber-200 rounded-3xl p-5 mb-5 flex-row items-center overflow-hidden relative" style={{ gap: 16 }}>
             <View className="flex-1 pr-1">
-              <View className="flex-row items-center gap-1.5 mb-1">
+              <View className="flex-row items-center mb-1" style={{ gap: 6 }}>
                 <Ionicons name="alert-circle" size={18} color="#b45309" />
                 <ThemedText className="font-extrabold text-amber-900 text-base">
                   Verificación Requerida
                 </ThemedText>
               </View>
-              <ThemedText className="text-xs text-amber-900/80 leading-relaxed">
+              <ThemedText className="text-xs text-amber-900 leading-relaxed">
                 Para confirmar tus reservas y abordar sin demoras, valida tu documento con Didit.me.
               </ThemedText>
               <TouchableOpacity
                 disabled={isVerifying}
                 onPress={handleStartKyc}
-                className={`bg-brand-blue py-2.5 px-4 rounded-xl mt-3 flex-row items-center justify-center gap-2 shadow-sm ${isVerifying ? "opacity-60" : "active:bg-brand-blue/90"
+                className={`bg-brand-blue py-2.5 px-4 rounded-xl mt-3 flex-row items-center justify-center gap-2  ${isVerifying ? "opacity-60" : "active:bg-brand-blue"
                   }`}
                 activeOpacity={0.8}
               >
@@ -333,7 +333,7 @@ export default function ProfileScreen() {
         <ThemedText className="text-xs font-extrabold text-slate-400 mb-2.5 uppercase tracking-wider pl-1">
           Información Personal
         </ThemedText>
-        <View className="bg-white rounded-3xl p-4 mb-5 border border-slate-100 shadow-sm gap-y-3.5">
+        <View className="bg-white rounded-3xl p-4 mb-5 border border-slate-100" style={{ rowGap: 14 }}>
           <View className="flex-row justify-between items-center">
             <View>
               <ThemedText className="text-xs text-slate-400 font-medium">Nombre</ThemedText>
@@ -353,7 +353,7 @@ export default function ProfileScreen() {
           <View className="flex-row justify-between items-center">
             <View className="flex-1 pr-2">
               <ThemedText className="text-xs text-slate-400 font-medium">Estado KYC (Identidad)</ThemedText>
-              <View className="flex-row items-center gap-1.5 mt-1">
+              <View className="flex-row items-center mt-1" style={{ gap: 6 }}>
                 <Ionicons
                   name={userProfile?.kycVerified ? "checkmark-circle-outline" : "ellipse-outline"}
                   size={16}
@@ -389,11 +389,11 @@ export default function ProfileScreen() {
             <ThemedText className="text-xs font-extrabold text-slate-400 mb-2.5 uppercase tracking-wider pl-1">
               Cambiar de Perfil
             </ThemedText>
-            <View className="bg-white rounded-3xl p-4 mb-5 border border-slate-100 shadow-sm">
+            <View className="bg-white rounded-3xl p-4 mb-5 border border-slate-100">
               <ThemedText className="text-xs text-slate-500 mb-3 text-center">
                 Tenés múltiples roles asignados. Seleccioná uno para cambiar de sesión:
               </ThemedText>
-              <View className="flex-row flex-wrap justify-center gap-2">
+              <View className="flex-row flex-wrap justify-center" style={{ gap: 8 }}>
                 {roles.map((r) => {
                   const isActive = r === role;
                   return (
@@ -427,12 +427,12 @@ export default function ProfileScreen() {
         <ThemedText className="text-xs font-extrabold text-slate-400 mb-2.5 uppercase tracking-wider pl-1">
           Ajustes y Preferencias (Próximamente)
         </ThemedText>
-        <View className="bg-white rounded-3xl p-4 mb-6 border border-slate-100 shadow-sm gap-y-4">
+        <View className="bg-white rounded-3xl p-4 mb-6 border border-slate-100" style={{ rowGap: 16 }}>
           {upcomingOptions.map((opt, idx) => (
             <View key={opt.id}>
               {idx > 0 && <View className="border-t border-slate-50 mb-3.5" />}
               <View className="flex-row items-center justify-between opacity-60">
-                <View className="flex-row items-center gap-3 flex-1">
+                <View className="flex-row items-center flex-1" style={{ gap: 12 }}>
                   <View className="w-9 h-9 rounded-xl bg-slate-100 items-center justify-center">
                     <Ionicons name={opt.icon} size={18} color="#64748B" />
                   </View>
@@ -453,8 +453,8 @@ export default function ProfileScreen() {
         <ThemedText className="text-xs font-extrabold text-slate-400 mb-2.5 uppercase tracking-wider pl-1">
           Seguridad y Gestión de Cuenta
         </ThemedText>
-        <View className="bg-white rounded-3xl p-4 mb-6 border border-slate-100 shadow-sm">
-          <View className="flex-row items-center gap-3 mb-2.5">
+        <View className="bg-white rounded-3xl p-4 mb-6 border border-slate-100">
+          <View className="flex-row items-center mb-2.5" style={{ gap: 12 }}>
             <View className="w-9 h-9 rounded-xl bg-rose-50 items-center justify-center">
               <Ionicons name="shield-outline" size={18} color="#e11d48" />
             </View>
@@ -470,7 +470,7 @@ export default function ProfileScreen() {
           </ThemedText>
           <TouchableOpacity
             onPress={() => setShowDeleteModal(true)}
-            className="border border-rose-200 bg-rose-50/50 py-3 rounded-xl flex-row items-center justify-center gap-2 active:bg-rose-100"
+            className="border border-rose-200 bg-rose-50 py-3 rounded-xl flex-row items-center justify-center active:bg-rose-100" style={{ gap: 8 }}
             activeOpacity={0.7}
           >
             <Ionicons name="trash-outline" size={16} color="#e11d48" />
@@ -490,8 +490,8 @@ export default function ProfileScreen() {
           animationType="fade"
           onRequestClose={() => setShowDeleteModal(false)}
         >
-          <View className="flex-1 bg-black/60 justify-center items-center px-6">
-            <View className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl border border-slate-100">
+          <View className="flex-1 bg-[rgba(0,0,0,0.6)] justify-center items-center px-6">
+            <View className="bg-white rounded-3xl p-6 w-full max-w-sm border border-slate-100">
               <View className="w-12 h-12 rounded-full bg-rose-100 items-center justify-center mx-auto mb-4">
                 <Ionicons name="warning-outline" size={26} color="#e11d48" />
               </View>
@@ -505,23 +505,23 @@ export default function ProfileScreen() {
               </ThemedText>
 
               {/* DINAC Legal Retention Warning Box */}
-              <View className="bg-amber-500/10 border border-amber-200 p-3 rounded-2xl mb-5">
-                <View className="flex-row items-center gap-1.5 mb-1">
+              <View className="bg-[rgba(245,158,11,0.1)] border border-amber-200 p-3 rounded-2xl mb-5">
+                <View className="flex-row items-center mb-1" style={{ gap: 6 }}>
                   <Ionicons name="airplane-outline" size={14} color="#b45309" />
                   <ThemedText className="text-[11px] font-bold text-amber-900">
                     Aviso Legal Aeronáutico (DINAC)
                   </ThemedText>
                 </View>
-                <ThemedText className="text-[10px] text-amber-900/80 leading-relaxed">
+                <ThemedText className="text-[10px] text-amber-900 leading-relaxed">
                   Conforme al Código Aeronáutico (Ley N° 1860/02) y regulaciones de seguridad operacional, los registros de vuelos reservados, bitácoras y manifiestos de pasajeros NO se eliminan, quedando resguardados de forma inmutable para fines regulatorios.
                 </ThemedText>
               </View>
 
-              <View className="gap-2.5">
+              <View className="" style={{ gap: 10 }}>
                 <TouchableOpacity
                   disabled={isDeleting}
                   onPress={handleDeleteAccount}
-                  className="bg-rose-600 py-3.5 rounded-xl items-center justify-center active:bg-rose-700 shadow-xs"
+                  className="bg-rose-600 py-3.5 rounded-xl items-center justify-center active:bg-rose-700"
                 >
                   {isDeleting ? (
                     <ActivityIndicator size="small" color="#FFFFFF" />

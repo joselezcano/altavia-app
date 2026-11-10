@@ -86,7 +86,7 @@ export default function ClientHomeScreen() {
         >
         {/* HERO SECTION / BANNER */}
         <View
-          className="bg-brand-blue rounded-b-[40px] px-6 shadow-md overflow-hidden relative"
+          className="bg-brand-blue rounded-b-[40px] px-6 overflow-hidden relative"
           style={{ paddingTop: insets.top + 16, paddingBottom: 40 }}
         >
           {/* Decoración de fondo */}
@@ -199,7 +199,7 @@ export default function ClientHomeScreen() {
           {/* QUICK ACTION: MIS VUELOS */}
           <TouchableOpacity
             onPress={() => router.push("/(client)/flights")}
-            className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex-row items-center justify-between mb-4"
+            className="bg-white rounded-2xl p-4 border border-slate-100 flex-row items-center justify-between mb-4"
             activeOpacity={0.8}
           >
             <View className="flex-row items-center" style={{ gap: 12 }}>
@@ -229,7 +229,7 @@ export default function ClientHomeScreen() {
           <View className="flex-row justify-between mb-6" style={{ gap: 12 }}>
             <TouchableOpacity
               onPress={() => router.push("/(client)/profile")}
-              className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex-1 items-center"
+              className="bg-white rounded-2xl p-4 border border-slate-100 flex-1 items-center"
               activeOpacity={0.8}
             >
               <View className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center mb-2">
@@ -239,7 +239,7 @@ export default function ClientHomeScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex-1 items-center"
+              className="bg-white rounded-2xl p-4 border border-slate-100 flex-1 items-center"
               onPress={() => router.push("/(client)/flights")}
               activeOpacity={0.8}
             >
@@ -255,7 +255,7 @@ export default function ClientHomeScreen() {
             Destinos Destacados
           </ThemedText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="overflow-visible">
-            <View className="w-64 bg-white rounded-2xl p-2 mr-4 shadow-sm border border-slate-100">
+            <View className="w-64 bg-white rounded-2xl p-2 mr-4 border border-slate-100">
               <View className="w-full h-32 rounded-xl mb-3 overflow-hidden">
                 <Image
                   source={require("../../../assets/images/Chapa-PY-WRC-2026PNG.webp")}
@@ -269,7 +269,7 @@ export default function ClientHomeScreen() {
                 <ThemedText className="text-brand-gold font-bold text-xs">Rally Mundial</ThemedText>
               </ThemedText>
             </View>
-            <View className="w-64 bg-white rounded-2xl p-2 shadow-sm border border-slate-100">
+            <View className="w-64 bg-white rounded-2xl p-2 border border-slate-100">
               <View className="w-full h-32 rounded-xl mb-3 overflow-hidden">
                 <Image
                   source={require("../../../assets/images/punta-del-este-visit-casapueblo-hero-1920x890.avif")}

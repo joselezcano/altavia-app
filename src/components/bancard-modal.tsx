@@ -481,12 +481,12 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 18,
-        fontWeight: "800",
+        fontFamily: "NotoSans_800ExtraBold",
         color: "#00529B",
     },
     headerTitleVpos: {
         fontSize: 16,
-        fontWeight: "800",
+        fontFamily: "NotoSans_800ExtraBold",
         color: "#0165FF",
     },
     stagingBadge: {
@@ -500,10 +500,11 @@ const styles = StyleSheet.create({
     },
     stagingBadgeText: {
         fontSize: 9,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#92400E",
     },
     headerSubtitle: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: "#64748B",
         marginTop: 2,
@@ -525,20 +526,22 @@ const styles = StyleSheet.create({
     },
     summaryRoute: {
         fontSize: 12,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     summarySub: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10,
         color: "#64748B",
         marginTop: 1,
     },
     summaryAmount: {
         fontSize: 15,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#00529B",
     },
     summaryAmountGs: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10,
         color: "#64748B",
     },
@@ -558,7 +561,7 @@ const styles = StyleSheet.create({
     },
     testCardsTitle: {
         fontSize: 11,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#475569",
     },
     autofillBadge: {
@@ -572,7 +575,7 @@ const styles = StyleSheet.create({
     },
     autofillBadgeText: {
         fontSize: 10,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#059669",
     },
     testCardsRow: {
@@ -601,7 +604,7 @@ const styles = StyleSheet.create({
     },
     testCardChipText: {
         fontSize: 11,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     testCardChipTextNormal: {
         color: "#64748B",
@@ -631,13 +634,13 @@ const styles = StyleSheet.create({
     },
     cardDetailLabel: {
         fontSize: 9,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#94A3B8",
         letterSpacing: 0.5,
     },
     cardDetailVal: {
         fontSize: 12,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     cardActionsRow: {
@@ -660,7 +663,7 @@ const styles = StyleSheet.create({
     autofillBtnText: {
         color: "#FFFFFF",
         fontSize: 11,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     copyBtn: {
         flex: 1,
@@ -678,7 +681,7 @@ const styles = StyleSheet.create({
     copyBtnText: {
         color: "#00529B",
         fontSize: 11,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     webContainer: {
         flex: 1,
@@ -693,10 +696,11 @@ const styles = StyleSheet.create({
     },
     stateTitle: {
         fontSize: 15,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     stateSubtitle: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: "#64748B",
     },
@@ -717,11 +721,12 @@ const styles = StyleSheet.create({
     },
     errorTitle: {
         fontSize: 16,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
         marginBottom: 6,
     },
     errorMessage: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: "#DC2626",
         textAlign: "center",
@@ -744,11 +749,12 @@ const styles = StyleSheet.create({
     },
     errorHelpTitle: {
         fontSize: 12,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
         marginBottom: 4,
     },
     errorHelpText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: "#64748B",
         lineHeight: 16,
@@ -770,7 +776,7 @@ const styles = StyleSheet.create({
     retryBtnText: {
         color: "#FFFFFF",
         fontSize: 13,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
     },
     mockBtn: {
         backgroundColor: "#EFF6FF",
@@ -787,7 +793,7 @@ const styles = StyleSheet.create({
     mockBtnText: {
         color: "#00529B",
         fontSize: 12,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     loadingOverlay: {
         position: "absolute",
@@ -805,13 +811,13 @@ const styles = StyleSheet.create({
     loadingTitle: {
         color: "#FFFFFF",
         fontSize: 16,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         textAlign: "center",
     },
     loadingSubtitle: {
         color: "#0165FF",
         fontSize: 12,
-        fontWeight: "500",
+        fontFamily: "NotoSans_500Medium",
         textAlign: "center",
     },
 });

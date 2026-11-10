@@ -80,7 +80,7 @@ export default function AssignPilotsScreen() {
         const isUpdating = updatingPilotId === pilotUid;
 
         return (
-            <View className="bg-brand-white border border-slate-100 rounded-2xl p-5 mb-4 shadow-sm">
+            <View className="bg-brand-white border border-slate-100 rounded-2xl p-5 mb-4">
                 <View className="flex-row items-center justify-between">
                     {/* Pilot Info */}
                     <View className="flex-1 pr-3">
@@ -90,7 +90,7 @@ export default function AssignPilotsScreen() {
                         <ThemedText type="caption" className="text-slate-500 mt-0.5">
                             {item.user?.email}
                         </ThemedText>
-                        <View className="flex-row items-center gap-2 mt-2">
+                        <View className="flex-row items-center mt-2" style={{ gap: 8 }}>
                             {item.aeronautical?.licence_type ? (
                                 <View className="bg-slate-100 px-2.5 py-0.5 rounded-md">
                                     <ThemedText
@@ -102,7 +102,7 @@ export default function AssignPilotsScreen() {
                                 </View>
                             ) : null}
                             {item.isEncargado ? (
-                                <View className="bg-brand-gold/15 px-2.5 py-0.5 rounded-md border border-brand-gold/20">
+                                <View className="bg-[rgba(1,101,255,0.15)] px-2.5 py-0.5 rounded-md border border-[rgba(1,101,255,0.2)]">
                                     <ThemedText
                                         type="caption"
                                         className="text-xs font-bold text-brand-gold"
@@ -149,7 +149,7 @@ export default function AssignPilotsScreen() {
                                 });
                             }
                         }}
-                        className="flex-row items-center bg-slate-100 px-3.5 py-1.5 rounded-xl gap-1.5"
+                        className="flex-row items-center bg-slate-100 px-3.5 py-1.5 rounded-xl" style={{ gap: 6 }}
                         activeOpacity={0.7}
                     >
                         <Ionicons name="person-circle-outline" size={18} color="#030436" />

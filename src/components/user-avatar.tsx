@@ -49,11 +49,11 @@ export default function UserAvatar({
     <>
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
-        className="flex-row items-center gap-3 active:opacity-80"
+        className="flex-row items-center active:opacity-80" style={{ gap: 12 }}
       >
         <View
           style={{ width: size, height: size }}
-          className={`rounded-full items-center justify-center shadow-sm ${bgClassName}`}
+          className={`rounded-full items-center justify-center  ${bgClassName}`}
         >
           <ThemedText className={`font-semibold text-base ${textClassName}`}>
             {userInitial}
@@ -84,7 +84,7 @@ export default function UserAvatar({
         >
           <View className="flex-1 justify-end">
             <View
-              className="bg-white rounded-t-3xl p-6 shadow-xl border-t border-slate-100"
+              className="bg-white rounded-t-3xl p-6 border-t border-slate-100"
               onStartShouldSetResponder={() => true}
               onTouchEnd={(e) => e.stopPropagation()}
             >
@@ -103,7 +103,7 @@ export default function UserAvatar({
                 <ThemedText className="text-sm text-slate-500">
                   {user?.email}
                 </ThemedText>
-                <View className="mt-2 bg-brand-gold/15 px-3 py-1 rounded-full">
+                <View className="mt-2 bg-[rgba(1,101,255,0.15)] px-3 py-1 rounded-full">
                   <ThemedText className="text-brand-gold text-xs font-semibold uppercase tracking-wider">
                     {getRoleLabel()}
                   </ThemedText>
@@ -116,7 +116,7 @@ export default function UserAvatar({
                   <ThemedText className="text-xs font-bold text-slate-400 mb-3 text-center uppercase tracking-wider">
                     Cambiar Perfil
                   </ThemedText>
-                  <View className="flex-row flex-wrap justify-center gap-2">
+                  <View className="flex-row flex-wrap justify-center" style={{ gap: 8 }}>
                     {roles.map((r) => {
                       const isActive = r === role;
                       return (
@@ -206,7 +206,7 @@ const avatarStyles = StyleSheet.create({
   },
   ownersButtonText: {
     color: "#030436",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     fontSize: 14,
   },
 });

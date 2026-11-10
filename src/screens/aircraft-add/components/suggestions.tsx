@@ -34,7 +34,7 @@ export function AircraftTypeSuggestions({
 }) {
     return (
 
-        <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 gap-4 mb-4">
+        <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
             <ThemedText className="font-semibold text-brand-blue text-sm">
                 Buscar tipo de avión por código OACI
             </ThemedText>
@@ -80,7 +80,7 @@ export function AircraftTypeSuggestions({
 
                 {/* Autocomplete Suggestions Dropdown */}
                 {showSuggestions && (
-                    <View className="absolute top-[52px] left-0 right-0 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-lg max-h-48 z-50">
+                    <View className="absolute top-[52px] left-0 right-0 bg-white border border-slate-200 rounded-xl overflow-hidden max-h-48 z-50">
                         <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
                             {templates
                                 .filter(
@@ -144,9 +144,9 @@ export function AircraftTypeSuggestions({
                                                 setSelectedTemplateName("");
                                                 setShowSuggestions(false);
                                             }}
-                                            className="bg-brand-gold/10 border border-brand-gold/20 px-4 py-2.5 rounded-xl items-center"
+                                            className="bg-[rgba(1,101,255,0.1)] border border-[rgba(1,101,255,0.2)] px-4 py-2.5 rounded-xl items-center"
                                         >
-                                            <View className="flex-row items-center gap-2">
+                                            <View className="flex-row items-center" style={{ gap: 8 }}>
                                                 <Ionicons
                                                     name="add-circle-outline"
                                                     size={20}

@@ -83,12 +83,13 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     labelItem: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13.5,
         color: "#52647A",
     },
     labelBold: {
         color: "#091626",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     trackWrapper: {
         position: "relative",
@@ -129,11 +130,12 @@ const styles = StyleSheet.create({
         width: 72,
         textAlign: "center",
         fontSize: 10,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         letterSpacing: 0.7,
         color: "#52647A",
     },
     noteText: {
+        fontFamily: "NotoSans_400Regular",
         marginTop: 6,
         fontSize: 13,
         color: "#52647A",

@@ -332,6 +332,7 @@ const styles = StyleSheet.create({
         backgroundColor: BRAND_COLORS.azur,
     },
     eyebrowText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         letterSpacing: 1.1,
         color: BRAND_COLORS.textMuted,
@@ -344,16 +345,19 @@ const styles = StyleSheet.create({
         marginTop: 14,
     },
     totalPrefix: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         letterSpacing: 1,
         color: BRAND_COLORS.textMuted,
     },
     totalNumber: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 40,
         letterSpacing: -1,
         color: BRAND_COLORS.navy,
     },
     totalGs: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14.5,
         color: BRAND_COLORS.textMuted,
         marginTop: 6,
@@ -386,6 +390,7 @@ const styles = StyleSheet.create({
         backgroundColor: NEG,
     },
     pillText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12.5,
     },
     posText: {
@@ -395,17 +400,20 @@ const styles = StyleSheet.create({
         color: NEG,
     },
     noneText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 26,
         color: BRAND_COLORS.textMuted,
         marginTop: 14,
     },
     narrative: {
+        fontFamily: "NotoSans_400Regular",
         marginTop: 12,
         color: BRAND_COLORS.textMuted,
         fontSize: 15,
         lineHeight: 23,
     },
     sectionHeader: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         letterSpacing: 1,
         color: BRAND_COLORS.textMuted,
@@ -440,20 +448,24 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     kindText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10.5,
         letterSpacing: 0.8,
         color: BRAND_COLORS.textMuted,
     },
     cardTitle: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 15,
         color: BRAND_COLORS.navy,
     },
     cardSub: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12.5,
         color: BRAND_COLORS.textMuted,
         marginTop: 3,
     },
     cardDue: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12.5,
         color: BRAND_COLORS.textMuted,
         marginTop: 6,
@@ -468,10 +480,12 @@ const styles = StyleSheet.create({
         alignItems: "flex-end",
     },
     cardAmount: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 17,
         color: BRAND_COLORS.navy,
     },
     cardGs: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11.5,
         color: BRAND_COLORS.textMuted,
         marginTop: 3,
@@ -493,6 +507,7 @@ const styles = StyleSheet.create({
         borderRadius: BRAND_RADII.pill,
     },
     payBtnText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 13.5,
     },
@@ -506,6 +521,7 @@ const styles = StyleSheet.create({
         borderRadius: BRAND_RADII.pill,
     },
     ghostBtnText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.azur,
         fontSize: 13,
     },
@@ -517,6 +533,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     undoBtnText: {
+        fontFamily: "NotoSans_400Regular",
         color: NEG,
         fontSize: 13,
     },
@@ -537,23 +554,27 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     navArrowText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 20,
         color: BRAND_COLORS.textMuted,
         lineHeight: 22,
     },
     navLabel: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 15.5,
         color: BRAND_COLORS.navy,
         minWidth: 180,
         textAlign: "center",
     },
     emptyText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14,
         color: BRAND_COLORS.textMuted,
         lineHeight: 21,
         paddingVertical: 12,
     },
     footer: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13.5,
         color: BRAND_COLORS.textMuted,
         marginTop: 16,

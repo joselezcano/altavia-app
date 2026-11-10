@@ -211,7 +211,7 @@ export default function PilotsScreen() {
     const licenceType = item.aeronautical.licence_type;
 
     return (
-      <View className="bg-brand-white border border-slate-100 rounded-2xl p-5 mb-4 shadow-sm">
+      <View className="bg-brand-white border border-slate-100 rounded-2xl p-5 mb-4">
         <View className="flex-row justify-between items-start mb-3">
           <View className="flex-1 pr-2">
             <ThemedText className="font-bold text-lg text-brand-blue">
@@ -231,7 +231,7 @@ export default function PilotsScreen() {
         </View>
 
         {/* Aeronautical Badges */}
-        <View className="flex-row flex-wrap gap-4 mb-3">
+        <View className="flex-row flex-wrap mb-3" style={{ gap: 16 }}>
           {licenceType ? (
             <View className="bg-slate-100 px-2.5 py-1 rounded-md justify-center">
               <ThemedText type="caption" className="text-xs font-semibold text-slate-700">
@@ -250,7 +250,7 @@ export default function PilotsScreen() {
                 });
               }
             }}
-            className="flex-row items-center bg-slate-100 px-3 py-1.5 rounded-xl gap-1"
+            className="flex-row items-center bg-slate-100 px-3 py-1.5 rounded-xl" style={{ gap: 4 }}
             activeOpacity={0.7}
           >
             <Ionicons name="person-circle-outline" size={16} color="#030436" />
@@ -261,13 +261,13 @@ export default function PilotsScreen() {
           </TouchableOpacity>
         </View>
 
-        <View className="flex-row items-center justify-between border-t border-slate-100 pt-3 mt-1 flex-wrap gap-2">
-          <View className="flex-row items-center gap-4 flex-wrap mb-1">
+        <View className="flex-row items-center justify-between border-t border-slate-100 pt-3 mt-1 flex-wrap" style={{ gap: 8 }}>
+          <View className="flex-row items-center flex-wrap mb-1" style={{ gap: 16 }}>
             {/* Toggle de Encargado */}
             <TouchableOpacity
               onPress={() => toggleEncargado(item)}
               className={`flex-row items-center px-3 py-1.5 rounded-full border ${item.isEncargado
-                ? "bg-brand-gold/15 border-brand-gold/30"
+                ? "bg-[rgba(1,101,255,0.15)] border-[rgba(1,101,255,0.3)]"
                 : "bg-slate-50 border-slate-200"
                 }`}
             >
@@ -314,11 +314,11 @@ export default function PilotsScreen() {
       />
 
       {/* Formulario Vincular Piloto */}
-      <View className="bg-brand-white border border-slate-100 rounded-2xl p-4 mb-6 shadow-sm">
+      <View className="bg-brand-white border border-slate-100 rounded-2xl p-4 mb-6">
         <ThemedText className="font-semibold text-brand-blue mb-2 text-sm">
           Vincular nuevo piloto
         </ThemedText>
-        <View className="flex-row gap-2">
+        <View className="flex-row" style={{ gap: 8 }}>
           <TextInput
             className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-brand-text font-medium text-sm"
             placeholder="ejemplo@piloto.com"
@@ -378,11 +378,11 @@ export default function PilotsScreen() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View className="flex-1 bg-black/50 justify-center items-center px-4">
-          <View className="bg-brand-white w-full max-h-[80%] rounded-2xl p-6 shadow-xl">
+        <View className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center px-4">
+          <View className="bg-brand-white w-full max-h-[80%] rounded-2xl p-6">
             <View className="flex-row justify-between items-center mb-4 border-b border-slate-100 pb-3">
               <View>
-                <View className="flex-row justify-between items-center gap-4 mb-3">
+                <View className="flex-row justify-between items-center mb-3" style={{ gap: 16 }}>
                   <ThemedText type="subtitle" className="text-brand-blue font-bold">
                     Asignar Aviones
                   </ThemedText>
@@ -411,7 +411,7 @@ export default function PilotsScreen() {
                       key={aircraft.id}
                       onPress={() => toggleAircraftAssignment(aircraft.id)}
                       className={`flex-row justify-between items-center p-4 mb-2 rounded-xl border ${isAssigned
-                        ? "bg-brand-blue/5 border-brand-blue"
+                        ? "bg-[rgba(3,4,54,0.05)] border-brand-blue"
                         : "bg-slate-50 border-slate-200"
                         }`}
                     >

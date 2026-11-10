@@ -1125,10 +1125,11 @@ const styles = StyleSheet.create({
     },
     monthText: {
         fontSize: 16,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     monthSubText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10,
         color: "#64748B",
     },
@@ -1152,7 +1153,7 @@ const styles = StyleSheet.create({
     },
     demoLabel: {
         fontSize: 12,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#334155",
     },
     // Aircraft Filter Chips
@@ -1180,7 +1181,7 @@ const styles = StyleSheet.create({
     },
     chipText: {
         fontSize: 12,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
     },
     chipTextActive: {
         color: "#FFFFFF",
@@ -1203,19 +1204,19 @@ const styles = StyleSheet.create({
     heroEyebrow: {
         fontSize: 11,
         color: "#0165FF",
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         letterSpacing: 1,
     },
     heroAmountUsd: {
         fontSize: 20,
-        fontWeight: "800",
+        fontFamily: "NotoSans_800ExtraBold",
         color: "#FFFFFF",
         marginTop: 4,
     },
     heroAmountGs: {
         fontSize: 13,
         color: "#94A3B8",
-        fontWeight: "500",
+        fontFamily: "NotoSans_500Medium",
         marginTop: 2,
     },
     variationBadge: {
@@ -1234,7 +1235,7 @@ const styles = StyleSheet.create({
     },
     variationText: {
         fontSize: 11,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
     },
     variationTextPositive: {
         color: "#166534",
@@ -1265,21 +1266,22 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: "#94A3B8",
         textTransform: "uppercase",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
     },
     heroTaxValue: {
         fontSize: 15,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#34D399",
         marginTop: 2,
     },
     heroTaxValueIva: {
         fontSize: 15,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#60A5FA",
         marginTop: 2,
     },
     heroTaxSub: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10,
         color: "#94A3B8",
         marginTop: 1,
@@ -1298,7 +1300,7 @@ const styles = StyleSheet.create({
     sifenTagText: {
         color: "#93C5FD",
         fontSize: 9,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
     },
     // KPI Grid
     kpiGrid: {
@@ -1356,21 +1358,22 @@ const styles = StyleSheet.create({
     },
     kpiNumber: {
         fontSize: 17,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     kpiUnit: {
         fontSize: 13,
         color: "#64748B",
-        fontWeight: "normal",
+        fontFamily: "NotoSans_400Regular",
     },
     kpiLabel: {
         fontSize: 11,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#334155",
         marginTop: 2,
     },
     kpiSub: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 9,
         color: "#94A3B8",
         marginTop: 2,
@@ -1397,12 +1400,12 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 14,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     sectionSubBadge: {
         fontSize: 11,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#0165FF",
         backgroundColor: "#FFFBEB",
         paddingHorizontal: 8,
@@ -1439,11 +1442,11 @@ const styles = StyleSheet.create({
     registrationText: {
         color: "#FFFFFF",
         fontSize: 10,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
     },
     aircraftModelText: {
         fontSize: 12,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#334155",
     },
     aircraftRevenueGroup: {
@@ -1451,10 +1454,11 @@ const styles = StyleSheet.create({
     },
     aircraftRevenueUsd: {
         fontSize: 13,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     aircraftRevenuePercent: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10,
         color: "#64748B",
     },
@@ -1475,6 +1479,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
     },
     aircraftStatItem: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10,
         color: "#94A3B8",
     },
@@ -1507,15 +1512,16 @@ const styles = StyleSheet.create({
     },
     paymentMethodName: {
         fontSize: 11,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#334155",
     },
     paymentMethodAmount: {
         fontSize: 15,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     paymentMethodTag: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 9,
         color: "#64748B",
         marginTop: 2,
@@ -1542,7 +1548,7 @@ const styles = StyleSheet.create({
     },
     exportButtonSmallText: {
         fontSize: 11,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     searchBar: {
@@ -1558,6 +1564,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     searchInput: {
+        fontFamily: "NotoSans_400Regular",
         flex: 1,
         fontSize: 12,
         color: "#030436",
@@ -1584,7 +1591,7 @@ const styles = StyleSheet.create({
     },
     statusTabText: {
         fontSize: 11,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
     },
     statusTabTextActive: {
         color: "#FFFFFF",
@@ -1599,11 +1606,12 @@ const styles = StyleSheet.create({
     },
     emptyLedgerTitle: {
         fontSize: 14,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#334155",
         marginTop: 10,
     },
     emptyLedgerSub: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: "#94A3B8",
         textAlign: "center",
@@ -1632,10 +1640,11 @@ const styles = StyleSheet.create({
     },
     flightDateText: {
         fontSize: 11,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     flightTimeText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: "#64748B",
     },
@@ -1655,7 +1664,7 @@ const styles = StyleSheet.create({
     },
     paymentBadgeText: {
         fontSize: 9,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
     },
     paymentBadgeTextPaid: {
         color: "#166534",
@@ -1683,10 +1692,11 @@ const styles = StyleSheet.create({
     },
     airportCode: {
         fontSize: 16,
-        fontWeight: "800",
+        fontFamily: "NotoSans_800ExtraBold",
         color: "#030436",
     },
     airportCity: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10,
         color: "#64748B",
         marginTop: 1,
@@ -1698,7 +1708,7 @@ const styles = StyleSheet.create({
     flightHoursTag: {
         fontSize: 9,
         color: "#0165FF",
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         marginTop: 2,
     },
     flightDetailsBar: {
@@ -1714,6 +1724,7 @@ const styles = StyleSheet.create({
         maxWidth: "48%",
     },
     detailText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10,
         color: "#475569",
     },
@@ -1739,14 +1750,15 @@ const styles = StyleSheet.create({
     invoiceTagText: {
         color: "#FFFFFF",
         fontSize: 8,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
     },
     invoiceNumberText: {
         fontSize: 11,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#065F46",
     },
     invoiceTimbradoText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 9,
         color: "#047857",
         marginTop: 2,
@@ -1761,10 +1773,11 @@ const styles = StyleSheet.create({
     },
     footerAmountUsd: {
         fontSize: 16,
-        fontWeight: "800",
+        fontFamily: "NotoSans_800ExtraBold",
         color: "#030436",
     },
     footerAmountGs: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10,
         color: "#64748B",
     },
@@ -1779,7 +1792,7 @@ const styles = StyleSheet.create({
     },
     viewInvoiceButtonText: {
         fontSize: 10,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#FFFFFF",
     },
     // Month Modal Styles (Strict React Native Native Components as per Rule 5)
@@ -1805,7 +1818,7 @@ const styles = StyleSheet.create({
     },
     modalTitle: {
         fontSize: 16,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     yearSelectorRow: {
@@ -1823,7 +1836,7 @@ const styles = StyleSheet.create({
     },
     yearTitleText: {
         fontSize: 16,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     monthsGrid: {
@@ -1846,7 +1859,7 @@ const styles = StyleSheet.create({
     },
     monthGridItemText: {
         fontSize: 13,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
     },
     monthGridItemTextActive: {
         color: "#FFFFFF",
@@ -1877,7 +1890,7 @@ const styles = StyleSheet.create({
     },
     topModeBtnText: {
         fontSize: 13,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#475569",
     },
     topModeBtnTextActive: {

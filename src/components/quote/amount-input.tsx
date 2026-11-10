@@ -65,14 +65,17 @@ const styles = StyleSheet.create({
         backgroundColor: "#F1F5F9",
     },
     prefix: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: "#94A3B8",
         marginRight: 6,
     },
     prefixLarge: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14,
     },
     input: {
+        fontFamily: "NotoSans_400Regular",
         flex: 1,
         fontSize: 14,
         color: BRAND_COLORS.navy,
@@ -80,6 +83,7 @@ const styles = StyleSheet.create({
         textAlign: "right",
     },
     inputLarge: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 20,
         paddingVertical: 10,
     },

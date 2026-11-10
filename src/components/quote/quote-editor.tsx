@@ -471,29 +471,35 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     muted: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: BRAND_COLORS.textMuted,
         flexShrink: 1,
     },
     value: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: BRAND_COLORS.navy,
     },
     warning: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: "#B45309",
         marginTop: 6,
     },
     sectionTitle: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14,
         color: BRAND_COLORS.navy,
     },
     inputLabel: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: BRAND_COLORS.navy,
         marginBottom: 2,
     },
     textInput: {
+        fontFamily: "NotoSans_400Regular",
         backgroundColor: BRAND_COLORS.white,
         borderWidth: 1,
         borderColor: BRAND_COLORS.border,
@@ -519,10 +525,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     itemLabel: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: BRAND_COLORS.navy,
     },
     itemDetail: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: BRAND_COLORS.textMuted,
         marginTop: 2,
@@ -538,10 +546,12 @@ const styles = StyleSheet.create({
         marginTop: 6,
     },
     suggestedText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: BRAND_COLORS.textMuted,
     },
     linkText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: BRAND_COLORS.azur,
     },
@@ -552,10 +562,12 @@ const styles = StyleSheet.create({
         marginTop: 6,
     },
     visibilityLabel: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: BRAND_COLORS.navy,
     },
     visibilityNote: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: BRAND_COLORS.textMuted,
         marginTop: 6,
@@ -580,6 +592,7 @@ const styles = StyleSheet.create({
         backgroundColor: BRAND_COLORS.surfaceTint,
     },
     addButtonText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: BRAND_COLORS.azur,
     },
@@ -593,6 +606,7 @@ const styles = StyleSheet.create({
         backgroundColor: BRAND_COLORS.white,
     },
     secondaryButtonText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: BRAND_COLORS.navy,
     },
@@ -604,6 +618,7 @@ const styles = StyleSheet.create({
         backgroundColor: BRAND_COLORS.azur,
     },
     primarySmallButtonText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: BRAND_COLORS.white,
     },
@@ -623,14 +638,17 @@ const styles = StyleSheet.create({
         marginVertical: 10,
     },
     totalLabel: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 15,
         color: BRAND_COLORS.navy,
     },
     totalValue: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 20,
         color: BRAND_COLORS.azur,
     },
     gsText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: GREEN,
         marginTop: 4,

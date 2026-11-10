@@ -502,20 +502,29 @@ const styles = StyleSheet.create({
     container: { marginVertical: 8 },
     pickerButton: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 14, backgroundColor: '#fff' },
     errorBorder: { borderColor: '#FF3B30' },
-    errorText: { color: '#FF3B30', fontSize: 12, marginTop: 4, marginLeft: 4 },
-    pickerButtonText: { fontSize: 16, color: '#333' },
-    secondaryAirportText: { fontSize: 12, color: '#666', marginTop: 12 },
-    airportTimezoneText: { fontSize: 12, color: '#999', marginTop: 6 },
+    errorText: {
+    fontFamily: "NotoSans_400Regular", color: '#FF3B30', fontSize: 12, marginTop: 4, marginLeft: 4 },
+    pickerButtonText: {
+    fontFamily: "NotoSans_400Regular", fontSize: 16, color: '#333' },
+    secondaryAirportText: {
+    fontFamily: "NotoSans_400Regular", fontSize: 12, color: '#666', marginTop: 12 },
+    airportTimezoneText: {
+    fontFamily: "NotoSans_400Regular", fontSize: 12, color: '#999', marginTop: 6 },
     modalContainer: { flex: 1, backgroundColor: '#fff' },
     header: { flexDirection: 'row', padding: 12, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eee' },
     searchInput: { flex: 1, height: 40, borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 12, backgroundColor: '#f9f9f9' },
     closeButton: { marginLeft: 12, padding: 8 },
-    closeButtonText: { color: '#007AFF', fontSize: 16 },
+    closeButtonText: {
+    fontFamily: "NotoSans_400Regular", color: '#007AFF', fontSize: 16 },
     itemRow: { flexDirection: 'row', padding: 14, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', alignItems: 'center' },
     codeBadge: { backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 6, minWidth: 62, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-    itemCode: { fontWeight: 'bold', fontSize: 13, color: '#007AFF' },
+    itemCode: {
+    fontFamily: "NotoSans_400Regular", fontWeight: 'bold', fontSize: 13, color: '#007AFF' },
     itemTextContainer: { flex: 1 },
-    itemCity: { fontSize: 15, fontWeight: '700', color: '#0F172A' },
-    itemName: { fontSize: 13, color: '#64748B', marginTop: 2 },
-    emptyText: { textAlign: 'center', color: '#999', marginTop: 40, fontSize: 15 },
+    itemCity: {
+    fontFamily: "NotoSans_400Regular", fontSize: 15, fontWeight: '700', color: '#0F172A' },
+    itemName: {
+    fontFamily: "NotoSans_400Regular", fontSize: 13, color: '#64748B', marginTop: 2 },
+    emptyText: {
+    fontFamily: "NotoSans_400Regular", textAlign: 'center', color: '#999', marginTop: 40, fontSize: 15 },
 });

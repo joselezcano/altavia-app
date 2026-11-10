@@ -193,11 +193,13 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     topEyebrow: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.crystal,
         fontSize: 11,
         letterSpacing: 2,
     },
     topCounter: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 11,
         marginTop: 2,
@@ -208,11 +210,13 @@ const styles = StyleSheet.create({
         alignItems: "flex-start",
     },
     routeCode: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 34,
         letterSpacing: 1,
     },
     routeCity: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.crystal,
         fontSize: 12,
         marginTop: 2,
@@ -251,12 +255,14 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     label: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.textMuted,
         fontSize: 10,
         letterSpacing: 1.2,
         marginBottom: 3,
     },
     value: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.navy,
         fontSize: 14,
     },
@@ -270,6 +276,7 @@ const styles = StyleSheet.create({
         paddingVertical: 7,
     },
     returnText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.navy,
         fontSize: 12,
         flex: 1,
@@ -328,11 +335,13 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     qrPlaceholderText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.textMuted,
         fontSize: 12,
         textAlign: "center",
     },
     qrHint: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.textMuted,
         fontSize: 12,
         textAlign: "center",
@@ -349,6 +358,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#D1FAE5",
     },
     statusText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
     },
 });

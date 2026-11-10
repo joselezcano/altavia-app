@@ -290,6 +290,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     headerTitle: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 19,
         color: BRAND_COLORS.navy,
     },
@@ -302,6 +303,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     closeBtnText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 22,
         color: BRAND_COLORS.textMuted,
         lineHeight: 24,
@@ -316,10 +318,12 @@ const styles = StyleSheet.create({
         marginBottom: 18,
     },
     summaryConcept: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 15,
         color: BRAND_COLORS.navy,
     },
     summarySub: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: BRAND_COLORS.textMuted,
         marginTop: 3,
@@ -332,14 +336,17 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     summaryAmount: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 24,
         color: BRAND_COLORS.navy,
     },
     summaryGs: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: BRAND_COLORS.textMuted,
     },
     summaryDue: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: BRAND_COLORS.textMuted,
         marginTop: 6,
@@ -351,17 +358,20 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     label: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14.5,
         color: BRAND_COLORS.navy,
         marginBottom: 8,
     },
     hint: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: BRAND_COLORS.textMuted,
         marginTop: 7,
         lineHeight: 19,
     },
     input: {
+        fontFamily: "NotoSans_400Regular",
         backgroundColor: BRAND_COLORS.white,
         color: BRAND_COLORS.navy,
         borderWidth: 1.5,
@@ -392,6 +402,7 @@ const styles = StyleSheet.create({
         borderRadius: BRAND_RADII.input,
     },
     chipText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.azur,
         fontSize: 14,
     },
@@ -413,6 +424,7 @@ const styles = StyleSheet.create({
         borderColor: BRAND_COLORS.azur,
     },
     methodChipText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14,
         color: BRAND_COLORS.navy,
     },
@@ -432,6 +444,7 @@ const styles = StyleSheet.create({
         backgroundColor: BRAND_COLORS.backgroundAlt,
     },
     photoBtnText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14,
         color: BRAND_COLORS.azur,
     },
@@ -446,6 +459,7 @@ const styles = StyleSheet.create({
         backgroundColor: BRAND_COLORS.backgroundAlt,
     },
     linkText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13.5,
         color: "#BC3324",
     },
@@ -461,6 +475,7 @@ const styles = StyleSheet.create({
         borderRadius: BRAND_RADII.pill,
     },
     cancelBtnText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.textMuted,
         fontSize: 15,
     },
@@ -476,6 +491,7 @@ const styles = StyleSheet.create({
         opacity: 0.7,
     },
     saveBtnText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 15.5,
     },

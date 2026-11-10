@@ -45,7 +45,7 @@ export default function AircraftDetailsScreen() {
                 </ThemedText>
                 <TouchableOpacity
                     onPress={() => router.back()}
-                    className="bg-brand-blue px-6 py-2.5 rounded-xl flex-row items-center gap-2"
+                    className="bg-brand-blue px-6 py-2.5 rounded-xl flex-row items-center" style={{ gap: 8 }}
                 >
                     <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
                     <ThemedText className="text-white font-semibold">Regresar</ThemedText>

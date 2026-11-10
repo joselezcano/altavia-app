@@ -317,7 +317,7 @@ export default function DayScheduleScreen() {
                             },
                         });
                     }}
-                    className="flex-row items-center p-1 bg-slate-50 border border-slate-200/80 rounded-xl px-2.5 py-1.5"
+                    className="flex-row items-center p-1 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5"
                     activeOpacity={0.7}
                 >
                     <Ionicons name="add" size={24} color="#0165FF" />
@@ -333,7 +333,7 @@ export default function DayScheduleScreen() {
 
 
             {/* 24 Hours Timeline */}
-            <ScrollView showsVerticalScrollIndicator={false} className="flex-1 mb-2 bg-white rounded-3xl border border-slate-100 p-4 shadow-sm">
+            <ScrollView showsVerticalScrollIndicator={false} className="flex-1 mb-2 bg-white rounded-3xl border border-slate-100 p-4">
                 <View className="flex-row relative">
                     {/* Left Side: Hour Labels */}
                     <View className="w-12 pr-2">
@@ -371,12 +371,12 @@ export default function DayScheduleScreen() {
                                     });
                                 }}
                                 style={{ height: ROW_HEIGHT }}
-                                className="border-t border-slate-100/80 w-full justify-center"
+                                className="border-t border-slate-100 w-full justify-center"
                                 activeOpacity={0.5}
                             />
                         ))}
                         {/* Last bottom boundary line */}
-                        <View className="border-t border-slate-100/80 w-full" />
+                        <View className="border-t border-slate-100 w-full" />
 
                         {/* Overlaid Availability Blocks */}
                         {matchingAvailabilities.map((avail) => {
@@ -414,7 +414,7 @@ export default function DayScheduleScreen() {
                                         paddingHorizontal: 10,
                                         paddingVertical: 8,
                                     }}
-                                    className="flex-row justify-between items-start shadow-sm"
+                                    className="flex-row justify-between items-start"
                                 >
                                     <TouchableOpacity
                                         activeOpacity={0.8}
@@ -433,7 +433,7 @@ export default function DayScheduleScreen() {
                                         className="flex-1 justify-center mr-1"
                                     >
                                         {/* Top Row: Time Range + Short Repetition Indicator next to it */}
-                                        <View className="flex-row items-center flex-wrap gap-1.5">
+                                        <View className="flex-row items-center flex-wrap" style={{ gap: 6 }}>
                                             <Ionicons name="time-outline" size={13} color={theme.accent} />
                                             <ThemedText style={{ color: theme.text }} className="font-bold text-xs">
                                                 {avail.start_time} - {avail.end_time}
@@ -453,7 +453,7 @@ export default function DayScheduleScreen() {
                                         </View>
 
                                         {/* Reason Row */}
-                                        <View className="flex-row items-center gap-1 mt-0.5">
+                                        <View className="flex-row items-center mt-0.5" style={{ gap: 4 }}>
                                             <Ionicons name={theme.iconName} size={12} color={theme.accent} />
                                             <ThemedText style={{ color: theme.text }} className="font-semibold text-xs">
                                                 {theme.label}
@@ -472,7 +472,7 @@ export default function DayScheduleScreen() {
                                         )}
                                     </TouchableOpacity>
 
-                                    <View className="flex-row items-center gap-1">
+                                    <View className="flex-row items-center" style={{ gap: 4 }}>
                                         <TouchableOpacity
                                             onPress={() => {
                                                 router.push({
@@ -486,7 +486,7 @@ export default function DayScheduleScreen() {
                                                     },
                                                 });
                                             }}
-                                            className="p-1 rounded-lg bg-white/80 border border-slate-200/60"
+                                            className="p-1 rounded-lg bg-[rgba(255,255,255,0.8)] border border-slate-200"
                                         >
                                             <Ionicons name="pencil" size={13} color="#030436" />
                                         </TouchableOpacity>

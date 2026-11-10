@@ -435,11 +435,13 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     headerEyebrow: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.crystal,
         fontSize: 10,
         letterSpacing: 2,
     },
     headerTitle: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 18,
     },
@@ -454,11 +456,13 @@ const styles = StyleSheet.create({
         backgroundColor: "#000",
     },
     permissionTitle: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 16,
         textAlign: "center",
     },
     permissionText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.crystal,
         fontSize: 13,
         textAlign: "center",
@@ -474,6 +478,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     permissionButtonText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 15,
     },
@@ -503,6 +508,7 @@ const styles = StyleSheet.create({
     cornerBL: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 12 },
     cornerBR: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 12 },
     frameHint: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 13,
         backgroundColor: "rgba(3,4,54,0.6)",
@@ -532,6 +538,7 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     overlayText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 14,
     },
@@ -547,17 +554,20 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     resultTitle: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 24,
         textAlign: "center",
     },
     resultName: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 20,
         textAlign: "center",
         marginTop: 4,
     },
     resultDetail: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 13,
         textAlign: "center",
@@ -571,9 +581,11 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
     },
     resultButtonText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14,
     },
     blockedText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 14,
         textAlign: "center",
@@ -593,11 +605,13 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
     },
     counterLabel: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.azur,
         fontSize: 10,
         letterSpacing: 1.5,
     },
     counterValue: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.navy,
         fontSize: 22,
     },
@@ -610,6 +624,7 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
     },
     pillText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
     },
     progressTrack: {
@@ -624,6 +639,7 @@ const styles = StyleSheet.create({
         backgroundColor: SUCCESS,
     },
     emptyText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.textMuted,
         fontSize: 13,
         textAlign: "center",
@@ -651,14 +667,17 @@ const styles = StyleSheet.create({
         backgroundColor: BRAND_COLORS.backgroundAlt,
     },
     paxName: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.navy,
         fontSize: 14,
     },
     paxDoc: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.textMuted,
         fontSize: 12,
     },
     paxStatus: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
     },
 });

@@ -34,28 +34,28 @@ export default function AdminDashboard() {
       title: "Modelos Base",
       value: templates.length,
       icon: "airplane-outline" as const,
-      color: "bg-blue-500/10 text-blue-600",
+      color: "bg-[rgba(59,130,246,0.1)] text-blue-600",
       route: "/(admin)/templates",
     },
     {
       title: "Flota Activa",
       value: aircrafts.length,
       icon: "key-outline" as const,
-      color: "bg-emerald-500/10 text-emerald-600",
+      color: "bg-[rgba(16,185,129,0.1)] text-emerald-600",
       route: "/(admin)/fleet-pricing",
     },
     {
       title: "Vuelos Reservados",
       value: reservations.length,
       icon: "calendar-outline" as const,
-      color: "bg-amber-500/10 text-amber-600",
+      color: "bg-[rgba(245,158,11,0.1)] text-amber-600",
       route: "/(admin)/reservations",
     },
     {
       title: "Pilotos Activos",
       value: 6, // Mocked for CRM presentation
       icon: "people-outline" as const,
-      color: "bg-purple-500/10 text-purple-600",
+      color: "bg-purple-500 text-purple-600",
       route: null,
     },
   ];
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
     <ThemedView className="flex-1 bg-brand-light">
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-4 pt-4">
         {/* Welcome Banner */}
-        <View className="bg-brand-blue rounded-3xl p-5 mb-6 shadow-md relative overflow-hidden">
+        <View className="bg-brand-blue rounded-3xl p-5 mb-6 relative overflow-hidden">
           <View className="absolute right-[-20px] bottom-[-20px] opacity-10">
             <Ionicons name="pie-chart" size={150} color="#FFFFFF" />
           </View>
@@ -119,14 +119,14 @@ export default function AdminDashboard() {
         <ThemedText className="font-bold text-slate-700 text-base mb-3 px-1">
           Estadísticas de la Plataforma
         </ThemedText>
-        <View className="flex-row flex-wrap justify-between gap-4 mb-6">
+        <View className="flex-row flex-wrap justify-between mb-6" style={{ gap: 16 }}>
           {stats.map((stat, idx) => (
             <TouchableOpacity
               key={idx}
               onPress={() => stat.route && router.push(stat.route as any)}
               disabled={!stat.route}
               style={{ width: "47%" }}
-              className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm justify-between active:scale-98"
+              className="bg-white p-4 rounded-2xl border border-slate-100 justify-between active:scale-98"
             >
               <View className="flex-row justify-between items-center mb-3">
                 <View className={`w-9 h-9 rounded-xl items-center justify-center ${stat.color.split(" ")[0]}`}>
@@ -156,10 +156,10 @@ export default function AdminDashboard() {
         {/* Primary CTA: Despacho Telefónico */}
         <TouchableOpacity
           onPress={() => router.push("/(admin)/new-booking")}
-          className="bg-brand-blue p-4 rounded-2xl shadow-sm flex-row items-center justify-between mb-3"
+          className="bg-brand-blue p-4 rounded-2xl flex-row items-center justify-between mb-3"
           activeOpacity={0.8}
         >
-          <View className="flex-row items-center gap-3">
+          <View className="flex-row items-center" style={{ gap: 12 }}>
             <View className="w-10 h-10 rounded-xl bg-brand-gold items-center justify-center">
               <Ionicons name="paper-plane" size={20} color="#030436" />
             </View>
@@ -171,12 +171,12 @@ export default function AdminDashboard() {
           <Ionicons name="arrow-forward" size={18} color="#0165FF" />
         </TouchableOpacity>
 
-        <View className="flex-row gap-3 mb-6">
+        <View className="flex-row mb-6" style={{ gap: 12 }}>
           <TouchableOpacity
             onPress={() => router.push("/(admin)/reservations")}
-            className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex-row items-center gap-3 active:bg-slate-50"
+            className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 flex-row items-center active:bg-slate-50" style={{ gap: 12 }}
           >
-            <View className="w-10 h-10 rounded-xl bg-brand-gold/15 items-center justify-center flex-shrink-0">
+            <View className="w-10 h-10 rounded-xl bg-[rgba(1,101,255,0.15)] items-center justify-center flex-shrink-0">
               <Ionicons name="calendar" size={20} color="#0165FF" />
             </View>
             <View className="flex-1 flex-shrink">
@@ -187,9 +187,9 @@ export default function AdminDashboard() {
 
           <TouchableOpacity
             onPress={() => router.push("/(admin)/fleet-pricing")}
-            className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex-row items-center gap-3 active:bg-slate-50"
+            className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 flex-row items-center active:bg-slate-50" style={{ gap: 12 }}
           >
-            <View className="w-10 h-10 rounded-xl bg-brand-gold/15 items-center justify-center flex-shrink-0">
+            <View className="w-10 h-10 rounded-xl bg-[rgba(1,101,255,0.15)] items-center justify-center flex-shrink-0">
               <Ionicons name="cash" size={20} color="#0165FF" />
             </View>
             <View className="flex-1 flex-shrink">
@@ -211,14 +211,14 @@ export default function AdminDashboard() {
           </TouchableOpacity>
         </View>
 
-        <View className="gap-3 mb-10">
+        <View className="mb-10" style={{ gap: 12 }}>
           {recentFlights.map((flight) => (
             <View
               key={flight.id}
-              className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex-row justify-between items-center"
+              className="bg-white p-4 rounded-2xl border border-slate-100 flex-row justify-between items-center"
             >
               <View className="flex-1">
-                <View className="flex-row items-center gap-2 mb-1">
+                <View className="flex-row items-center mb-1" style={{ gap: 8 }}>
                   <ThemedText className="font-bold text-brand-blue text-sm">
                     {flight.route}
                   </ThemedText>

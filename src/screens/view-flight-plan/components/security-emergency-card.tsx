@@ -20,8 +20,8 @@ export const SecurityEmergencyCard = ({
     dinghies_capacity: DinghiesCapacity;
 }) => {
     return (
-        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
-            <View className="flex-row items-center gap-2 mb-3">
+        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200">
+            <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
                 <Ionicons name="shield-checkmark-outline" size={20} color="#030436" />
                 <ThemedText type="subtitle" className="font-bold text-brand-blue">
                     Seguridad y Emergencia

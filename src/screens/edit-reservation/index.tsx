@@ -544,13 +544,13 @@ const styles = StyleSheet.create({
     headerEyebrow: {
         fontSize: 10,
         color: BRAND_GOLD,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         letterSpacing: 1,
         textTransform: "uppercase",
     },
     headerTitle: {
         fontSize: 18,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_BLUE,
     },
     card: {
@@ -568,10 +568,11 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         fontSize: 15,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_BLUE,
     },
     cardSubtitle: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: "#64748B",
         marginTop: 2,
@@ -588,6 +589,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     infoBoxText: {
+        fontFamily: "NotoSans_400Regular",
         flex: 1,
         fontSize: 12,
         color: "#92400e",
@@ -596,15 +598,16 @@ const styles = StyleSheet.create({
     readOnlyText: {
         fontSize: 13,
         color: "#334155",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
     },
     inputLabel: {
         fontSize: 12,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_BLUE,
         marginBottom: 4,
     },
     helperText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: "#64748B",
         marginTop: 4,
@@ -641,7 +644,7 @@ const styles = StyleSheet.create({
     },
     paxCountValue: {
         fontSize: 14,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_BLUE,
     },
     quoteBox: {
@@ -660,13 +663,14 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     quoteLabel: {
+        fontFamily: "NotoSans_400Regular",
         flex: 1,
         fontSize: 12,
         color: "#64748B",
     },
     quoteValue: {
         fontSize: 12,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: BRAND_BLUE,
     },
     hangarInput: {
@@ -687,12 +691,12 @@ const styles = StyleSheet.create({
     suggestedTitle: {
         flex: 1,
         fontSize: 13,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_BLUE,
     },
     suggestedValue: {
         fontSize: 16,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_GOLD,
     },
     priceLabelRow: {
@@ -704,7 +708,7 @@ const styles = StyleSheet.create({
     linkText: {
         fontSize: 11,
         color: "#00529B",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
     },
     priceInputWrapper: {
         flexDirection: "row",
@@ -717,26 +721,26 @@ const styles = StyleSheet.create({
     },
     priceCurrencySymbol: {
         fontSize: 22,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_BLUE,
         marginRight: 6,
     },
     priceTextInput: {
         flex: 1,
         fontSize: 22,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_BLUE,
         paddingVertical: 10,
     },
     priceCurrencyBadge: {
         fontSize: 13,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#94A3B8",
     },
     pygText: {
         fontSize: 12,
         color: "#059669",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         marginTop: 4,
     },
     saveButton: {
@@ -754,7 +758,7 @@ const styles = StyleSheet.create({
     },
     saveButtonText: {
         color: "#FFFFFF",
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         fontSize: 14,
     },
 });

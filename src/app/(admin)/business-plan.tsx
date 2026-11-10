@@ -200,11 +200,15 @@ const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: FIN_COLORS.light },
     content: { padding: 16, paddingBottom: 48 },
     center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: FIN_COLORS.light },
-    muted: { color: FIN_COLORS.muted, fontSize: 13 },
+    muted: {
+    fontFamily: "NotoSans_400Regular", color: FIN_COLORS.muted, fontSize: 13 },
     banner: { backgroundColor: FIN_COLORS.blue, borderRadius: 20, padding: 16, flexDirection: "row" },
-    bannerKicker: { color: FIN_COLORS.gold, fontSize: 11, fontWeight: "800", letterSpacing: 1.5 },
-    bannerTitle: { color: "#FFFFFF", fontSize: 18, fontWeight: "700", marginTop: 4 },
-    bannerSub: { color: "#CBD5E1", fontSize: 12, marginTop: 4 },
+    bannerKicker: {
+    fontFamily: "NotoSans_400Regular", color: FIN_COLORS.gold, fontSize: 11, fontWeight: "800", letterSpacing: 1.5 },
+    bannerTitle: {
+    fontFamily: "NotoSans_400Regular", color: "#FFFFFF", fontSize: 18, fontWeight: "700", marginTop: 4 },
+    bannerSub: {
+    fontFamily: "NotoSans_400Regular", color: "#CBD5E1", fontSize: 12, marginTop: 4 },
     actions: { flexDirection: "row", gap: 10, marginTop: 12, flexWrap: "wrap" },
     editBtn: {
         flexDirection: "row",
@@ -215,7 +219,8 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 12,
     },
-    editText: { color: "#FFFFFF", fontWeight: "700", fontSize: 13 },
+    editText: {
+    fontFamily: "NotoSans_400Regular", color: "#FFFFFF", fontWeight: "700", fontSize: 13 },
     aiBtn: {
         flexDirection: "row",
         alignItems: "center",
@@ -228,5 +233,6 @@ const styles = StyleSheet.create({
         borderColor: FIN_COLORS.border,
         opacity: 0.7,
     },
-    aiText: { color: FIN_COLORS.muted, fontWeight: "600", fontSize: 13 },
+    aiText: {
+    fontFamily: "NotoSans_400Regular", color: FIN_COLORS.muted, fontWeight: "600", fontSize: 13 },
 });

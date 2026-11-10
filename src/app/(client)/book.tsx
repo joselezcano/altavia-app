@@ -164,7 +164,7 @@ export default function ClientDashboard() {
       <ThemedView className="flex-1 px-4 pt-2">
         {/* Top Header with Back Button, Greeting & Avatar */}
         <View className="flex-row justify-between items-center mb-4">
-          <View className="flex-row items-center gap-3">
+          <View className="flex-row items-center" style={{ gap: 12 }}>
             <TouchableOpacity
               onPress={() => {
                 if (currentStep === 2) {
@@ -175,7 +175,7 @@ export default function ClientDashboard() {
                   router.push("/(client)");
                 }
               }}
-              className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
+              className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200"
               activeOpacity={0.7}
             >
               <Ionicons name="arrow-back" size={20} color="#030436" />
@@ -198,7 +198,7 @@ export default function ClientDashboard() {
         </View>
 
         {/* Step Indicator Header */}
-        <View className="flex-row justify-between mb-4 px-4 bg-white py-3 rounded-2xl border border-slate-100 shadow-sm">
+        <View className="flex-row justify-between mb-4 px-4 bg-white py-3 rounded-2xl border border-slate-100">
           {[1, 2].map((step) => (
             <View key={step} className="items-center flex-1">
               <View
@@ -226,7 +226,7 @@ export default function ClientDashboard() {
         <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
           {/* STEP 1: Route & Passenger Capacity */}
           {currentStep === 1 && (
-            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
+            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-1">
                 1. Selecciona tu Ruta y Pasajeros
               </ThemedText>
@@ -297,8 +297,8 @@ export default function ClientDashboard() {
                     const count = typeof value === "number" && !isNaN(value) && value >= 1 ? value : 1;
                     return (
                       <View className="flex-row items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
-                        <View className="flex-row items-center gap-2.5 flex-1 mr-2">
-                          <View className="w-9 h-9 rounded-full bg-brand-blue/10 items-center justify-center">
+                        <View className="flex-row items-center flex-1 mr-2" style={{ gap: 10 }}>
+                          <View className="w-9 h-9 rounded-full bg-[rgba(3,4,54,0.1)] items-center justify-center">
                             <Ionicons name="people" size={18} color="#030436" />
                           </View>
                           <View className="flex-1">
@@ -311,7 +311,7 @@ export default function ClientDashboard() {
                           </View>
                         </View>
 
-                        <View className="flex-row items-center gap-2.5">
+                        <View className="flex-row items-center" style={{ gap: 10 }}>
                           <TouchableOpacity
                             onPress={() => {
                               if (count > 1) {
@@ -403,7 +403,7 @@ export default function ClientDashboard() {
 
               <TouchableOpacity
                 onPress={handleNext}
-                className="bg-brand-blue py-3.5 rounded-xl items-center justify-center mt-2 shadow-sm"
+                className="bg-brand-blue py-3.5 rounded-xl items-center justify-center mt-2"
                 activeOpacity={0.8}
               >
                 <ThemedText className="text-white font-bold">Seleccionar Horario</ThemedText>
@@ -413,7 +413,7 @@ export default function ClientDashboard() {
 
           {/* STEP 2: Dates & Schedule */}
           {currentStep === 2 && (
-            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
+            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-1">
                 2. Selecciona Fechas del Vuelo
               </ThemedText>
@@ -468,7 +468,7 @@ export default function ClientDashboard() {
                 </View>
               )}
 
-              <View className="flex-row gap-3 mt-2">
+              <View className="flex-row mt-2" style={{ gap: 12 }}>
                 <TouchableOpacity
                   onPress={() => setCurrentStep(1)}
                   className="flex-1 bg-slate-100 py-3.5 rounded-xl items-center justify-center border border-slate-200"
@@ -479,7 +479,7 @@ export default function ClientDashboard() {
 
                 <TouchableOpacity
                   onPress={handleSubmit(onSubmit)}
-                  className="flex-1 bg-brand-gold py-3.5 rounded-xl items-center justify-center shadow-md flex-row gap-2"
+                  className="flex-1 bg-brand-gold py-3.5 rounded-xl items-center justify-center flex-row" style={{ gap: 8 }}
                   activeOpacity={0.8}
                 >
                   <Ionicons name="search" size={18} color="#FFFFFF" />

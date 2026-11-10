@@ -23,7 +23,7 @@ export function OwnerHeader({
         <View className="flex-row items-center justify-between mb-4 mt-2">
             <TouchableOpacity
                 onPress={onMenuPress}
-                className="p-2 mr-4 bg-white rounded-xl shadow-sm border border-slate-100 active:bg-slate-50"
+                className="p-2 mr-4 bg-white rounded-xl border border-slate-100 active:bg-slate-50"
             >
                 <Ionicons name="menu" size={24} color="#030436" />
             </TouchableOpacity>
@@ -41,7 +41,7 @@ export function OwnerHeader({
             {onActionButtonPress &&
                 <TouchableOpacity
                     onPress={onActionButtonPress}
-                    className="w-11 h-11 rounded-full bg-brand-blue items-center justify-center shadow-sm"
+                    className="w-11 h-11 rounded-full bg-brand-blue items-center justify-center"
                     activeOpacity={0.8}
                 >
                     {userInitial &&

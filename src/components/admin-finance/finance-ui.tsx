@@ -188,8 +188,10 @@ const styles = StyleSheet.create({
         marginBottom: 14,
     },
     cardHeader: { flexDirection: "row", alignItems: "flex-start", marginBottom: 10 },
-    cardTitle: { fontSize: 15, fontWeight: "700", color: FIN_COLORS.blue },
-    cardSubtitle: { fontSize: 12, color: FIN_COLORS.muted, marginTop: 2, lineHeight: 16 },
+    cardTitle: {
+    fontFamily: "NotoSans_400Regular", fontSize: 15, fontWeight: "700", color: FIN_COLORS.blue },
+    cardSubtitle: {
+    fontFamily: "NotoSans_400Regular", fontSize: 12, color: FIN_COLORS.muted, marginTop: 2, lineHeight: 16 },
     kpiGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
     kpi: {
         width: "48.5%",
@@ -199,9 +201,12 @@ const styles = StyleSheet.create({
         borderColor: FIN_COLORS.border,
         padding: 12,
     },
-    kpiLabel: { fontSize: 11, fontWeight: "700", color: FIN_COLORS.muted, textTransform: "uppercase" },
-    kpiValue: { fontSize: 19, fontWeight: "700", color: FIN_COLORS.blue, marginTop: 4 },
-    kpiSub: { fontSize: 11, color: FIN_COLORS.muted, marginTop: 3, lineHeight: 15 },
+    kpiLabel: {
+    fontFamily: "NotoSans_400Regular", fontSize: 11, fontWeight: "700", color: FIN_COLORS.muted, textTransform: "uppercase" },
+    kpiValue: {
+    fontFamily: "NotoSans_400Regular", fontSize: 19, fontWeight: "700", color: FIN_COLORS.blue, marginTop: 4 },
+    kpiSub: {
+    fontFamily: "NotoSans_400Regular", fontSize: 11, color: FIN_COLORS.muted, marginTop: 3, lineHeight: 15 },
     valueOk: { color: FIN_COLORS.ok },
     valueBad: { color: FIN_COLORS.bad },
     valueGold: { color: FIN_COLORS.gold },
@@ -212,10 +217,14 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: "#F1F5F9",
     },
-    dataLabel: { fontSize: 13, color: "#334155" },
-    dataSub: { fontSize: 11, color: FIN_COLORS.muted, marginTop: 2 },
-    dataValue: { fontSize: 13, color: FIN_COLORS.text, fontWeight: "600" },
-    dataStrong: { fontWeight: "800", color: FIN_COLORS.blue },
+    dataLabel: {
+    fontFamily: "NotoSans_400Regular", fontSize: 13, color: "#334155" },
+    dataSub: {
+    fontFamily: "NotoSans_400Regular", fontSize: 11, color: FIN_COLORS.muted, marginTop: 2 },
+    dataValue: {
+    fontFamily: "NotoSans_400Regular", fontSize: 13, color: FIN_COLORS.text, fontWeight: "600" },
+    dataStrong: {
+    fontFamily: "NotoSans_400Regular", fontWeight: "800", color: FIN_COLORS.blue },
     monthRow: {
         flexDirection: "row",
         alignItems: "center",
@@ -229,7 +238,8 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     monthBtn: { padding: 8, borderRadius: 10, backgroundColor: FIN_COLORS.light },
-    monthLabel: { fontSize: 15, fontWeight: "700", color: FIN_COLORS.blue },
+    monthLabel: {
+    fontFamily: "NotoSans_400Regular", fontSize: 15, fontWeight: "700", color: FIN_COLORS.blue },
     chipRow: { gap: 8, paddingVertical: 2, paddingRight: 8 },
     chip: {
         paddingHorizontal: 12,
@@ -240,7 +250,8 @@ const styles = StyleSheet.create({
         backgroundColor: FIN_COLORS.white,
     },
     chipActive: { backgroundColor: FIN_COLORS.blue, borderColor: FIN_COLORS.blue },
-    chipText: { fontSize: 12, fontWeight: "600", color: FIN_COLORS.blue },
+    chipText: {
+    fontFamily: "NotoSans_400Regular", fontSize: 12, fontWeight: "600", color: FIN_COLORS.blue },
     chipTextActive: { color: FIN_COLORS.white },
     note: {
         flexDirection: "row",
@@ -252,7 +263,9 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     noteWarn: { backgroundColor: FIN_COLORS.warnBg },
-    noteText: { flex: 1, fontSize: 11, color: FIN_COLORS.muted, lineHeight: 16 },
+    noteText: {
+    fontFamily: "NotoSans_400Regular", flex: 1, fontSize: 11, color: FIN_COLORS.muted, lineHeight: 16 },
     badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, alignSelf: "flex-start" },
-    badgeText: { fontSize: 10, fontWeight: "700" },
+    badgeText: {
+    fontFamily: "NotoSans_400Regular", fontSize: 10, fontWeight: "700" },
 });

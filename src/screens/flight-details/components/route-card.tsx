@@ -8,15 +8,15 @@ import {
 
 export function RouteCard({ reservation }: { reservation: ClientReservationItem }) {
     return (
-        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
+        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200">
             <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-3">
                 Ruta
             </ThemedText>
 
             <View className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                <View className="gap-3">
+                <View className="" style={{ gap: 12 }}>
                     {/* Origen Row */}
-                    <View className="flex-row items-center gap-2">
+                    <View className="flex-row items-center" style={{ gap: 8 }}>
                         <View className="w-2.5 h-2.5 rounded-full bg-brand-gold" />
                         <View className="flex-1">
                             <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">
@@ -29,9 +29,9 @@ export function RouteCard({ reservation }: { reservation: ClientReservationItem 
                     </View>
 
                     {/* Connector line & icon */}
-                    <View className="flex-row items-center gap-2 pl-0.5 my-0.5">
+                    <View className="flex-row items-center pl-0.5 my-0.5" style={{ gap: 8 }}>
                         <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
-                        <View className="flex-row items-center gap-1.5 ml-3">
+                        <View className="flex-row items-center ml-3" style={{ gap: 6 }}>
                             <MaterialCommunityIcons name="airplane-takeoff" size={14} color="#0165FF" />
                             {reservation.schedule.roundtrip && (
                                 <ThemedText className="text-xs font-medium text-brand-gold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
@@ -42,7 +42,7 @@ export function RouteCard({ reservation }: { reservation: ClientReservationItem 
                     </View>
 
                     {/* Destino Row */}
-                    <View className="flex-row items-center gap-2">
+                    <View className="flex-row items-center" style={{ gap: 8 }}>
                         <View className="w-2.5 h-2.5 rounded-full bg-brand-blue" />
                         <View className="flex-1">
                             <ThemedText className="text-sm uppercase tracking-wider font-bold text-slate-400">

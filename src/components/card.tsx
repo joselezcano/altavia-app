@@ -17,13 +17,13 @@ export function Card({ className, title, content, shadow, ...rest }: CardProps) 
         <View
             className={cn(
                 className,
-                shadow && "shadow-sm elevation-sm dark:shadow-none dark:elevation-none",
-                "border border-gray-200 rounded-lg bg-white dark:border-white/10 dark:bg-gray-800/50",
+                shadow && " elevation-sm  dark:elevation-none",
+                "border border-gray-200 rounded-lg bg-white dark:border-[rgba(255,255,255,0.1)] dark:bg-[rgba(31,41,55,0.5)]",
             )}
             {...rest}
         >
             {title &&
-                <View className="border-b border-gray-200 px-3 py-4 dark:border-white/10">
+                <View className="border-b border-gray-200 px-3 py-4 dark:border-[rgba(255,255,255,0.1)]">
                     <Text className="text-sm font-semibold text-gray-900 dark:text-white">{title}</Text>
                 </View>
             }

@@ -17,7 +17,7 @@ export const StatusCard = ({ departure_airport_code, arrival_airport_code, aircr
     status_badge_text_color: string;
 }) => {
     return (
-        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm flex-row items-center justify-between">
+        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 flex-row items-center justify-between">
             <View>
                 <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg">
                     {departure_airport_code || "N/A"} ➔ {arrival_airport_code || "N/A"}

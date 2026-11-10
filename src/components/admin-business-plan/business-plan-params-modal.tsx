@@ -305,15 +305,22 @@ const styles = StyleSheet.create({
         paddingBottom: 28,
     },
     header: { marginBottom: 8 },
-    title: { fontSize: 17, fontWeight: "700", color: FIN_COLORS.blue },
-    subtitle: { fontSize: 12, color: FIN_COLORS.muted, marginTop: 4, lineHeight: 16 },
-    section: { fontSize: 13, fontWeight: "800", color: FIN_COLORS.blue, marginTop: 18, marginBottom: 6 },
-    label: { flex: 1, fontSize: 13, color: "#334155", fontWeight: "600", paddingRight: 8 },
-    hint: { fontSize: 11, color: FIN_COLORS.muted, marginTop: 4, lineHeight: 15 },
+    title: {
+    fontFamily: "NotoSans_400Regular", fontSize: 17, fontWeight: "700", color: FIN_COLORS.blue },
+    subtitle: {
+    fontFamily: "NotoSans_400Regular", fontSize: 12, color: FIN_COLORS.muted, marginTop: 4, lineHeight: 16 },
+    section: {
+    fontFamily: "NotoSans_400Regular", fontSize: 13, fontWeight: "800", color: FIN_COLORS.blue, marginTop: 18, marginBottom: 6 },
+    label: {
+    fontFamily: "NotoSans_400Regular", flex: 1, fontSize: 13, color: "#334155", fontWeight: "600", paddingRight: 8 },
+    hint: {
+    fontFamily: "NotoSans_400Regular", fontSize: 11, color: FIN_COLORS.muted, marginTop: 4, lineHeight: 15 },
     toggleRow: { flexDirection: "row", alignItems: "center", paddingVertical: 6 },
     fieldRow: { flexDirection: "row", alignItems: "center", paddingVertical: 4 },
-    fieldLabel: { flex: 1, fontSize: 13, color: "#334155", paddingRight: 8 },
+    fieldLabel: {
+    fontFamily: "NotoSans_400Regular", flex: 1, fontSize: 13, color: "#334155", paddingRight: 8 },
     input: {
+        fontFamily: "NotoSans_400Regular",
         width: 120,
         borderWidth: 1,
         borderColor: "#CBD5E1",
@@ -327,14 +334,19 @@ const styles = StyleSheet.create({
     chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
     chip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: FIN_COLORS.border },
     chipActive: { backgroundColor: FIN_COLORS.blue, borderColor: FIN_COLORS.blue },
-    chipText: { fontSize: 11, fontWeight: "600", color: FIN_COLORS.blue },
+    chipText: {
+    fontFamily: "NotoSans_400Regular", fontSize: 11, fontWeight: "600", color: FIN_COLORS.blue },
     chipTextActive: { color: "#FFFFFF" },
     resetBtn: { marginTop: 18, paddingVertical: 10, alignItems: "center" },
-    resetText: { color: FIN_COLORS.gold, fontWeight: "700", fontSize: 13 },
-    error: { color: FIN_COLORS.bad, fontSize: 12, marginTop: 8 },
+    resetText: {
+    fontFamily: "NotoSans_400Regular", color: FIN_COLORS.gold, fontWeight: "700", fontSize: 13 },
+    error: {
+    fontFamily: "NotoSans_400Regular", color: FIN_COLORS.bad, fontSize: 12, marginTop: 8 },
     actions: { flexDirection: "row", marginTop: 12, gap: 12 },
     btn: { flex: 1, backgroundColor: FIN_COLORS.blue, borderRadius: 12, paddingVertical: 14, alignItems: "center" },
-    btnText: { color: "#FFFFFF", fontWeight: "700" },
+    btnText: {
+    fontFamily: "NotoSans_400Regular", color: "#FFFFFF", fontWeight: "700" },
     btnGhost: { backgroundColor: "#F1F5F9" },
-    btnGhostText: { color: "#334155", fontWeight: "700" },
+    btnGhostText: {
+    fontFamily: "NotoSans_400Regular", color: "#334155", fontWeight: "700" },
 });

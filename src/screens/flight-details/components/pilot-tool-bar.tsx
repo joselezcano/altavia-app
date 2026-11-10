@@ -24,11 +24,11 @@ export function PilotToolBar({
     const router = useRouter();
 
     return (
-        <View className="flex-row items-center gap-2 mb-4">
+        <View className="flex-row items-center mb-4" style={{ gap: 8 }}>
             {/* Plan de Vuelo Button */}
             <TouchableOpacity
                 onPress={handleCreateFlightPlan}
-                className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
+                className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center" style={{ gap: 4 }}
                 activeOpacity={0.8}
             >
                 <View className="flex-row items-center">
@@ -46,7 +46,7 @@ export function PilotToolBar({
             {onOpenManifest && (
                 <TouchableOpacity
                     onPress={onOpenManifest}
-                    className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
+                    className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center" style={{ gap: 4 }}
                     activeOpacity={0.8}
                 >
                     <Ionicons name="people-outline" size={17} color="#FFFFFF" />
@@ -64,7 +64,7 @@ export function PilotToolBar({
                         params: { id: aircraftId },
                     });
                 }}
-                className="bg-brand-blue py-3 px-3 rounded-xl items-center justify-center gap-1 shadow-sm"
+                className="bg-brand-blue py-3 px-3 rounded-xl items-center justify-center" style={{ gap: 4 }}
                 activeOpacity={0.8}
             >
                 <Ionicons name="airplane-outline" size={17} color="#FFFFFF" />
@@ -81,7 +81,7 @@ export function PilotToolBar({
                         params: { fa_flight_id: fa_flight_id ?? "" },
                     })
                 }
-                className="bg-brand-blue py-3 px-3 rounded-xl items-center justify-center gap-1 shadow-sm"
+                className="bg-brand-blue py-3 px-3 rounded-xl items-center justify-center" style={{ gap: 4 }}
                 activeOpacity={0.8}
             >
                 <Ionicons name="location-outline" size={17} color="#FFFFFF" />

@@ -572,13 +572,13 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     color: "#030436",
     marginLeft: 4,
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   flightSummaryCard: {
@@ -590,11 +590,11 @@ const styles = StyleSheet.create({
   flightSummaryEyebrow: {
     fontSize: 11,
     color: "#94A3B8",
-    fontWeight: "500",
+    fontFamily: "NotoSans_500Medium",
   },
   flightSummaryTitle: {
     fontSize: 17,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
     marginTop: 2,
   },
@@ -606,7 +606,7 @@ const styles = StyleSheet.create({
   },
   registrationText: {
     fontSize: 11,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   routeRow: {
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
   },
   routeAirportCode: {
     fontSize: 14,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
   },
   crewCountBadge: {
@@ -631,7 +631,7 @@ const styles = StyleSheet.create({
   },
   crewCountText: {
     fontSize: 12,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
   },
   clientPreviewRow: {
@@ -644,6 +644,7 @@ const styles = StyleSheet.create({
     borderTopColor: "rgba(255,255,255,0.08)",
   },
   clientPreviewText: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#CBD5E1",
     flex: 1,
@@ -658,7 +659,7 @@ const styles = StyleSheet.create({
   },
   priceCardLabel: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   editPriceButton: {
@@ -672,7 +673,7 @@ const styles = StyleSheet.create({
   },
   editPriceText: {
     fontSize: 11,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     color: "#030436",
   },
   priceInputRow: {
@@ -686,39 +687,40 @@ const styles = StyleSheet.create({
   },
   priceCurrencySign: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     marginRight: 4,
   },
   priceInputField: {
     flex: 1,
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     paddingVertical: 6,
   },
   priceCurrencyTag: {
     fontSize: 12,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#94A3B8",
   },
   priceValueDisplay: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   pricePygDisplay: {
     fontSize: 11,
     color: "#059669",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     marginTop: 2,
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   sectionSubtitle: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#64748B",
   },
@@ -732,10 +734,11 @@ const styles = StyleSheet.create({
   },
   pilotNameText: {
     fontSize: 15,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   pilotEmailText: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 12,
     color: "#64748B",
     marginTop: 1,
@@ -748,7 +751,7 @@ const styles = StyleSheet.create({
   },
   licenceBadgeText: {
     fontSize: 11,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     color: "#475569",
   },
   encargadoBadge: {
@@ -761,7 +764,7 @@ const styles = StyleSheet.create({
   },
   encargadoBadgeText: {
     fontSize: 11,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#92400E",
   },
   checkboxBase: {
@@ -797,7 +800,7 @@ const styles = StyleSheet.create({
   awaitingPaymentText: {
     fontSize: 12,
     color: "#1E40AF",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     flex: 1,
   },
   whatsappButton: {
@@ -816,7 +819,7 @@ const styles = StyleSheet.create({
   },
   whatsappButtonText: {
     fontSize: 14,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
   },
   confirmedNotice: {
@@ -831,10 +834,11 @@ const styles = StyleSheet.create({
   },
   confirmedTitle: {
     fontSize: 12,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#065F46",
   },
   confirmedSub: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#047857",
   },
@@ -849,7 +853,7 @@ const styles = StyleSheet.create({
   },
   invoiceButtonText: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
   },
   approveButton: {
@@ -866,7 +870,7 @@ const styles = StyleSheet.create({
   },
   approveButtonText: {
     fontSize: 14,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
   },
   approveButtonTextDisabled: {

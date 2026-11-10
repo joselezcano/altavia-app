@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
         borderRadius: BRAND_RADII.pill,
     },
     text: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
     },
 });

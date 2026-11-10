@@ -21,7 +21,7 @@ export function FormStep4({
     });
 
     return (
-        <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
+        <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
             <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-2">
                 4. Emergencia y Observaciones
             </ThemedText>
@@ -86,7 +86,7 @@ export function FormStep4({
 
             {/* Detalles de Balsas */}
             {dinghiesCarried && (
-                <View className="bg-white rounded-xl p-4 border border-slate-200 gap-3 mt-2">
+                <View className="bg-white rounded-xl p-4 border border-slate-200 mt-2" style={{ gap: 12 }}>
                     <ThemedText className="font-bold text-xs text-brand-blue uppercase tracking-wider">
                         Detalles de Balsas
                     </ThemedText>

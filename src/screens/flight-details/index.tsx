@@ -304,7 +304,7 @@ export default function FlightDetailsScreen() {
             <View className="flex-row items-center justify-between mb-4 mt-2">
                 <TouchableOpacity
                     onPress={() => router.back()}
-                    className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
+                    className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200"
                     activeOpacity={0.8}
                 >
                     <Ionicons name="arrow-back" size={20} color="#030436" />
@@ -336,7 +336,7 @@ export default function FlightDetailsScreen() {
                 {isLoading
                     ? <LoadingCard message="Cargando información del vuelo..." />
                     : !reservation ? (
-                        <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6 shadow-sm">
+                        <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6">
                             <View className="w-16 h-16 rounded-full bg-rose-50 items-center justify-center mb-4 border border-rose-100">
                                 <Ionicons name="alert-circle-outline" size={32} color="#e11d48" />
                             </View>
@@ -348,7 +348,7 @@ export default function FlightDetailsScreen() {
                             </ThemedText>
                             <TouchableOpacity
                                 onPress={() => router.back()}
-                                className="bg-brand-blue px-5 py-3 rounded-xl flex-row items-center gap-2 shadow-md"
+                                className="bg-brand-blue px-5 py-3 rounded-xl flex-row items-center" style={{ gap: 8 }}
                                 activeOpacity={0.8}
                             >
                                 <Ionicons name="arrow-back" size={16} color="#FFFFFF" />
@@ -361,7 +361,7 @@ export default function FlightDetailsScreen() {
                         const aircraftPhoto = aircraft?.profile_photo || (aircraft?.photos && aircraft.photos.length > 0 ? aircraft.photos[0] : (reservation?.aircraftSpecs?.profile_photo || (reservation?.aircraftSpecs?.photos && reservation.aircraftSpecs.photos.length > 0 ? reservation.aircraftSpecs.photos[0] : undefined)));
 
                         return (
-                            <View className="gap-4 mb-10">
+                            <View className="mb-10" style={{ gap: 16 }}>
                                 {/* Owner / Encargado Tool Bar */}
                                 {reservation && (role === "OWNER" || (role === "PILOT" && profileData?.isEncargado)) &&
                                     <OwnerToolBar
@@ -380,8 +380,8 @@ export default function FlightDetailsScreen() {
                                 {/* Pending Approval Action Banner for Owner/Encargado */}
                                 {reservation && (role === "OWNER" || (role === "PILOT" && profileData?.isEncargado)) &&
                                     (reservation.internal_status === "pending_approval" || reservation.internal_status === "pending") && (
-                                    <View className="bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
-                                        <View className="flex-row items-center gap-2 mb-1.5">
+                                    <View className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                                        <View className="flex-row items-center mb-1.5" style={{ gap: 8 }}>
                                             <Ionicons name="time" size={18} color="#92400e" />
                                             <ThemedText className="font-bold text-amber-900 text-sm">
                                                 Solicitud Pendiente de Aprobación
@@ -397,7 +397,7 @@ export default function FlightDetailsScreen() {
                                                     params: { reservationId: reservation.id },
                                                 })
                                             }
-                                            className="bg-brand-gold py-2.5 px-4 rounded-xl flex-row items-center justify-center gap-1.5 shadow-sm"
+                                            className="bg-brand-gold py-2.5 px-4 rounded-xl flex-row items-center justify-center" style={{ gap: 6 }}
                                             activeOpacity={0.8}
                                         >
                                             <MaterialCommunityIcons name="account-tie-hat" size={18} color="#FFFFFF" />
@@ -620,7 +620,7 @@ export default function FlightDetailsScreen() {
 
                                         <TouchableOpacity
                                             onPress={() => setIsManifestModalVisible(true)}
-                                            className="bg-brand-blue py-2.5 px-4 rounded-xl flex-row items-center justify-center shadow-sm"
+                                            className="bg-brand-blue py-2.5 px-4 rounded-xl flex-row items-center justify-center"
                                             style={{ gap: 6 }}
                                             activeOpacity={0.8}
                                         >

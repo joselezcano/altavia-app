@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   },
   screenTitle: {
     color: "#030436",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 18,
   },
   summaryCard: {
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   airportName: {
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     fontSize: 14,
     flex: 1,
@@ -383,13 +383,13 @@ const styles = StyleSheet.create({
   },
   paxText: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#334155",
   },
   dateText: {
     fontSize: 11,
     color: "#64748B",
-    fontWeight: "500",
+    fontFamily: "NotoSans_500Medium",
   },
   loadingContainer: {
     backgroundColor: "#FFFFFF",
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     color: "#475569",
-    fontWeight: "500",
+    fontFamily: "NotoSans_500Medium",
     marginTop: 12,
     textAlign: "center",
     fontSize: 14,
@@ -426,12 +426,12 @@ const styles = StyleSheet.create({
   },
   newSearchText: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
   },
   resultsCountTitle: {
     color: "#030436",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 18,
   },
   emptyContainer: {
@@ -448,9 +448,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#334155",
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   emptySubtitle: {
+    fontFamily: "NotoSans_400Regular",
     color: "#64748B",
     fontSize: 12,
     textAlign: "center",
@@ -468,7 +469,7 @@ const styles = StyleSheet.create({
   },
   emptyActionText: {
     fontSize: 12,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
   },
   resultsContainer: {
@@ -517,7 +518,7 @@ const styles = StyleSheet.create({
   typeBadgeText: {
     color: "#FFFFFF",
     fontSize: 10,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
@@ -534,7 +535,7 @@ const styles = StyleSheet.create({
   },
   priceBadgeText: {
     color: "#0165FF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 14,
   },
   cardHeader: {
@@ -545,23 +546,24 @@ const styles = StyleSheet.create({
   },
   aircraftModel: {
     color: "#030436",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 18,
   },
   aircraftRegistration: {
     fontSize: 12,
     color: "#64748B",
-    fontWeight: "500",
+    fontFamily: "NotoSans_500Medium",
     marginTop: 2,
   },
   priceLabel: {
     fontSize: 10,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     textTransform: "uppercase",
     letterSpacing: 0.5,
     color: "#94A3B8",
   },
   priceBreakdown: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#64748B",
     marginTop: 2,
@@ -569,7 +571,7 @@ const styles = StyleSheet.create({
   },
   priceValue: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   quoteBadge: {
@@ -581,7 +583,7 @@ const styles = StyleSheet.create({
   quoteBadgeText: {
     fontSize: 12,
     color: "#64748B",
-    fontWeight: "500",
+    fontFamily: "NotoSans_500Medium",
   },
   specsRow: {
     backgroundColor: "#F8FAFC",
@@ -596,16 +598,17 @@ const styles = StyleSheet.create({
     borderColor: "#F1F5F9",
   },
   specLabel: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#64748B",
   },
   specValue: {
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#1E293B",
     fontSize: 14,
   },
   specDurationValue: {
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#0165FF",
     fontSize: 14,
   },
@@ -620,7 +623,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 14,
   },
 });

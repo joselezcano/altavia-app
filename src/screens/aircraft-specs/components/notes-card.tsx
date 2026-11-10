@@ -10,7 +10,7 @@ export function NotesCard({ notes }: { notes?: string }) {
             variant="card"
             className="p-5 mb-6 border border-slate-100"
         >
-            <View className="flex-row items-center gap-2 mb-3">
+            <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
                 <Ionicons name="document-text" size={20} color="#030436" />
                 <ThemedText type="subtitle" className="font-bold text-brand-blue">
                     Observaciones

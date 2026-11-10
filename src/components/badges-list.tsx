@@ -24,11 +24,11 @@ export const BadgesList = ({
                 {label}
             </ThemedText>
             {hasItems ? (
-                <View className="flex-row flex-wrap gap-1.5 mt-0.5">
+                <View className="flex-row flex-wrap mt-0.5" style={{ gap: 6 }}>
                     {list.map((item, idx) => (
                         <View
                             key={`${item}-${idx}`}
-                            className="bg-slate-100 border border-slate-200/65 px-2.5 py-1 rounded-md"
+                            className="bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md"
                         >
                             <ThemedText className="text-xs font-semibold text-slate-700">
                                 {map && map[item] ? `${item} - ${map[item]}` : String(item)}

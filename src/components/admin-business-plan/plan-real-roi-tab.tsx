@@ -81,7 +81,8 @@ export function PlanRealRoiTab({ plan, cfg, flights, expenses }: BusinessPlanTab
 }
 
 const styles = StyleSheet.create({
-    barLabel: { fontSize: 12, color: FIN_COLORS.muted, marginTop: 12, marginBottom: 6 },
+    barLabel: {
+    fontFamily: "NotoSans_400Regular", fontSize: 12, color: FIN_COLORS.muted, marginTop: 12, marginBottom: 6 },
     track: { height: 12, borderRadius: 6, backgroundColor: "#EEF2F6", overflow: "hidden" },
     fill: { height: 12, borderRadius: 6, backgroundColor: FIN_COLORS.gold },
 });

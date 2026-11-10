@@ -74,7 +74,7 @@ export default function AdminLayout() {
                         <Ionicons name="pie-chart-outline" size={size} color={color} />
                     ),
                     headerTitle: () => (
-                        <View className="flex-row items-center gap-2">
+                        <View className="flex-row items-center" style={{ gap: 8 }}>
                             <Ionicons name="pie-chart-outline" size={20} color="#FFFFFF" />
                             <Text className="text-white font-bold text-lg">Dashboard</Text>
                         </View>
@@ -90,7 +90,7 @@ export default function AdminLayout() {
                         <Ionicons name="airplane-outline" size={size} color={color} />
                     ),
                     headerTitle: () => (
-                        <View className="flex-row items-center gap-2">
+                        <View className="flex-row items-center" style={{ gap: 8 }}>
                             <Ionicons name="airplane-outline" size={20} color="#FFFFFF" />
                             <Text className="text-white font-bold text-lg">Aeronaves</Text>
                         </View>
@@ -124,7 +124,7 @@ export default function AdminLayout() {
                         <Ionicons name="add-circle-outline" size={size} color={color} />
                     ),
                     headerTitle: () => (
-                        <View className="flex-row items-center gap-2">
+                        <View className="flex-row items-center" style={{ gap: 8 }}>
                             <Ionicons name="paper-plane-outline" size={20} color="#FFFFFF" />
                             <Text className="text-white font-bold text-lg">Despacho Telefónico</Text>
                         </View>
@@ -173,7 +173,7 @@ export default function AdminLayout() {
                         <Ionicons name="calendar-outline" size={size} color={color} />
                     ),
                     headerTitle: () => (
-                        <View className="flex-row items-center gap-2">
+                        <View className="flex-row items-center" style={{ gap: 8 }}>
                             <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />
                             <Text className="text-white font-bold text-lg">Reservas y Cobros</Text>
                         </View>
@@ -205,7 +205,7 @@ export default function AdminLayout() {
                         <Ionicons name="cash-outline" size={size} color={color} />
                     ),
                     headerTitle: () => (
-                        <View className="flex-row items-center gap-2">
+                        <View className="flex-row items-center" style={{ gap: 8 }}>
                             <Ionicons name="cash-outline" size={20} color="#FFFFFF" />
                             <Text className="text-white font-bold text-lg">Flota y Tarifas</Text>
                         </View>
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     },
     headerTitleText: {
         color: "#FFFFFF",
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         fontSize: 18,
     },
 });

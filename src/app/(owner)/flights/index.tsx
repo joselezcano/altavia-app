@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   },
   quotesButtonText: {
     fontSize: 11,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     textAlign: "center",
   },
@@ -442,10 +442,11 @@ const styles = StyleSheet.create({
   },
   newBookingTitle: {
     fontSize: 14,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
   },
   newBookingSubtitle: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#94A3B8",
     marginTop: 2,

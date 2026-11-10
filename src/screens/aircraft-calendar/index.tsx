@@ -327,7 +327,7 @@ export default function AircraftCalendarScreen() {
                             <Ionicons name="chevron-back" size={20} color="#030436" />
                         </TouchableOpacity>
 
-                        <View className="flex-row items-center justify-center flex-1 gap-2">
+                        <View className="flex-row items-center justify-center flex-1" style={{ gap: 8 }}>
                             <ThemedText className="text-brand-blue text-lg font-bold text-center">
                                 {MONTH_NAMES[currentMonth]} {currentYear}
                             </ThemedText>
@@ -344,7 +344,7 @@ export default function AircraftCalendarScreen() {
                     </View>
 
                     {/* Calendar Grid */}
-                    <View className="flex-col gap-2">
+                    <View className="flex-col" style={{ gap: 8 }}>
                         {/* Weekdays Row */}
                         <View className="flex-row justify-between mb-2">
                             {WEEKDAYS.map((day, idx) => (
@@ -454,14 +454,14 @@ export default function AircraftCalendarScreen() {
                     </View>
 
                     {/* Calendar Legend */}
-                    <View className="flex-row items-center justify-center gap-6 mt-4 pt-3 border-t border-slate-100">
-                        <View className="flex-row items-center gap-1.5">
+                    <View className="flex-row items-center justify-center mt-4 pt-3 border-t border-slate-100" style={{ gap: 24 }}>
+                        <View className="flex-row items-center" style={{ gap: 6 }}>
                             <View className="w-4 h-1.5 bg-emerald-400 rounded-full" />
                             <ThemedText type="caption" className="text-slate-500 text-xs font-medium">
                                 Disponible (24h)
                             </ThemedText>
                         </View>
-                        <View className="flex-row items-center gap-1.5">
+                        <View className="flex-row items-center" style={{ gap: 6 }}>
                             <View className="w-4 h-1.5 bg-rose-400 rounded-full" />
                             <ThemedText type="caption" className="text-slate-500 text-xs font-medium">
                                 Indisponible

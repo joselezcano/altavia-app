@@ -92,15 +92,18 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     eyebrow: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.crystal,
         fontSize: 10,
         letterSpacing: 1.5,
     },
     title: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 17,
     },
     subtitle: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.crystal,
         fontSize: 12,
         marginTop: 1,
@@ -115,6 +118,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     buttonText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 15,
     },

@@ -214,7 +214,7 @@ export default function FlightRequestFormScreen() {
         <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
           {/* STEP 1: Route & Passengers */}
           {currentStep === 1 && (
-            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
+            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-2">
                 1. Ruta y Pasajeros
               </ThemedText>
@@ -276,7 +276,7 @@ export default function FlightRequestFormScreen() {
                 <ThemedText type="caption" className="font-bold mb-4">
                   Tipos de aeropuerto
                 </ThemedText>
-                <View className="flex-row flex-wrap gap-x-4 gap-y-3">
+                <View className="flex-row flex-wrap" style={{ columnGap: 16, rowGap: 12 }}>
                   {[
                     { key: "large_airport", label: "Grande" },
                     { key: "medium_airport", label: "Mediano" },
@@ -343,7 +343,7 @@ export default function FlightRequestFormScreen() {
 
           {/* STEP 2: Schedule */}
           {currentStep === 2 && (
-            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
+            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-2">
                 2. Fechas y Horarios
               </ThemedText>
@@ -405,7 +405,7 @@ export default function FlightRequestFormScreen() {
 
           {/* STEP 3: Financials */}
           {currentStep === 3 && (
-            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
+            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-2">
                 3. Aspectos Financieros
               </ThemedText>
@@ -537,7 +537,7 @@ export default function FlightRequestFormScreen() {
           )}
 
           {/* Navigation Controls */}
-          <View className="flex-row gap-3 mt-4 mb-10">
+          <View className="flex-row mt-4 mb-10" style={{ gap: 12 }}>
             {currentStep > 1 && (
               <TouchableOpacity
                 onPress={() => setCurrentStep((prev) => prev - 1)}
@@ -551,7 +551,7 @@ export default function FlightRequestFormScreen() {
             {currentStep < 3 ? (
               <TouchableOpacity
                 onPress={handleNext}
-                className="flex-1 bg-brand-blue py-3.5 rounded-xl items-center justify-center shadow-sm"
+                className="flex-1 bg-brand-blue py-3.5 rounded-xl items-center justify-center"
               >
                 <ThemedText className="text-white font-bold">Siguiente</ThemedText>
               </TouchableOpacity>
@@ -559,7 +559,7 @@ export default function FlightRequestFormScreen() {
               <TouchableOpacity
                 onPress={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
-                className="flex-1 bg-brand-gold py-3.5 rounded-xl items-center justify-center shadow-md flex-row gap-2"
+                className="flex-1 bg-brand-gold py-3.5 rounded-xl items-center justify-center flex-row" style={{ gap: 8 }}
               >
                 {isSubmitting ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />

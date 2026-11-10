@@ -276,11 +276,11 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#64748B',
-    fontWeight: '500',
+    fontFamily: "NotoSans_500Medium",
     fontSize: 14,
   },
   titleText: {
-    fontWeight: '700',
+    fontFamily: "NotoSans_700Bold",
     color: '#030436',
     fontSize: 16,
   },
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontFamily: "NotoSans_700Bold",
     fontSize: 14,
   },
   tabContainer: {
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: "NotoSans_700Bold",
     color: '#64748B',
   },
   tabTextActive: {

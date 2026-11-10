@@ -99,7 +99,7 @@ export default function BaseAirportScreen() {
                 </ThemedText>
                 <TouchableOpacity
                     onPress={() => router.back()}
-                    className="bg-brand-blue px-6 py-2.5 rounded-xl flex-row items-center gap-2"
+                    className="bg-brand-blue px-6 py-2.5 rounded-xl flex-row items-center" style={{ gap: 8 }}
                 >
                     <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
                     <ThemedText className="text-white font-semibold">Regresar</ThemedText>
@@ -124,7 +124,7 @@ export default function BaseAirportScreen() {
                     variant="card"
                     className="p-5 mb-5 border border-slate-100"
                 >
-                    <View className="flex-row items-center gap-2 mb-2">
+                    <View className="flex-row items-center mb-2" style={{ gap: 8 }}>
                         <Ionicons name="location" size={20} color="#030436" />
                         <ThemedText type="subtitle" className="font-bold text-brand-blue">
                             Seleccionar Aeropuerto
@@ -145,9 +145,9 @@ export default function BaseAirportScreen() {
                 {selectedAirport && (
                     <ThemedView
                         variant="card"
-                        className="p-5 mb-6 border border-slate-100 bg-slate-50/50"
+                        className="p-5 mb-6 border border-slate-100 bg-[rgba(248,250,252,0.5)]"
                     >
-                        <View className="flex-row items-center gap-2 mb-3">
+                        <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
                             <Ionicons name="information-circle-outline" size={20} color="#030436" />
                             <ThemedText className="font-semibold text-brand-blue">
                                 Detalles del Aeropuerto Seleccionado
@@ -193,7 +193,7 @@ export default function BaseAirportScreen() {
                 <TouchableOpacity
                     onPress={handleSave}
                     disabled={isSaving}
-                    className="bg-brand-blue py-4 rounded-xl items-center justify-center mb-8 flex-row gap-2"
+                    className="bg-brand-blue py-4 rounded-xl items-center justify-center mb-8 flex-row" style={{ gap: 8 }}
                     activeOpacity={0.8}
                 >
                     {isSaving ? (

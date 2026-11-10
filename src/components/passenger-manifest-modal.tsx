@@ -659,13 +659,13 @@ const styles = StyleSheet.create({
   headerEyebrow: {
     fontSize: 10,
     color: "#0165FF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     letterSpacing: 1,
     textTransform: "uppercase",
   },
   headerTitle: {
     fontSize: 16,
-    fontWeight: "800",
+    fontFamily: "NotoSans_800ExtraBold",
     color: "#030436",
     marginTop: 1,
   },
@@ -692,10 +692,11 @@ const styles = StyleSheet.create({
   },
   routeCode: {
     fontSize: 18,
-    fontWeight: "800",
+    fontFamily: "NotoSans_800ExtraBold",
     color: "#030436",
   },
   routeCity: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#64748B",
   },
@@ -725,6 +726,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   metricLabel: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 10,
     color: "#64748B",
     marginBottom: 2,
@@ -733,13 +735,13 @@ const styles = StyleSheet.create({
   metricLabelHighlight: {
     fontSize: 10,
     color: "#0165FF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     marginBottom: 2,
     textAlign: "center",
   },
   metricValue: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   metricAlert: {
@@ -747,15 +749,17 @@ const styles = StyleSheet.create({
   },
   metricValueHighlight: {
     fontSize: 14,
-    fontWeight: "800",
+    fontFamily: "NotoSans_800ExtraBold",
     color: "#FFFFFF",
   },
   metricSub: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 9,
     color: "#94A3B8",
     marginTop: 1,
   },
   metricSubHighlight: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 9,
     color: "#94A3B8",
     marginTop: 1,
@@ -777,7 +781,7 @@ const styles = StyleSheet.create({
   addPaxBtnText: {
     color: "#FFFFFF",
     fontSize: 13,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     marginLeft: 6,
   },
   autoFillBtn: {
@@ -794,7 +798,7 @@ const styles = StyleSheet.create({
   autoFillBtnText: {
     color: "#030436",
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     marginLeft: 6,
   },
   formContainer: {
@@ -816,17 +820,18 @@ const styles = StyleSheet.create({
   },
   formTitle: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   inputLabel: {
     fontSize: 11,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     color: "#475569",
     marginBottom: 4,
     marginTop: 6,
   },
   textInput: {
+    fontFamily: "NotoSans_400Regular",
     backgroundColor: "#F8FAFC",
     borderWidth: 1,
     borderColor: "#E2E8F0",
@@ -856,7 +861,7 @@ const styles = StyleSheet.create({
   },
   docTypeBtnText: {
     fontSize: 10,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     color: "#64748B",
   },
   docTypeBtnTextActive: {
@@ -874,7 +879,7 @@ const styles = StyleSheet.create({
   },
   primaryToggleText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     color: "#030436",
     marginLeft: 6,
   },
@@ -893,7 +898,7 @@ const styles = StyleSheet.create({
   cancelFormBtnText: {
     fontSize: 12,
     color: "#64748B",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
   },
   savePaxBtn: {
     backgroundColor: "#0165FF",
@@ -906,7 +911,7 @@ const styles = StyleSheet.create({
   savePaxBtnText: {
     fontSize: 12,
     color: "#FFFFFF",
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     marginLeft: 4,
   },
   listHeaderRow: {
@@ -917,12 +922,12 @@ const styles = StyleSheet.create({
   },
   listHeaderTitle: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   capacityWarning: {
     fontSize: 11,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     color: "#E11D48",
   },
   emptyList: {
@@ -935,11 +940,12 @@ const styles = StyleSheet.create({
   },
   emptyListTitle: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     marginTop: 8,
   },
   emptyListSub: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 12,
     color: "#64748B",
     textAlign: "center",
@@ -960,7 +966,7 @@ const styles = StyleSheet.create({
   },
   emptyAddBtnText: {
     fontSize: 12,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     marginLeft: 6,
   },
@@ -992,7 +998,7 @@ const styles = StyleSheet.create({
   },
   paxAvatarText: {
     fontSize: 11,
-    fontWeight: "800",
+    fontFamily: "NotoSans_800ExtraBold",
     color: "#030436",
   },
   paxNameRow: {
@@ -1002,7 +1008,7 @@ const styles = StyleSheet.create({
   },
   paxName: {
     fontSize: 13,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     marginRight: 6,
   },
@@ -1014,10 +1020,11 @@ const styles = StyleSheet.create({
   },
   primaryBadgeText: {
     fontSize: 9,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     color: "#92400E",
   },
   paxDoc: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#475569",
     marginTop: 2,
@@ -1025,7 +1032,7 @@ const styles = StyleSheet.create({
   paxWeights: {
     fontSize: 11,
     color: "#030436",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     marginTop: 3,
   },
   paxNotes: {
@@ -1066,7 +1073,7 @@ const styles = StyleSheet.create({
   persistBtnText: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     marginLeft: 8,
   },
 });

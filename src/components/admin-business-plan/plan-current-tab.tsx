@@ -175,14 +175,19 @@ function EquilibriumBar({ horas, equilibrio }: { horas: number; equilibrio: numb
 }
 
 const styles = StyleSheet.create({
-    label: { fontSize: 12, fontWeight: "700", color: FIN_COLORS.muted, marginBottom: 6 },
+    label: {
+    fontFamily: "NotoSans_400Regular", fontSize: 12, fontWeight: "700", color: FIN_COLORS.muted, marginBottom: 6 },
     headRow: { flexDirection: "row", paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: FIN_COLORS.border },
-    headCell: { flex: 1, fontSize: 10, fontWeight: "700", color: FIN_COLORS.muted, textAlign: "right", textTransform: "uppercase" },
+    headCell: {
+    fontFamily: "NotoSans_400Regular", flex: 1, fontSize: 10, fontWeight: "700", color: FIN_COLORS.muted, textAlign: "right", textTransform: "uppercase" },
     line: { flexDirection: "row", alignItems: "center", paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
     lineStrong: { backgroundColor: FIN_COLORS.light },
-    cellLabel: { flex: 1.6, fontSize: 12, color: "#334155", paddingRight: 4 },
-    cell: { flex: 1, fontSize: 12, color: FIN_COLORS.text, textAlign: "right", fontWeight: "600" },
-    strong: { fontWeight: "800", color: FIN_COLORS.blue },
+    cellLabel: {
+    fontFamily: "NotoSans_400Regular", flex: 1.6, fontSize: 12, color: "#334155", paddingRight: 4 },
+    cell: {
+    fontFamily: "NotoSans_400Regular", flex: 1, fontSize: 12, color: FIN_COLORS.text, textAlign: "right", fontWeight: "600" },
+    strong: {
+    fontFamily: "NotoSans_400Regular", fontWeight: "800", color: FIN_COLORS.blue },
     ok: { color: FIN_COLORS.ok },
     bad: { color: FIN_COLORS.bad },
     track: { height: 14, borderRadius: 7, backgroundColor: "#EEF2F6", overflow: "visible", position: "relative" },
@@ -190,5 +195,6 @@ const styles = StyleSheet.create({
     fillOk: { backgroundColor: FIN_COLORS.ok },
     fillBad: { backgroundColor: FIN_COLORS.bad },
     mark: { position: "absolute", top: -4, width: 3, height: 22, marginLeft: -1, backgroundColor: FIN_COLORS.gold, borderRadius: 2 },
-    barNote: { fontSize: 11, color: FIN_COLORS.muted, marginTop: 8 },
+    barNote: {
+    fontFamily: "NotoSans_400Regular", fontSize: 11, color: FIN_COLORS.muted, marginTop: 8 },
 });

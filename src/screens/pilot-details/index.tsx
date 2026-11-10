@@ -60,7 +60,7 @@ export default function PilotDetailsScreen() {
                 </ThemedText>
                 <TouchableOpacity
                     onPress={() => router.back()}
-                    className="bg-brand-blue px-6 py-2.5 rounded-xl flex-row items-center gap-2"
+                    className="bg-brand-blue px-6 py-2.5 rounded-xl flex-row items-center" style={{ gap: 8 }}
                 >
                     <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
                     <ThemedText className="text-white font-semibold">Regresar</ThemedText>
@@ -125,7 +125,7 @@ export default function PilotDetailsScreen() {
 
                 {/* 1. Datos Personales Card */}
                 <ThemedView variant="card" className="p-5 mb-4 border border-slate-100">
-                    <View className="flex-row items-center gap-2 mb-3">
+                    <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
                         <Ionicons name="person" size={20} color="#030436" />
                         <ThemedText type="subtitle" className="font-bold text-brand-blue">
                             Identidad
@@ -160,7 +160,7 @@ export default function PilotDetailsScreen() {
 
                 {/* 2. Información Aeronáutica Card */}
                 <ThemedView variant="card" className="p-5 mb-4 border border-slate-100">
-                    <View className="flex-row items-center gap-2 mb-3">
+                    <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
                         <Ionicons name="ribbon" size={20} color="#030436" />
                         <ThemedText type="subtitle" className="font-bold text-brand-blue">
                             Licencia Aeronáutica
@@ -186,7 +186,7 @@ export default function PilotDetailsScreen() {
 
                 {/* 3. Información Adicional / Médica Card */}
                 <ThemedView variant="card" className="p-5 mb-4 border border-slate-100">
-                    <View className="flex-row items-center gap-2 mb-3">
+                    <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
                         <Ionicons name="medkit" size={20} color="#030436" />
                         <ThemedText type="subtitle" className="font-bold text-brand-blue">
                             Más Información
@@ -215,11 +215,11 @@ export default function PilotDetailsScreen() {
                             Idiomas
                         </ThemedText>
                         {pilot.other_information.languages?.length > 0 ? (
-                            <View className="flex-row flex-wrap gap-1.5 mt-0.5">
+                            <View className="flex-row flex-wrap mt-0.5" style={{ gap: 6 }}>
                                 {pilot.other_information.languages.map((lang) => (
                                     <View
                                         key={lang}
-                                        className="bg-slate-100 border border-slate-200/65 px-2.5 py-1 rounded-md"
+                                        className="bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md"
                                     >
                                         <ThemedText className="text-xs font-semibold text-slate-700">
                                             {getLanguageLabel(lang)}
@@ -237,7 +237,7 @@ export default function PilotDetailsScreen() {
 
                 {/* 4. Read-Only List of Aircrafts the Pilot can fly */}
                 <ThemedView variant="card" className="p-5 mb-6 border border-slate-100">
-                    <View className="flex-row items-center gap-2 mb-3">
+                    <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
                         <Ionicons name="airplane" size={20} color="#030436" />
                         <ThemedText type="subtitle" className="font-bold text-brand-blue">
                             Aeronaves que puede pilotar
@@ -259,18 +259,18 @@ export default function PilotDetailsScreen() {
                             </ThemedText>
                         </View>
                     ) : (
-                        <View className="gap-2.5 mt-1">
+                        <View className="mt-1" style={{ gap: 10 }}>
                             {aircrafts.map((ac: AircraftSpecsDoc) => (
                                 <View
                                     key={ac.id}
-                                    className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 flex-row justify-between items-center"
+                                    className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex-row justify-between items-center"
                                 >
                                     <View className="flex-1 pr-2">
                                         <ThemedText className="font-bold text-brand-blue text-base">
                                             {ac.basic_specs.model}
                                         </ThemedText>
                                     </View>
-                                    <View className="bg-brand-blue/10 px-3 py-1 rounded-full border border-brand-blue/20">
+                                    <View className="bg-[rgba(3,4,54,0.1)] px-3 py-1 rounded-full border border-[rgba(3,4,54,0.2)]">
                                         <ThemedText className="text-brand-blue text-xs font-bold uppercase tracking-wider">
                                             {ac.basic_specs.registration}
                                         </ThemedText>

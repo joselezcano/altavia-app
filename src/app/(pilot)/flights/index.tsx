@@ -361,20 +361,20 @@ const styles = StyleSheet.create({
   legInfoLabel: {
     fontSize: 11,
     color: "#5B5D7A",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     textTransform: "uppercase",
   },
   legInfoValue: {
     fontSize: 12,
     color: "#030436",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     flexShrink: 1,
     textAlign: "right",
   },
   legRoute: {
     fontSize: 14,
     color: "#030436",
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
   },
   viewMoreButton: {
     backgroundColor: "#0165FF",
@@ -388,6 +388,6 @@ const styles = StyleSheet.create({
   viewMoreText: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
   },
 });

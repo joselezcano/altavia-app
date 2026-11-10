@@ -361,13 +361,13 @@ const styles = StyleSheet.create({
   headerEyebrow: {
     fontSize: 11,
     color: "#0165FF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     letterSpacing: 1,
     textTransform: "uppercase",
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: "800",
+    fontFamily: "NotoSans_800ExtraBold",
     color: "#030436",
     marginTop: 2,
   },
@@ -383,6 +383,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   searchInput: {
+    fontFamily: "NotoSans_400Regular",
     flex: 1,
     paddingVertical: 10,
     fontSize: 14,
@@ -403,12 +404,12 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     color: "#475569",
   },
   filterChipTextActive: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   card: {
     backgroundColor: "#FFFFFF",
@@ -439,15 +440,16 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 16,
   },
   nameText: {
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   subText: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 12,
     color: "#64748B",
     marginTop: 1,
@@ -470,7 +472,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     color: "#475569",
   },
   badgeTextHighlight: {
@@ -488,6 +490,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   warningText: {
+    fontFamily: "NotoSans_400Regular",
     flex: 1,
     fontSize: 12,
     color: "#92400E",
@@ -502,7 +505,7 @@ const styles = StyleSheet.create({
   },
   warningButtonText: {
     fontSize: 12,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     color: "#B45309",
   },
   actionsRow: {
@@ -535,7 +538,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 12,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
   },
   actionButtonTextAdd: {
     color: "#FFFFFF",
@@ -551,6 +554,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   emptyText: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 13,
     color: "#64748B",
     textAlign: "center",
@@ -563,7 +567,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 12,
   },
 });

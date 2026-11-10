@@ -38,7 +38,7 @@ export function FlightStatusModal({
             transparent={true}
             onRequestClose={() => setIsStatusModalVisible(false)}
         >
-            <View className="flex-1 justify-end bg-black/50">
+            <View className="flex-1 justify-end bg-[rgba(0,0,0,0.5)]">
                 <View className="bg-white rounded-t-3xl p-6 max-h-[85%] border-t border-slate-200">
                     {/* Modal Header */}
                     <View className="flex-row items-center justify-between mb-4 border-b border-slate-100 pb-3">
@@ -60,7 +60,7 @@ export function FlightStatusModal({
 
                     {/* Options List */}
                     <ScrollView showsVerticalScrollIndicator={false} className="mb-4">
-                        <View className="gap-3 py-1">
+                        <View className="py-1" style={{ gap: 12 }}>
                             {statusOptions.map((def) => {
                                 const badge = getStatusBadge(def.id);
                                 const isSelected = selectedStatus === def.id;
@@ -71,7 +71,7 @@ export function FlightStatusModal({
                                         onPress={() => setSelectedStatus(def.id)}
                                         activeOpacity={0.8}
                                         className={`p-4 rounded-2xl border ${isSelected
-                                            ? "border-brand-blue bg-blue-50/50"
+                                            ? "border-brand-blue bg-[rgba(239,246,255,0.5)]"
                                             : "border-slate-200 bg-white"
                                             }`}
                                     >
@@ -102,7 +102,7 @@ export function FlightStatusModal({
                     </ScrollView>
 
                     {/* Modal Actions */}
-                    <View className="flex-row items-center gap-3 pt-2">
+                    <View className="flex-row items-center pt-2" style={{ gap: 12 }}>
                         <TouchableOpacity
                             onPress={() => setIsStatusModalVisible(false)}
                             className="flex-1 py-3.5 rounded-xl border border-slate-300 items-center justify-center bg-white"
@@ -114,7 +114,7 @@ export function FlightStatusModal({
 
                         <TouchableOpacity
                             onPress={handleUpdateStatus}
-                            className="flex-1 py-3.5 rounded-xl bg-brand-blue items-center justify-center shadow-sm flex-row gap-2"
+                            className="flex-1 py-3.5 rounded-xl bg-brand-blue items-center justify-center flex-row" style={{ gap: 8 }}
                             activeOpacity={0.8}
                             disabled={isUpdatingStatus}
                         >

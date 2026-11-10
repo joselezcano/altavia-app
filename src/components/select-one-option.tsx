@@ -34,7 +34,7 @@ export function SelectOneOption<T extends FieldValues>({ control, errors, label,
                 control={control}
                 name={name}
                 render={({ field: { onChange, value } }) => (
-                    <View className="flex-row gap-2">
+                    <View className="flex-row" style={{ gap: 8 }}>
                         {options.map((level) => (
                             <TouchableOpacity
                                 key={level}

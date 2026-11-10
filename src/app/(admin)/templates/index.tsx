@@ -76,13 +76,13 @@ export default function AdminTemplatesScreen() {
             </View>
           }
           renderItem={({ item }) => (
-            <View className="bg-white p-4 rounded-2xl mb-4 border border-slate-100 shadow-sm flex-row justify-between items-center">
+            <View className="bg-white p-4 rounded-2xl mb-4 border border-slate-100 flex-row justify-between items-center">
               <View className="flex-1">
                 <ThemedText className="font-bold text-brand-blue text-lg">
                   {item.template_info.name}
                 </ThemedText>
-                <View className="flex-row items-center gap-2 mt-1">
-                  <View className="bg-brand-blue/10 px-2 py-0.5 rounded">
+                <View className="flex-row items-center mt-1" style={{ gap: 8 }}>
+                  <View className="bg-[rgba(3,4,54,0.1)] px-2 py-0.5 rounded">
                     <ThemedText className="text-brand-blue text-[10px] font-bold">
                       {item.template_info.type}
                     </ThemedText>
@@ -96,7 +96,7 @@ export default function AdminTemplatesScreen() {
                 </ThemedText>
               </View>
               
-              <View className="flex-row items-center gap-3">
+              <View className="flex-row items-center" style={{ gap: 12 }}>
                 <TouchableOpacity
                   onPress={() => handleDelete(item.id, item.template_info.name)}
                   className="w-10 h-10 rounded-full bg-red-50 items-center justify-center border border-red-100"
@@ -112,7 +112,7 @@ export default function AdminTemplatesScreen() {
       {/* FAB (Floating Action Button) */}
       <TouchableOpacity
         onPress={() => router.push("/(admin)/templates/add")}
-        className="absolute bottom-8 right-6 w-14 h-14 bg-brand-gold rounded-full items-center justify-center shadow-lg"
+        className="absolute bottom-8 right-6 w-14 h-14 bg-brand-gold rounded-full items-center justify-center"
       >
         <Ionicons name="add" size={28} color="#FFFFFF" />
       </TouchableOpacity>

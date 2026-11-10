@@ -263,15 +263,21 @@ const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: FIN_COLORS.light },
     content: { padding: 16, paddingBottom: 48 },
     center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: FIN_COLORS.light },
-    muted: { color: FIN_COLORS.muted, fontSize: 13, marginTop: 8 },
+    muted: {
+    fontFamily: "NotoSans_400Regular", color: FIN_COLORS.muted, fontSize: 13, marginTop: 8 },
     flight: { borderTopWidth: 1, borderTopColor: "#F1F5F9", paddingVertical: 10 },
     flightTop: { flexDirection: "row", alignItems: "flex-start" },
-    flightTitle: { fontSize: 14, fontWeight: "700", color: FIN_COLORS.blue },
-    flightSub: { fontSize: 11, color: FIN_COLORS.muted, marginTop: 2 },
-    flightAmount: { fontSize: 15, fontWeight: "800", color: FIN_COLORS.blue },
+    flightTitle: {
+    fontFamily: "NotoSans_400Regular", fontSize: 14, fontWeight: "700", color: FIN_COLORS.blue },
+    flightSub: {
+    fontFamily: "NotoSans_400Regular", fontSize: 11, color: FIN_COLORS.muted, marginTop: 2 },
+    flightAmount: {
+    fontFamily: "NotoSans_400Regular", fontSize: 15, fontWeight: "800", color: FIN_COLORS.blue },
     flightBottom: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 8 },
-    flightMeta: { fontSize: 12, fontWeight: "700", color: FIN_COLORS.text },
-    flightMetaMuted: { fontSize: 12, color: FIN_COLORS.muted },
+    flightMeta: {
+    fontFamily: "NotoSans_400Regular", fontSize: 12, fontWeight: "700", color: FIN_COLORS.text },
+    flightMetaMuted: {
+    fontFamily: "NotoSans_400Regular", fontSize: 12, color: FIN_COLORS.muted },
     ok: { color: FIN_COLORS.ok },
     bad: { color: FIN_COLORS.bad },
 });

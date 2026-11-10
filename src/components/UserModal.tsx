@@ -20,19 +20,19 @@ export function UserModal({ modalVisible, setModalVisible, user, role, userIniti
         onRequestClose={() => setModalVisible(false)}
     >
         <TouchableOpacity
-            className="flex-1 bg-black/50"
+            className="flex-1 bg-[rgba(0,0,0,0.5)]"
             activeOpacity={1}
             onPress={() => setModalVisible(false)}
         >
             <View
-                className="mt-auto bg-brand-white rounded-t-3xl pt-2 pb-10 px-6 shadow-lg"
+                className="mt-auto bg-brand-white rounded-t-3xl pt-2 pb-10 px-6"
                 onStartShouldSetResponder={() => true}
                 onTouchEnd={(e) => e.stopPropagation()}
             >
                 <View className="w-12 h-1.5 bg-slate-300 rounded-full self-center mb-6" />
 
                 <View className="items-center mb-6">
-                    <View className="w-20 h-20 rounded-full bg-brand-blue items-center justify-center shadow-sm mb-4">
+                    <View className="w-20 h-20 rounded-full bg-brand-blue items-center justify-center mb-4">
                         <ThemedText className="text-white font-bold text-3xl">
                             {userInitial}
                         </ThemedText>

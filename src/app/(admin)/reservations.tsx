@@ -645,13 +645,13 @@ const styles = StyleSheet.create({
   headerEyebrow: {
     fontSize: 11,
     color: "#0165FF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     letterSpacing: 1,
     textTransform: "uppercase",
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: "800",
+    fontFamily: "NotoSans_800ExtraBold",
     color: "#030436",
     marginTop: 2,
   },
@@ -667,7 +667,7 @@ const styles = StyleSheet.create({
   newBookingHeaderText: {
     color: "#FFFFFF",
     fontSize: 12,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   filterChip: {
     paddingHorizontal: 14,
@@ -684,12 +684,12 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     color: "#475569",
   },
   filterChipTextActive: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   priceRow: {
     flexDirection: "row",
@@ -699,28 +699,28 @@ const styles = StyleSheet.create({
   priceLabel: {
     fontSize: 10,
     color: "#64748B",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     textTransform: "uppercase",
   },
   priceValue: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   pricePyg: {
     fontSize: 11,
     color: "#059669",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
   },
   paxCountText: {
     fontSize: 11,
     color: "#475569",
-    fontWeight: "500",
+    fontFamily: "NotoSans_500Medium",
   },
   crewCountText: {
     fontSize: 11,
     color: "#475569",
-    fontWeight: "500",
+    fontFamily: "NotoSans_500Medium",
     marginTop: 2,
   },
   invoiceInfoBox: {
@@ -735,10 +735,11 @@ const styles = StyleSheet.create({
   },
   invoiceNumText: {
     fontSize: 11,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#065F46",
   },
   invoiceTimbradoText: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 10,
     color: "#047857",
   },
@@ -754,7 +755,7 @@ const styles = StyleSheet.create({
   approveButtonText: {
     color: "#FFFFFF",
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   whatsappButton: {
     backgroundColor: "#25D366",
@@ -768,7 +769,7 @@ const styles = StyleSheet.create({
   whatsappButtonText: {
     color: "#FFFFFF",
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   secondaryButton: {
     backgroundColor: "#F1F5F9",
@@ -778,7 +779,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     fontSize: 11,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     color: "#475569",
   },
   invoiceShareButton: {
@@ -793,7 +794,7 @@ const styles = StyleSheet.create({
   invoiceShareButtonText: {
     color: "#FFFFFF",
     fontSize: 12,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   detailsButton: {
     flexDirection: "row",
@@ -805,7 +806,7 @@ const styles = StyleSheet.create({
   detailsButtonText: {
     fontSize: 12,
     color: "#030436",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
   },
   actionOutlineButton: {
     flex: 1,
@@ -831,11 +832,12 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     marginTop: 12,
   },
   emptySub: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 12,
     color: "#64748B",
     textAlign: "center",
@@ -854,7 +856,7 @@ const styles = StyleSheet.create({
   emptyActionText: {
     color: "#FFFFFF",
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   manifestSummaryBox: {
     flexDirection: "row",
@@ -870,7 +872,7 @@ const styles = StyleSheet.create({
   manifestSummaryText: {
     fontSize: 11,
     color: "#334155",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     flex: 1,
   },
   manifestActionBtn: {
@@ -883,7 +885,7 @@ const styles = StyleSheet.create({
   manifestActionBtnText: {
     fontSize: 10,
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   fplButton: {
     backgroundColor: "#F1F5F9",
@@ -897,7 +899,7 @@ const styles = StyleSheet.create({
   },
   fplButtonText: {
     fontSize: 12,
-    fontWeight: "700",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     marginHorizontal: 6,
   },

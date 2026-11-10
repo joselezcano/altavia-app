@@ -335,22 +335,23 @@ const ownerStyles = StyleSheet.create({
     },
     label: {
         fontSize: 12,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#64748B",
         textTransform: "uppercase",
         letterSpacing: 0.5,
     },
     value: {
         fontSize: 16,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     warning: {
         fontSize: 14,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#B91C1C",
     },
     hint: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: "#64748B",
     },
@@ -373,7 +374,7 @@ const ownerStyles = StyleSheet.create({
     },
     chipText: {
         fontSize: 13,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#334155",
     },
     chipTextSelected: {

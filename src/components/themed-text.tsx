@@ -45,5 +45,12 @@ export function ThemedText({
   const fontFamily = flat.fontFamily ? undefined : brandFontFamily(weight);
   const { style, ...rest } = props;
 
-  return <Text className={classes} style={fontFamily ? [{ fontFamily }, style] : style} {...rest} />;
+  // La familia ya trae el peso: fontWeight "normal" evita que Android le sume una negrita sintética.
+  return (
+    <Text
+      className={classes}
+      style={fontFamily ? [style, { fontFamily, fontWeight: "normal" }] : style}
+      {...rest}
+    />
+  );
 }

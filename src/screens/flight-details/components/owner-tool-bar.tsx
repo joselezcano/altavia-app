@@ -135,8 +135,8 @@ export function OwnerToolBar({
     const passengerCount = reservation.passengers?.length || 0;
 
     return (
-        <View className="flex-col gap-2">
-            <View className="flex-row items-center gap-3 mb-1">
+        <View className="flex-col" style={{ gap: 8 }}>
+            <View className="flex-row items-center mb-1" style={{ gap: 12 }}>
                 {/* Tripulación Button */}
                 <TouchableOpacity
                     onPress={() =>
@@ -147,7 +147,7 @@ export function OwnerToolBar({
                             },
                         })
                     }
-                    className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
+                    className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center" style={{ gap: 4 }}
                     activeOpacity={0.8}
                 >
                     <MaterialCommunityIcons name="account-tie-hat" size={18} color="#FFFFFF" />
@@ -160,7 +160,7 @@ export function OwnerToolBar({
                 {onOpenManifest && (
                     <TouchableOpacity
                         onPress={onOpenManifest}
-                        className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
+                        className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center" style={{ gap: 4 }}
                         activeOpacity={0.8}
                     >
                         <Ionicons name="people-outline" size={18} color="#FFFFFF" />
@@ -178,7 +178,7 @@ export function OwnerToolBar({
                             params: { fa_flight_id: reservation.fa_flight_id ?? "" },
                         })
                     }
-                    className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center gap-1 shadow-sm"
+                    className="flex-1 bg-brand-blue py-3 px-1 rounded-xl items-center justify-center" style={{ gap: 4 }}
                     activeOpacity={0.8}
                 >
                     <Ionicons name="location-outline" size={18} color="#FFFFFF" />
@@ -189,11 +189,11 @@ export function OwnerToolBar({
             </View>
 
             {/* Flight Plan Buttons */}
-            <View className="flex-row items-center gap-3 mb-2">
+            <View className="flex-row items-center mb-2" style={{ gap: 12 }}>
                 {/* Plan de Vuelo (Ida) */}
                 <TouchableOpacity
                     onPress={handleOutboundFpl}
-                    className="flex-1 bg-brand-blue py-3 px-2 rounded-xl items-center justify-center gap-1 shadow-sm"
+                    className="flex-1 bg-brand-blue py-3 px-2 rounded-xl items-center justify-center" style={{ gap: 4 }}
                     activeOpacity={0.8}
                 >
                     <View className="flex-row items-center">
@@ -211,7 +211,7 @@ export function OwnerToolBar({
                 {reservation.schedule?.roundtrip && (
                     <TouchableOpacity
                         onPress={handleReturnFpl}
-                        className="flex-1 bg-brand-blue py-3 px-2 rounded-xl items-center justify-center gap-1 shadow-sm"
+                        className="flex-1 bg-brand-blue py-3 px-2 rounded-xl items-center justify-center" style={{ gap: 4 }}
                         activeOpacity={0.8}
                     >
                         <View className="flex-row items-center">
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     },
     editButtonText: {
         fontSize: 12,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     deleteButton: {
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     },
     deleteButtonText: {
         fontSize: 12,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#B91C1C",
     },
 });

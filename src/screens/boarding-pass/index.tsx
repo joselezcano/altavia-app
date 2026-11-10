@@ -227,11 +227,13 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     headerEyebrow: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.azur,
         fontSize: 10,
         letterSpacing: 2,
     },
     headerTitle: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.navy,
         fontSize: 18,
     },
@@ -241,6 +243,7 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     loadingText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.textMuted,
         fontSize: 13,
     },
@@ -263,11 +266,13 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     noticeTitle: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.navy,
         fontSize: 17,
         textAlign: "center",
     },
     noticeMessage: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.textMuted,
         fontSize: 13,
         lineHeight: 19,
@@ -285,6 +290,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     primaryButtonText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.white,
         fontSize: 15,
     },
@@ -300,6 +306,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     secondaryButtonText: {
+        fontFamily: "NotoSans_400Regular",
         color: BRAND_COLORS.azur,
         fontSize: 15,
     },
@@ -312,6 +319,7 @@ const styles = StyleSheet.create({
         padding: 12,
     },
     tipText: {
+        fontFamily: "NotoSans_400Regular",
         flex: 1,
         color: BRAND_COLORS.navy,
         fontSize: 12,

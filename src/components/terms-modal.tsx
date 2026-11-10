@@ -48,7 +48,7 @@ export function TermsModal({ visible, onClose, onAccept }: TermsModalProps) {
             Última actualización: Octubre 2026 • Versión 1.0 (Conforme a normativas DINAC)
           </ThemedText>
 
-          <View className="gap-5">
+          <View className="" style={{ gap: 20 }}>
             <View>
               <ThemedText className="font-bold text-slate-900 text-sm mb-1">
                 1. Naturaleza de la Plataforma y Servicio
@@ -108,7 +108,7 @@ export function TermsModal({ visible, onClose, onAccept }: TermsModalProps) {
         </ScrollView>
 
         {/* Footer Actions */}
-        <View className="p-4 border-t border-slate-100 flex-row gap-3">
+        <View className="p-4 border-t border-slate-100 flex-row" style={{ gap: 12 }}>
           <TouchableOpacity
             onPress={onClose}
             className="flex-1 py-3.5 rounded-xl border border-slate-300 items-center justify-center active:bg-slate-50"
@@ -123,7 +123,7 @@ export function TermsModal({ visible, onClose, onAccept }: TermsModalProps) {
                 onAccept();
                 onClose();
               }}
-              className="flex-1 py-3.5 rounded-xl bg-brand-blue items-center justify-center active:bg-brand-blue/90"
+              className="flex-1 py-3.5 rounded-xl bg-brand-blue items-center justify-center active:bg-brand-blue"
             >
               <ThemedText className="font-bold text-white text-sm">
                 Aceptar Términos

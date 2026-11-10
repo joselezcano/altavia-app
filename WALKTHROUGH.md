@@ -88,6 +88,13 @@ Este documento mantiene un registro histórico de las funcionalidades implementa
     - **Detalle:** enviar por WhatsApp (link público), compartir el PDF (`quote-sheet.ts` + expo-print), editar (nueva versión), marcar aceptado o rechazado, eliminar y "Crear reserva" (`useConvertQuote`).
     - **"Reservar sin presupuesto"** sigue disponible. La creación de la reserva y de los bloqueos se extrajo a `usePhoneReservation`.
 
+- **Pasada final de estilo (10/11, codemod en 123 archivos):**
+  - **Sombras:** se quitaron las 158 clases `shadow-*`. Las cards quedan planas con su borde, como pide el manual.
+  - **Opacidad:** los modificadores `/NN` (`bg-black/60`, etc.) pasaron a colores equivalentes (`bg-[rgba(...)]` o sólidos).
+  - **Espaciado:** 267 `gap-*` en `className` pasaron a `style={{ gap }}`. Los 2 que ya tenían `style` quedaron igual.
+  - **Tipografía:** 632 estilos de texto en `StyleSheet` usan Noto Sans según su peso. `ThemedText` fija `fontWeight: "normal"` sobre la familia para que Android no sintetice negrita.
+  - **Deuda pendiente:** quedan 101 `className` con template strings dinámicos (regla 5), en 26 archivos. Hay que convertirlos pantalla por pantalla a `style`.
+
 ## 2. Rol: ADMIN
 - **Dashboard e Index (`index.tsx`, `_layout.tsx`):** Navegación por Drawer configurada con iconos (`Ionicons`), logotipo superior y safe areas. El dashboard cuenta con:
   - Consumo en tiempo real de la base de datos para la cantidad de Modelos Base, Flota Activa y **Vuelos Reservados** (consultando la colección `aircraft-reservation` en Firestore mediante TanStack Query).

@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     },
     deleteButtonText: {
         color: "#EF4444",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         fontSize: 14,
     },
     invisibleCard: {

@@ -100,7 +100,7 @@ export default function PilotPlansScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          <View className="bg-brand-white border border-slate-100 rounded-2xl p-8 items-center justify-center my-8 shadow-sm">
+          <View className="bg-brand-white border border-slate-100 rounded-2xl p-8 items-center justify-center my-8">
             <Ionicons name="document-text-outline" size={48} color="#94A3B8" />
             <ThemedText className="font-bold text-lg text-brand-blue mt-3">
               No tienes planes de vuelo
@@ -148,17 +148,17 @@ export default function PilotPlansScreen() {
             <TouchableOpacity
               onPress={() => handlePlanPress(plan.id)}
               activeOpacity={0.75}
-              className="bg-brand-white border border-slate-200/90 rounded-2xl p-4 shadow-sm mb-4"
+              className="bg-brand-white border border-slate-200 rounded-2xl p-4 mb-4"
             >
               {/* Card Header: Icon + Callsign/Reg + Status Badge */}
               <View className="flex-row justify-between items-center mb-3">
-                <View className="flex-row items-center gap-3 flex-1 pr-2">
-                  <View className="w-11 h-11 rounded-xl bg-brand-blue/10 items-center justify-center border border-brand-blue/10">
+                <View className="flex-row items-center flex-1 pr-2" style={{ gap: 12 }}>
+                  <View className="w-11 h-11 rounded-xl bg-[rgba(3,4,54,0.1)] items-center justify-center border border-[rgba(3,4,54,0.1)]">
                     <Ionicons name="document-text" size={20} color="#030436" />
                   </View>
 
                   <View className="flex-1">
-                    <View className="flex-row items-center gap-1.5 flex-wrap">
+                    <View className="flex-row items-center flex-wrap" style={{ gap: 6 }}>
                       <ThemedText className="font-bold text-base text-brand-blue">
                         {aircraftReg}
                       </ThemedText>
@@ -185,11 +185,11 @@ export default function PilotPlansScreen() {
               </View>
 
               {/* Route Visual Section */}
-              <View className="bg-slate-50/80 border border-slate-100 rounded-xl p-3.5 my-1.5">
+              <View className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 my-1.5">
                 <View className="flex-row items-center justify-between">
                   {/* Origin */}
                   <View className="flex-1">
-                    <View className="flex-row items-center gap-1 mb-0.5">
+                    <View className="flex-row items-center mb-0.5" style={{ gap: 4 }}>
                       <ThemedText
                         type="caption"
                         className="text-[10px] uppercase font-bold text-slate-400 tracking-wider"
@@ -205,7 +205,7 @@ export default function PilotPlansScreen() {
                   {/* Route Arrow / Flight Info Pill */}
                   <View className="items-center justify-center px-2 flex-1">
                     {eetFormatted ? (
-                      <View className="w-24 bg-brand-white border border-slate-200 px-2 py-0.5 rounded-full mb-1.5 flex-row items-center gap-1">
+                      <View className="w-24 bg-brand-white border border-slate-200 px-2 py-0.5 rounded-full mb-1.5 flex-row items-center" style={{ gap: 4 }}>
                         <Ionicons name="time-outline" size={10} color="#64748B" />
                         <ThemedText className="text-xs font-bold text-slate-600">
                           {eetFormatted}
@@ -214,7 +214,7 @@ export default function PilotPlansScreen() {
                     ) : null}
                     <View className="flex-row items-center w-full justify-center">
                       <View className="h-[1.5px] bg-slate-200 flex-1" />
-                      <View className="mx-1.5 bg-brand-gold/15 p-1 rounded-full border border-brand-gold/30">
+                      <View className="mx-1.5 bg-[rgba(1,101,255,0.15)] p-1 rounded-full border border-[rgba(1,101,255,0.3)]">
                         <Ionicons name="airplane" size={12} color="#0165FF" />
                       </View>
                       <View className="h-[1.5px] bg-slate-200 flex-1" />
@@ -223,7 +223,7 @@ export default function PilotPlansScreen() {
 
                   {/* Destination */}
                   <View className="flex-1 items-end">
-                    <View className="flex-row items-center gap-1 mb-0.5">
+                    <View className="flex-row items-center mb-0.5" style={{ gap: 4 }}>
                       <ThemedText
                         type="caption"
                         className="text-[10px] uppercase font-bold text-slate-400 tracking-wider"
@@ -240,8 +240,8 @@ export default function PilotPlansScreen() {
 
               {/* Footer metadata row */}
               <View className="pt-3 flex-row justify-between items-center">
-                <View className="flex-row items-center gap-3 flex-wrap">
-                  <View className="flex-row items-center gap-1">
+                <View className="flex-row items-center flex-wrap" style={{ gap: 12 }}>
+                  <View className="flex-row items-center" style={{ gap: 4 }}>
                     <Ionicons name="calendar-outline" size={13} color="#64748B" />
                     <ThemedText className="text-xs font-semibold text-slate-600">
                       {departureDate}
@@ -249,7 +249,7 @@ export default function PilotPlansScreen() {
                   </View>
 
                   {eobtFormatted && (
-                    <View className="flex-row items-center gap-1 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                    <View className="flex-row items-center bg-slate-100 px-2 py-0.5 rounded border border-slate-200" style={{ gap: 4 }}>
                       <Ionicons name="time-outline" size={12} color="#475569" />
                       <ThemedText className="text-xs font-medium text-slate-700">
                         {eobtFormatted}
@@ -258,7 +258,7 @@ export default function PilotPlansScreen() {
                   )}
 
                   {paxCount !== undefined && paxCount > 0 && (
-                    <View className="flex-row items-center gap-1">
+                    <View className="flex-row items-center" style={{ gap: 4 }}>
                       <Ionicons name="people-outline" size={13} color="#64748B" />
                       <ThemedText className="text-xs font-semibold text-slate-600">
                         {paxCount} pax
@@ -267,7 +267,7 @@ export default function PilotPlansScreen() {
                   )}
                 </View>
 
-                <View className="flex-row items-center gap-0.5">
+                <View className="flex-row items-center" style={{ gap: 2 }}>
                   <ThemedText className="text-xs font-bold text-brand-gold">
                     Ver
                   </ThemedText>

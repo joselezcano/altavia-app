@@ -67,7 +67,7 @@ export function FormNavigationButtons({
                 <TouchableOpacity
                     onPress={handleSubmit}
                     disabled={isSubmitting}
-                    className="flex-1 bg-brand-gold py-3.5 rounded-xl items-center justify-center flex-row gap-2"
+                    className="flex-1 bg-brand-gold py-3.5 rounded-xl items-center justify-center flex-row" style={{ gap: 8 }}
                 >
                     {isSubmitting ? (
                         <ActivityIndicator size="small" color="#FFFFFF" />

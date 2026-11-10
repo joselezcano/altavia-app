@@ -41,7 +41,7 @@ export default function ListAircraftsScreen() {
             params: { id: item.id },
           });
         }}
-        className="bg-brand-white border border-slate-100 rounded-3xl mb-5 overflow-hidden shadow-sm"
+        className="bg-brand-white border border-slate-100 rounded-3xl mb-5 overflow-hidden"
       >
         {/* Cover Photo / Header Banner */}
         <View className="h-44 w-full bg-slate-900 relative justify-center items-center overflow-hidden">
@@ -52,15 +52,15 @@ export default function ListAircraftsScreen() {
               resizeMode="cover"
             />
           ) : (
-            <View className="w-full h-full bg-brand-blue/95 justify-center items-center relative">
-              <View className="w-20 h-20 rounded-full bg-white/10 items-center justify-center">
+            <View className="w-full h-full bg-brand-blue justify-center items-center relative">
+              <View className="w-20 h-20 rounded-full bg-[rgba(255,255,255,0.1)] items-center justify-center">
                 <Ionicons name="airplane" size={40} color="#0165FF" />
               </View>
             </View>
           )}
 
           {/* Registration Badge Pill */}
-          <View className="absolute top-3 right-3 bg-black/60 px-3 py-1 rounded-full">
+          <View className="absolute top-3 right-3 bg-[rgba(0,0,0,0.6)] px-3 py-1 rounded-full">
             <ThemedText className="text-white text-xs font-bold tracking-wide uppercase">
               {registration}
             </ThemedText>
@@ -68,7 +68,7 @@ export default function ListAircraftsScreen() {
 
           {/* Type Badge Pill */}
           {type && (
-            <View className="absolute top-3 left-3 bg-black/60 px-3 py-1 rounded-full">
+            <View className="absolute top-3 left-3 bg-[rgba(0,0,0,0.6)] px-3 py-1 rounded-full">
               <ThemedText className="text-white text-xs font-bold tracking-wide uppercase">
                 {type}
               </ThemedText>
@@ -85,8 +85,8 @@ export default function ListAircraftsScreen() {
           </View>
 
           {/* Key Specs Pills */}
-          <View className="flex-row flex-wrap items-center gap-2 mb-4">
-            <View className="flex-row items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl">
+          <View className="flex-row flex-wrap items-center mb-4" style={{ gap: 8 }}>
+            <View className="flex-row items-center bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl" style={{ gap: 6 }}>
               <Ionicons name="people" size={14} color="#64748B" />
               <ThemedText className="text-xs font-semibold text-slate-700">
                 {pax_count} {pax_count === 1 ? "Persona" : "Personas"} (POB)
@@ -94,7 +94,7 @@ export default function ListAircraftsScreen() {
             </View>
 
             {item.base_airport && (
-              <View className="flex-row items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl">
+              <View className="flex-row items-center bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl" style={{ gap: 6 }}>
                 <Ionicons name="location" size={14} color="#030436" />
                 <ThemedText className="text-xs font-semibold text-slate-700">
                   {item.base_airport.icao_code || item.base_airport.iata_code || item.base_airport.name}
@@ -105,14 +105,14 @@ export default function ListAircraftsScreen() {
 
           {/* Card Footer Action */}
           <View className="border-t border-slate-100 pt-3 flex-row justify-between items-center">
-            <View className="flex-row items-center gap-1">
+            <View className="flex-row items-center" style={{ gap: 4 }}>
               <Ionicons name="images-outline" size={15} color="#94A3B8" />
               <ThemedText className="text-xs text-slate-400 font-medium">
                 {item.photos?.length || 0} {item.photos?.length === 1 ? "foto" : "fotos"}
               </ThemedText>
             </View>
 
-            <View className="flex-row items-center gap-1 bg-brand-gold/10 px-3 py-2 rounded-xl">
+            <View className="flex-row items-center bg-[rgba(1,101,255,0.1)] px-3 py-2 rounded-xl" style={{ gap: 4 }}>
               <ThemedText className="text-xs font-bold text-brand-gold">
                 Ver Detalles
               </ThemedText>
@@ -154,7 +154,7 @@ export default function ListAircraftsScreen() {
           </ThemedText>
           <TouchableOpacity
             onPress={handleAddAircraft}
-            className="bg-brand-blue px-6 py-3 rounded-xl flex-row items-center gap-2 shadow-sm"
+            className="bg-brand-blue px-6 py-3 rounded-xl flex-row items-center" style={{ gap: 8 }}
           >
             <Ionicons name="add" size={20} color="#FFFFFF" />
             <ThemedText className="text-white font-semibold">

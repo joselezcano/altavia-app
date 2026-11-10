@@ -26,7 +26,7 @@ export function FormStep3({
     errors: FieldErrors<AircraftSpecs>;
 }) {
     return (
-        <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
+        <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
             <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-2">
                 3. Especificaciones de Operación
             </ThemedText>

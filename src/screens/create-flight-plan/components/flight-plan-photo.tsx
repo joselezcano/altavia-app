@@ -103,10 +103,11 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 15,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     hint: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: "#64748B",
         flexShrink: 1,
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
     },
     pickerButtonText: {
         fontSize: 13,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#030436",
     },
     thumb: {
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
     },
     removeText: {
         fontSize: 12,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#B91C1C",
     },
 });

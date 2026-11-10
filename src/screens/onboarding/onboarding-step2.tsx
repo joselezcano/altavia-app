@@ -223,7 +223,7 @@ export default function OnboardingStep2Screen() {
           </View>
           <TouchableOpacity
             onPress={signOut}
-            className="flex-row items-center gap-1 px-3 py-1.5 rounded-full bg-slate-200/80 active:bg-slate-300"
+            className="flex-row items-center px-3 py-1.5 rounded-full bg-slate-200 active:bg-slate-300" style={{ gap: 4 }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Ionicons name="log-out-outline" size={16} color="#475569" />
@@ -237,11 +237,11 @@ export default function OnboardingStep2Screen() {
         </ThemedText>
 
         {/* Person Type Selector (Tabs) */}
-        <View className="bg-slate-200/80 p-1 rounded-2xl flex-row mb-6">
+        <View className="bg-slate-200 p-1 rounded-2xl flex-row mb-6">
           <TouchableOpacity
             onPress={() => setPersonType("individual")}
             className={`flex-1 py-3 rounded-xl flex-row items-center justify-center gap-2 ${
-              personType === "individual" ? "bg-white shadow-xs" : ""
+              personType === "individual" ? "bg-white " : ""
             }`}
             activeOpacity={0.8}
           >
@@ -262,7 +262,7 @@ export default function OnboardingStep2Screen() {
           <TouchableOpacity
             onPress={() => setPersonType("company")}
             className={`flex-1 py-3 rounded-xl flex-row items-center justify-center gap-2 ${
-              personType === "company" ? "bg-white shadow-xs" : ""
+              personType === "company" ? "bg-white " : ""
             }`}
             activeOpacity={0.8}
           >
@@ -283,13 +283,13 @@ export default function OnboardingStep2Screen() {
 
         {/* DYNAMIC FORM: PERSONA FÍSICA */}
         {personType === "individual" ? (
-          <View className="gap-4">
+          <View className="" style={{ gap: 16 }}>
             {/* Nationality Selector */}
             <View>
               <ThemedText type="caption" className="mb-2 ml-1 font-semibold text-slate-700">
                 Nacionalidad / Residencia *
               </ThemedText>
-              <View className="flex-row gap-3">
+              <View className="flex-row" style={{ gap: 12 }}>
                 <TouchableOpacity
                   onPress={() => {
                     setNationalityType("paraguayan");
@@ -297,7 +297,7 @@ export default function OnboardingStep2Screen() {
                   }}
                   className={`flex-1 py-3 px-4 rounded-xl border flex-row items-center justify-center gap-2 ${
                     nationalityType === "paraguayan"
-                      ? "bg-brand-blue/5 border-brand-blue"
+                      ? "bg-[rgba(3,4,54,0.05)] border-brand-blue"
                       : "bg-white border-slate-200"
                   }`}
                 >
@@ -315,7 +315,7 @@ export default function OnboardingStep2Screen() {
                   onPress={() => setNationalityType("foreign")}
                   className={`flex-1 py-3 px-4 rounded-xl border flex-row items-center justify-center gap-2 ${
                     nationalityType === "foreign"
-                      ? "bg-brand-blue/5 border-brand-blue"
+                      ? "bg-[rgba(3,4,54,0.05)] border-brand-blue"
                       : "bg-white border-slate-200"
                   }`}
                 >
@@ -337,14 +337,14 @@ export default function OnboardingStep2Screen() {
                 <ThemedText type="caption" className="mb-2 ml-1 font-semibold text-slate-700">
                   Tipo de Documento *
                 </ThemedText>
-                <View className="flex-row gap-2">
+                <View className="flex-row" style={{ gap: 8 }}>
                   {(["PASSPORT", "DNI", "CI"] as DocumentType[]).map((docType) => (
                     <TouchableOpacity
                       key={docType}
                       onPress={() => setDocumentType(docType)}
                       className={`flex-1 py-2.5 rounded-xl border items-center justify-center ${
                         documentType === docType
-                          ? "bg-brand-gold/15 border-brand-gold"
+                          ? "bg-[rgba(1,101,255,0.15)] border-brand-gold"
                           : "bg-white border-slate-200"
                       }`}
                     >
@@ -367,7 +367,7 @@ export default function OnboardingStep2Screen() {
                 {nationalityType === "paraguayan" ? "Cédula de Identidad (CI) *" : "Número de Documento *"}
               </ThemedText>
               <TextInput
-                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base shadow-xs"
+                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base"
                 placeholder={nationalityType === "paraguayan" ? "Ej. 4512389" : "Ej. A12345678"}
                 placeholderTextColor="#94A3B8"
                 value={documentNumber}
@@ -384,8 +384,8 @@ export default function OnboardingStep2Screen() {
               </ThemedText>
               <TextInput
                 className={`bg-white border border-slate-200 rounded-xl px-4 py-3.5 ${
-                  nameProvidedByAuth ? "text-slate-500 bg-slate-50/80" : "text-brand-text"
-                } font-medium text-base shadow-xs`}
+                  nameProvidedByAuth ? "text-slate-500 bg-slate-50" : "text-brand-text"
+                } font-medium text-base `}
                 placeholder="Ej. Juan Carlos"
                 placeholderTextColor="#94A3B8"
                 value={firstName}
@@ -407,8 +407,8 @@ export default function OnboardingStep2Screen() {
               </ThemedText>
               <TextInput
                 className={`bg-white border border-slate-200 rounded-xl px-4 py-3.5 ${
-                  nameProvidedByAuth ? "text-slate-500 bg-slate-50/80" : "text-brand-text"
-                } font-medium text-base shadow-xs`}
+                  nameProvidedByAuth ? "text-slate-500 bg-slate-50" : "text-brand-text"
+                } font-medium text-base `}
                 placeholder="Ej. Rodríguez Pérez"
                 placeholderTextColor="#94A3B8"
                 value={lastName}
@@ -429,7 +429,7 @@ export default function OnboardingStep2Screen() {
                 Teléfono Celular (WhatsApp) *
               </ThemedText>
               <TextInput
-                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base shadow-xs"
+                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base"
                 placeholder="Ej. 0981234567 / +595981123456"
                 placeholderTextColor="#94A3B8"
                 value={phone}
@@ -440,14 +440,14 @@ export default function OnboardingStep2Screen() {
           </View>
         ) : (
           /* DYNAMIC FORM: PERSONA JURÍDICA (EMPRESA) */
-          <View className="gap-4">
+          <View className="" style={{ gap: 16 }}>
             {/* Business Name */}
             <View>
               <ThemedText type="caption" className="mb-1.5 ml-1 font-semibold text-slate-700">
                 Razón Social de la Empresa *
               </ThemedText>
               <TextInput
-                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base shadow-xs"
+                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base"
                 placeholder="Ej. Corporación Aeronáutica S.A."
                 placeholderTextColor="#94A3B8"
                 value={businessName}
@@ -462,7 +462,7 @@ export default function OnboardingStep2Screen() {
                 RUC / Identificación Fiscal *
               </ThemedText>
               <TextInput
-                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base shadow-xs"
+                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base"
                 placeholder="Ej. 80098765-4"
                 placeholderTextColor="#94A3B8"
                 value={taxId}
@@ -477,7 +477,7 @@ export default function OnboardingStep2Screen() {
                 Nombre del Representante Legal *
               </ThemedText>
               <TextInput
-                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base shadow-xs"
+                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base"
                 placeholder="Ej. Carlos Benítez"
                 placeholderTextColor="#94A3B8"
                 value={representativeName}
@@ -492,7 +492,7 @@ export default function OnboardingStep2Screen() {
                 Documento del Representante Legal *
               </ThemedText>
               <TextInput
-                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base shadow-xs"
+                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base"
                 placeholder="Ej. CI 2345678 / Pasaporte"
                 placeholderTextColor="#94A3B8"
                 value={representativeDoc}
@@ -506,7 +506,7 @@ export default function OnboardingStep2Screen() {
                 Teléfono Corporativo *
               </ThemedText>
               <TextInput
-                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base shadow-xs"
+                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-brand-text font-medium text-base"
                 placeholder="Ej. 021654321 / +595981999888"
                 placeholderTextColor="#94A3B8"
                 value={companyPhone}
@@ -519,7 +519,7 @@ export default function OnboardingStep2Screen() {
 
         {/* Submit Button */}
         <TouchableOpacity
-          className="bg-brand-blue rounded-xl py-4 items-center mt-6 shadow-md active:bg-brand-blue/90"
+          className="bg-brand-blue rounded-xl py-4 items-center mt-6 active:bg-brand-blue"
           onPress={handleSubmit}
           disabled={loading}
           activeOpacity={0.8}

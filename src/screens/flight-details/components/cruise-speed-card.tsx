@@ -15,14 +15,14 @@ export function CruiseSpeedCard({
     cruiseSpeedReturn: number | undefined;
 }) {
     return (
-        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm gap-3">
+        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200" style={{ gap: 12 }}>
             <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-1">
                 Velocidad
             </ThemedText>
 
             {/* Velocidad de crucero del avión */}
             <View className="flex-row items-center justify-between py-2">
-                <View className="flex-row items-center gap-2.5">
+                <View className="flex-row items-center" style={{ gap: 10 }}>
                     <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
                         <MaterialCommunityIcons name="speedometer" size={18} color="#030436" />
                     </View>
@@ -41,7 +41,7 @@ export function CruiseSpeedCard({
                     <ThemedText className="text-xs font-bold text-brand-gold uppercase tracking-wider mb-1.5">
                         Velocidad de vuelo
                     </ThemedText>
-                    <View className="gap-1 pl-2 border-l-2 border-brand-gold/40">
+                    <View className="pl-2 border-l-2 border-[rgba(1,101,255,0.4)]" style={{ gap: 4 }}>
                         <View className="flex-row items-center justify-between">
                             <ThemedText className="text-xs text-slate-500 font-medium">Ida:</ThemedText>
                             <ThemedText className="text-xs font-bold text-slate-800">

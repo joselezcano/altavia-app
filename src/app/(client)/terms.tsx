@@ -150,7 +150,7 @@ export default function TermsScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          className={`rounded-xl py-4 items-center shadow-sm ${!hasScrolledToBottom || !hasCheckedDisclaimer ? "bg-slate-300" : "bg-brand-blue active:bg-brand-blue/90"}`}
+          className={`rounded-xl py-4 items-center  ${!hasScrolledToBottom || !hasCheckedDisclaimer ? "bg-slate-300" : "bg-brand-blue active:bg-brand-blue"}`}
           onPress={handleAccept}
           disabled={
             !hasScrolledToBottom || !hasCheckedDisclaimer || isSubmitting

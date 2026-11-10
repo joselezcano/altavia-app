@@ -160,13 +160,16 @@ const styles = StyleSheet.create({
     flex: { flex: 1 },
     headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16, marginTop: 8 },
     backBtn: { flexDirection: "row", alignItems: "center", padding: 4 },
-    backText: { color: "#030436", fontWeight: "600", marginLeft: 4 },
-    title: { color: "#030436", fontWeight: "700", fontSize: 17 },
+    backText: {
+    fontFamily: "NotoSans_400Regular", color: "#030436", fontWeight: "600", marginLeft: 4 },
+    title: {
+    fontFamily: "NotoSans_400Regular", color: "#030436", fontWeight: "700", fontSize: 17 },
     stepsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 20, paddingHorizontal: 8 },
     stepItem: { alignItems: "center", flex: 1 },
     stepDot: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: "#E2E8F0" },
     stepDotActive: { backgroundColor: "#030436" },
     stepDotDone: { backgroundColor: "#0165FF" },
-    stepNumber: { fontSize: 13, fontWeight: "700", color: "#64748B" },
+    stepNumber: {
+    fontFamily: "NotoSans_400Regular", fontSize: 13, fontWeight: "700", color: "#64748B" },
     stepNumberOn: { color: "#FFFFFF" },
 });

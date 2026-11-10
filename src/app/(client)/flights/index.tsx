@@ -113,7 +113,7 @@ export default function ClientFlightsScreen() {
                 {isLoading
                     ? <LoadingCard message="Cargando tus reservas..." />
                     : reservations.length === 0 ? (
-                        <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6 shadow-sm">
+                        <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6">
                             <View className="w-16 h-16 rounded-full bg-slate-100 items-center justify-center mb-4 border border-slate-200">
                                 <Ionicons name="airplane-outline" size={32} color="#94a3b8" />
                             </View>
@@ -125,7 +125,7 @@ export default function ClientFlightsScreen() {
                             </ThemedText>
                             <TouchableOpacity
                                 onPress={() => router.push("/book")}
-                                className="bg-brand-gold px-5 py-3 rounded-xl flex-row items-center gap-2 shadow-md"
+                                className="bg-brand-gold px-5 py-3 rounded-xl flex-row items-center" style={{ gap: 8 }}
                                 activeOpacity={0.8}
                             >
                                 <Ionicons name="search" size={16} color="#FFFFFF" />

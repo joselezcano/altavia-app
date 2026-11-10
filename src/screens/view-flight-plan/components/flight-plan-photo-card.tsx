@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 16,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     photo: {
@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#F1F5F9",
     },
     hint: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: "#64748B",
         marginTop: 8,

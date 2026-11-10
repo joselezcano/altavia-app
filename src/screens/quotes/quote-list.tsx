@@ -185,10 +185,12 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     title: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 20,
         color: BRAND_COLORS.navy,
     },
     subtitle: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: BRAND_COLORS.textMuted,
     },
@@ -202,6 +204,7 @@ const styles = StyleSheet.create({
         paddingVertical: 9,
     },
     newButtonText: {
+        fontFamily: "NotoSans_400Regular",
         color: "#FFFFFF",
         fontSize: 13,
     },
@@ -222,6 +225,7 @@ const styles = StyleSheet.create({
         borderColor: BRAND_COLORS.navy,
     },
     chipText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: BRAND_COLORS.textMuted,
     },
@@ -245,10 +249,12 @@ const styles = StyleSheet.create({
         alignItems: "flex-start",
     },
     client: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 15,
         color: BRAND_COLORS.navy,
     },
     number: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: BRAND_COLORS.textMuted,
         marginTop: 1,
@@ -260,6 +266,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     route: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: BRAND_COLORS.navy,
         flex: 1,
@@ -271,10 +278,12 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     meta: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: BRAND_COLORS.textMuted,
     },
     total: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 16,
         color: BRAND_COLORS.azur,
     },
@@ -284,6 +293,7 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     emptyText: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 13,
         color: BRAND_COLORS.textMuted,
         textAlign: "center",

@@ -224,7 +224,8 @@ export function PlanSimulatorTab({ plan, cfg, liveTc }: BusinessPlanTabProps) {
 
 const styles = StyleSheet.create({
     control: { marginBottom: 14 },
-    controlLabel: { fontSize: 13, fontWeight: "700", color: "#334155" },
+    controlLabel: {
+    fontFamily: "NotoSans_400Regular", fontSize: 13, fontWeight: "700", color: "#334155" },
     stepperRow: { flexDirection: "row", alignItems: "center", marginTop: 6, gap: 8 },
     stepBtn: {
         width: 40,
@@ -244,11 +245,12 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         paddingHorizontal: 10,
         fontSize: 16,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: FIN_COLORS.blue,
         textAlign: "center",
     },
-    suffix: { fontSize: 12, color: FIN_COLORS.muted, minWidth: 34 },
+    suffix: {
+    fontFamily: "NotoSans_400Regular", fontSize: 12, color: FIN_COLORS.muted, minWidth: 34 },
     quickRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8 },
     quick: {
         paddingHorizontal: 10,
@@ -259,7 +261,8 @@ const styles = StyleSheet.create({
         backgroundColor: FIN_COLORS.white,
     },
     quickActive: { backgroundColor: FIN_COLORS.gold, borderColor: FIN_COLORS.gold },
-    quickText: { fontSize: 11, fontWeight: "600", color: FIN_COLORS.blue },
+    quickText: {
+    fontFamily: "NotoSans_400Regular", fontSize: 11, fontWeight: "600", color: FIN_COLORS.blue },
     quickTextActive: { color: FIN_COLORS.white },
     toggleRow: {
         flexDirection: "row",
@@ -268,5 +271,6 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: "#F1F5F9",
     },
-    toggleSub: { fontSize: 11, color: FIN_COLORS.muted, marginTop: 2 },
+    toggleSub: {
+    fontFamily: "NotoSans_400Regular", fontSize: 11, color: FIN_COLORS.muted, marginTop: 2 },
 });

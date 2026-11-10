@@ -148,10 +148,11 @@ const styles = StyleSheet.create({
     },
     compactTemp: {
         fontSize: 12,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_COLORS.navy,
     },
     compactLabel: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: BRAND_COLORS.textMuted,
     },
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
     },
     compactRainText: {
         fontSize: 11,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: BRAND_COLORS.azur,
     },
     detailRow: {
@@ -185,11 +186,12 @@ const styles = StyleSheet.create({
     },
     detailCode: {
         fontSize: 13,
-        fontWeight: "800",
+        fontFamily: "NotoSans_800ExtraBold",
         color: BRAND_COLORS.navy,
         flexShrink: 1,
     },
     detailCaption: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10,
         color: BRAND_COLORS.textMuted,
     },
@@ -200,11 +202,12 @@ const styles = StyleSheet.create({
     },
     detailTemp: {
         fontSize: 20,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_COLORS.navy,
         lineHeight: 24,
     },
     detailCondition: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: BRAND_COLORS.textMuted,
     },
@@ -215,14 +218,14 @@ const styles = StyleSheet.create({
     },
     detailLineText: {
         fontSize: 11,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: BRAND_COLORS.navy,
         flexShrink: 1,
     },
     detailGusts: {
         fontSize: 10,
         color: "#B45309",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         marginLeft: 18,
         marginTop: -4,
     },
@@ -246,10 +249,11 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         fontSize: 15,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_COLORS.navy,
     },
     source: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 10,
         color: BRAND_COLORS.textMuted,
     },

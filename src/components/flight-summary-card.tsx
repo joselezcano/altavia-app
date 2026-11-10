@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     eyebrow: {
         flex: 1,
         fontSize: 11,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_COLORS.azur,
         textTransform: "uppercase",
         letterSpacing: 0.8,
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         fontSize: 11,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     routeRow: {
         flexDirection: "row",
@@ -225,11 +225,12 @@ const styles = StyleSheet.create({
     },
     code: {
         fontSize: 22,
-        fontWeight: "800",
+        fontFamily: "NotoSans_800ExtraBold",
         color: BRAND_COLORS.navy,
         letterSpacing: 0.5,
     },
     city: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 11,
         color: BRAND_COLORS.textMuted,
         marginTop: 1,
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
     },
     roundtrip: {
         fontSize: 9,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_COLORS.azur,
     },
     dateRow: {
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
     },
     dateText: {
         fontSize: 13,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: BRAND_COLORS.navy,
         flexShrink: 1,
     },
@@ -286,12 +287,12 @@ const styles = StyleSheet.create({
     },
     chipText: {
         fontSize: 11,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: BRAND_COLORS.navy,
     },
     price: {
         fontSize: 14,
-        fontWeight: "800",
+        fontFamily: "NotoSans_800ExtraBold",
         color: BRAND_COLORS.navy,
     },
     toggleRow: {
@@ -303,7 +304,7 @@ const styles = StyleSheet.create({
     },
     toggleText: {
         fontSize: 12,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: BRAND_COLORS.azur,
     },
     body: {
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
     },
     weatherTitle: {
         fontSize: 13,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: BRAND_COLORS.navy,
     },
 });

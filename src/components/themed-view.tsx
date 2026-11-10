@@ -16,7 +16,7 @@ export function ThemedView({
     case "card":
       // Fondo blanco puro para tarjetas, con borde suave y sombra ligera
       variantClasses =
-        "bg-brand-white rounded-2xl border border-slate-200 p-4 shadow-sm";
+        "bg-brand-white rounded-2xl border border-slate-200 p-4 ";
       break;
     case "transparent":
       variantClasses = "bg-transparent";

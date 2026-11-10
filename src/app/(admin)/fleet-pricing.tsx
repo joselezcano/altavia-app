@@ -163,7 +163,8 @@ export default function FleetPricingScreen() {
 
 const styles = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
-  headerSub: { color: "#64748B", fontSize: 13, marginTop: 4, lineHeight: 18 },
+  headerSub: {
+    fontFamily: "NotoSans_400Regular", color: "#64748B", fontSize: 13, marginTop: 4, lineHeight: 18 },
   card: {
     flexDirection: "row",
     alignItems: "center",
@@ -174,7 +175,8 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 12,
   },
-  cardSub: { color: "#64748B", fontSize: 12, marginTop: 4 },
+  cardSub: {
+    fontFamily: "NotoSans_400Regular", color: "#64748B", fontSize: 12, marginTop: 4 },
   editBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -184,13 +186,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 6,
   },
-  editBtnText: { color: "#FFFFFF", fontWeight: "600", fontSize: 13 },
+  editBtnText: {
+    fontFamily: "NotoSans_400Regular", color: "#FFFFFF", fontWeight: "600", fontSize: 13 },
   scrim: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" },
   sheet: { backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 36 },
-  sheetTitle: { fontSize: 17, fontWeight: "700", color: "#030436", marginBottom: 8 },
-  hint: { fontSize: 11, color: "#64748B", marginTop: 4 },
-  label: { fontSize: 13, color: "#334155", fontWeight: "600", marginTop: 14, marginBottom: 6 },
+  sheetTitle: {
+    fontFamily: "NotoSans_400Regular", fontSize: 17, fontWeight: "700", color: "#030436", marginBottom: 8 },
+  hint: {
+    fontFamily: "NotoSans_400Regular", fontSize: 11, color: "#64748B", marginTop: 4 },
+  label: {
+    fontFamily: "NotoSans_400Regular", fontSize: 13, color: "#334155", fontWeight: "600", marginTop: 14, marginBottom: 6 },
   input: {
+    fontFamily: "NotoSans_400Regular",
     borderWidth: 1,
     borderColor: "#CBD5E1",
     borderRadius: 12,
@@ -200,7 +207,9 @@ const styles = StyleSheet.create({
     color: "#0F172A",
   },
   sheetBtn: { flex: 1, backgroundColor: "#030436", borderRadius: 12, paddingVertical: 14, alignItems: "center" },
-  sheetBtnText: { color: "#FFFFFF", fontWeight: "700" },
+  sheetBtnText: {
+    fontFamily: "NotoSans_400Regular", color: "#FFFFFF", fontWeight: "700" },
   sheetBtnGhost: { backgroundColor: "#F1F5F9" },
-  sheetBtnGhostText: { color: "#334155", fontWeight: "700" },
+  sheetBtnGhostText: {
+    fontFamily: "NotoSans_400Regular", color: "#334155", fontWeight: "700" },
 });

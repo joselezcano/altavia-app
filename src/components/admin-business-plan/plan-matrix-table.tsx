@@ -79,13 +79,17 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         backgroundColor: FIN_COLORS.blue,
     },
-    headerText: { color: FIN_COLORS.white, fontSize: 11, fontWeight: "700", textAlign: "right" },
+    headerText: {
+    fontFamily: "NotoSans_400Regular", color: FIN_COLORS.white, fontSize: 11, fontWeight: "700", textAlign: "right" },
     labelCell: { alignItems: "flex-start" },
     cell: { height: CELL_HEIGHT, justifyContent: "center", paddingHorizontal: 8, backgroundColor: FIN_COLORS.white },
     zebra: { backgroundColor: FIN_COLORS.light },
-    labelText: { fontSize: 11, color: "#334155" },
-    valueText: { fontSize: 12, color: FIN_COLORS.text, textAlign: "right", fontWeight: "600" },
-    strong: { fontWeight: "800", color: FIN_COLORS.blue },
+    labelText: {
+    fontFamily: "NotoSans_400Regular", fontSize: 11, color: "#334155" },
+    valueText: {
+    fontFamily: "NotoSans_400Regular", fontSize: 12, color: FIN_COLORS.text, textAlign: "right", fontWeight: "600" },
+    strong: {
+    fontFamily: "NotoSans_400Regular", fontWeight: "800", color: FIN_COLORS.blue },
     ok: { color: FIN_COLORS.ok },
     bad: { color: FIN_COLORS.bad },
 });

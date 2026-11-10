@@ -164,19 +164,19 @@ const styles = StyleSheet.create({
     },
     eyebrow: {
         fontSize: 11,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#0165FF",
         textTransform: "uppercase",
         letterSpacing: 0.5,
     },
     title: {
         fontSize: 14,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#1E293B",
     },
     idValue: {
         fontSize: 13,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#030436",
         backgroundColor: "#F8FAFC",
         borderWidth: 1,
@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     idEmpty: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: "#64748B",
         marginBottom: 10,
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
     },
     actionButtonText: {
         fontSize: 12,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#FFFFFF",
     },
     modalOverlay: {
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
     },
     modalTitle: {
         fontSize: 16,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#030436",
     },
     modalClose: {
@@ -234,12 +235,14 @@ const styles = StyleSheet.create({
         backgroundColor: "#F1F5F9",
     },
     modalHelp: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: "#64748B",
         lineHeight: 17,
         marginBottom: 12,
     },
     input: {
+        fontFamily: "NotoSans_400Regular",
         backgroundColor: "#F8FAFC",
         borderWidth: 1,
         borderColor: "#E2E8F0",
@@ -264,7 +267,7 @@ const styles = StyleSheet.create({
     },
     cancelButtonText: {
         fontSize: 13,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#64748B",
     },
     saveButton: {
@@ -276,7 +279,7 @@ const styles = StyleSheet.create({
     },
     saveButtonText: {
         fontSize: 13,
-        fontWeight: "bold",
+        fontFamily: "NotoSans_700Bold",
         color: "#FFFFFF",
     },
 });

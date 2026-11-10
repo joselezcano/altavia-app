@@ -178,7 +178,7 @@ export default function FlightTrackerScreen() {
             <View className="flex-row items-center justify-between mb-4 mt-2">
                 <TouchableOpacity
                     onPress={() => router.back()}
-                    className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200 shadow-sm"
+                    className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200"
                     activeOpacity={0.8}
                 >
                     <Ionicons name="arrow-back" size={20} color="#030436" />
@@ -201,7 +201,7 @@ export default function FlightTrackerScreen() {
                 {isLoading
                     ? <LoadingCard message="Cargando seguimiento de vuelo..." />
                     : !fp ? (
-                        <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6 shadow-sm">
+                        <View className="bg-brand-white rounded-3xl p-8 border border-slate-200 items-center justify-center my-6">
                             <View className="w-16 h-16 rounded-full bg-amber-50 items-center justify-center mb-4 border border-amber-100">
                                 <Ionicons name="airplane-outline" size={32} color="#d97706" />
                             </View>
@@ -213,7 +213,7 @@ export default function FlightTrackerScreen() {
                             </ThemedText>
                             <TouchableOpacity
                                 onPress={() => router.back()}
-                                className="bg-brand-blue px-5 py-3 rounded-xl flex-row items-center gap-2 shadow-md"
+                                className="bg-brand-blue px-5 py-3 rounded-xl flex-row items-center" style={{ gap: 8 }}
                                 activeOpacity={0.8}
                             >
                                 <Ionicons name="arrow-back" size={16} color="#FFFFFF" />
@@ -221,15 +221,15 @@ export default function FlightTrackerScreen() {
                             </TouchableOpacity>
                         </View>
                     ) : (
-                        <View className="gap-4 mb-10">
+                        <View className="mb-10" style={{ gap: 16 }}>
                             {/* Card 1: Flight Overview */}
-                            <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
+                            <View className="bg-brand-white rounded-3xl p-5 border border-slate-200">
                                 <View className="flex-row items-start justify-between">
                                     <View className="flex-1 mr-2">
                                         <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg">
                                             {fp.ident_iata || fp.ident_icao || fp.ident}
                                         </ThemedText>
-                                        <View className="flex-row items-center gap-2 mt-1">
+                                        <View className="flex-row items-center mt-1" style={{ gap: 8 }}>
                                             {fp.aircraft_type && (
                                                 <View className="bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
                                                     <ThemedText className="text-xs font-bold text-slate-700">
@@ -255,7 +255,7 @@ export default function FlightTrackerScreen() {
 
                                 {elapsedTimeStr ? (
                                     <View className="mt-4 pt-3 border-t border-slate-100 flex-row items-center justify-between">
-                                        <View className="flex-row items-center gap-2">
+                                        <View className="flex-row items-center" style={{ gap: 8 }}>
                                             <Ionicons name="time-outline" size={16} color="#030436" />
                                             <ThemedText className="text-xs font-medium text-slate-600">
                                                 Tiempo transcurrido:
@@ -270,14 +270,14 @@ export default function FlightTrackerScreen() {
 
                             {/* Card 2: Interactive Flight Map */}
                             {mapBase64Image ? (
-                                <View className="bg-brand-white rounded-3xl p-4 border border-slate-200 shadow-sm">
-                                    <View className="flex-row items-center gap-2 mb-3 px-1">
+                                <View className="bg-brand-white rounded-3xl p-4 border border-slate-200">
+                                    <View className="flex-row items-center mb-3 px-1" style={{ gap: 8 }}>
                                         <Ionicons name="map-outline" size={18} color="#030436" />
                                         <ThemedText type="subtitle" className="text-brand-blue font-bold text-base">
                                             Mapa de Vuelo
                                         </ThemedText>
                                     </View>
-                                    <View className="w-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                                    <View className="w-full rounded-2xl overflow-hidden border border-slate-200">
                                         <Image
                                             className="w-full aspect-[4/3]"
                                             source={{ uri: `data:image/png;base64,${mapBase64Image}` }}
@@ -290,14 +290,14 @@ export default function FlightTrackerScreen() {
                             ) : null}
 
                             {/* Card 3: Route Details */}
-                            <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
+                            <View className="bg-brand-white rounded-3xl p-5 border border-slate-200">
                                 <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-4">
                                     Ruta del Vuelo
                                 </ThemedText>
 
-                                <View className="bg-slate-50 rounded-2xl p-4 border border-slate-100 gap-4">
+                                <View className="bg-slate-50 rounded-2xl p-4 border border-slate-100" style={{ gap: 16 }}>
                                     {/* Origin */}
-                                    <View className="flex-row items-start gap-3">
+                                    <View className="flex-row items-start" style={{ gap: 12 }}>
                                         <View className="w-3 h-3 rounded-full bg-brand-gold mt-1.5" />
                                         <View className="flex-1">
                                             <ThemedText className="text-xs uppercase tracking-wider font-bold text-slate-400">
@@ -320,13 +320,13 @@ export default function FlightTrackerScreen() {
                                     </View>
 
                                     {/* Connector */}
-                                    <View className="flex-row items-center gap-2 pl-1 my-0.5">
+                                    <View className="flex-row items-center pl-1 my-0.5" style={{ gap: 8 }}>
                                         <View className="w-0.5 h-6 bg-slate-300 ml-0.5" />
                                         <MaterialCommunityIcons name={flightStatus === "arrived" || flightStatus === "to be confirmed" ? "airplane-landing" : "airplane-takeoff"} size={16} color="#0165FF" className="ml-2" />
                                     </View>
 
                                     {/* Destination */}
-                                    <View className="flex-row items-start gap-3">
+                                    <View className="flex-row items-start" style={{ gap: 12 }}>
                                         <View className="w-3 h-3 rounded-full bg-brand-blue mt-1.5" />
                                         <View className="flex-1">
                                             <ThemedText className="text-xs uppercase tracking-wider font-bold text-slate-400">
@@ -351,14 +351,14 @@ export default function FlightTrackerScreen() {
                             </View>
 
                             {/* Card 4: Position Telemetry */}
-                            <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm gap-3">
+                            <View className="bg-brand-white rounded-3xl p-5 border border-slate-200" style={{ gap: 12 }}>
                                 <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-1">
                                     Telemetría en Tiempo Real
                                 </ThemedText>
 
                                 {/* Latitude */}
                                 <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
-                                    <View className="flex-row items-center gap-2.5">
+                                    <View className="flex-row items-center" style={{ gap: 10 }}>
                                         <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
                                             <Ionicons name="compass-outline" size={18} color="#030436" />
                                         </View>
@@ -373,7 +373,7 @@ export default function FlightTrackerScreen() {
 
                                 {/* Longitude */}
                                 <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
-                                    <View className="flex-row items-center gap-2.5">
+                                    <View className="flex-row items-center" style={{ gap: 10 }}>
                                         <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
                                             <Ionicons name="location-outline" size={18} color="#030436" />
                                         </View>
@@ -388,7 +388,7 @@ export default function FlightTrackerScreen() {
 
                                 {/* Altitude */}
                                 <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
-                                    <View className="flex-row items-center gap-2.5">
+                                    <View className="flex-row items-center" style={{ gap: 10 }}>
                                         <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
                                             <MaterialCommunityIcons name="cloud-upload-outline" size={18} color="#030436" />
                                         </View>
@@ -405,7 +405,7 @@ export default function FlightTrackerScreen() {
 
                                 {/* Groundspeed */}
                                 <View className="flex-row items-center justify-between py-2 border-b border-slate-100">
-                                    <View className="flex-row items-center gap-2.5">
+                                    <View className="flex-row items-center" style={{ gap: 10 }}>
                                         <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
                                             <MaterialCommunityIcons name="speedometer" size={18} color="#030436" />
                                         </View>
@@ -422,7 +422,7 @@ export default function FlightTrackerScreen() {
 
                                 {/* Heading */}
                                 <View className="flex-row items-center justify-between py-2">
-                                    <View className="flex-row items-center gap-2.5">
+                                    <View className="flex-row items-center" style={{ gap: 10 }}>
                                         <View className="w-8 h-8 rounded-xl bg-slate-100 items-center justify-center">
                                             <Ionicons name="navigate-outline" size={18} color="#030436" />
                                         </View>
@@ -442,7 +442,7 @@ export default function FlightTrackerScreen() {
                             {fa_flight_id ? (
                                 <TouchableOpacity
                                     onPress={handleShareWebLink}
-                                    className="bg-brand-blue rounded-2xl py-4 px-5 flex-row items-center justify-center gap-2.5 shadow-md border border-brand-blue/20 active:opacity-90 mt-2"
+                                    className="bg-brand-blue rounded-2xl py-4 px-5 flex-row items-center justify-center border border-[rgba(3,4,54,0.2)] active:opacity-90 mt-2" style={{ gap: 10 }}
                                     activeOpacity={0.8}
                                 >
                                     <Ionicons name={copied ? "checkmark-circle" : "share-outline"} size={20} color="#FFFFFF" />

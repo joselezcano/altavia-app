@@ -100,7 +100,7 @@ export default function AddTemplateScreen() {
           <ScrollView showsVerticalScrollIndicator={false} className="flex-1 pb-10">
 
             {/* SECCIÓN 1: Info Base */}
-            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
+            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-1">
                 1. Información de Plantilla
               </ThemedText>
@@ -122,7 +122,7 @@ export default function AddTemplateScreen() {
                 />
               </View>
 
-              <View className="flex-row gap-3">
+              <View className="flex-row" style={{ gap: 12 }}>
                 <View className="flex-1">
                   <ThemedText className="font-semibold text-brand-blue mb-1 text-sm">Código ICAO</ThemedText>
                   <Controller
@@ -179,7 +179,7 @@ export default function AddTemplateScreen() {
             </View>
 
             {/* SECCIÓN 2: Especificaciones Técnicas */}
-            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
+            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-1">
                 2. Especificaciones Técnicas
               </ThemedText>
@@ -204,7 +204,7 @@ export default function AddTemplateScreen() {
                 />
               </View>
 
-              <View className="flex-row gap-3">
+              <View className="flex-row" style={{ gap: 12 }}>
                 <View className="flex-[0.5]">
                   <ThemedText className="font-semibold text-brand-blue mb-1 text-sm">Tx</ThemedText>
                   <Controller
@@ -277,12 +277,12 @@ export default function AddTemplateScreen() {
             </View>
 
             {/* SECCIÓN 3: Performance (Operating) */}
-            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
+            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-1">
                 3. Performance (Limites)
               </ThemedText>
 
-              <View className="flex-row gap-3">
+              <View className="flex-row" style={{ gap: 12 }}>
                 <View className="flex-1">
                   <ThemedText className="font-semibold text-brand-blue mb-1 text-sm">Vel. Crucero (KT)</ThemedText>
                   <Controller
@@ -319,7 +319,7 @@ export default function AddTemplateScreen() {
                 </View>
               </View>
 
-              <View className="flex-row gap-3">
+              <View className="flex-row" style={{ gap: 12 }}>
                 <View className="flex-1">
                   <ThemedText className="font-semibold text-brand-blue mb-1 text-sm">Techo Serv. (FT)</ThemedText>
                   <Controller
@@ -356,7 +356,7 @@ export default function AddTemplateScreen() {
                 </View>
               </View>
 
-              <View className="flex-row gap-3">
+              <View className="flex-row" style={{ gap: 12 }}>
                 <View className="flex-1">
                   <ThemedText className="font-semibold text-brand-blue mb-1 text-sm">Despegue (FT)</ThemedText>
                   <Controller
@@ -413,12 +413,12 @@ export default function AddTemplateScreen() {
             </View>
 
             {/* SECCIÓN 4: Emergencia */}
-            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 shadow-sm gap-4 mb-4">
+            <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg mb-1">
                 4. Emergencia
               </ThemedText>
 
-              <View className="flex-row gap-3">
+              <View className="flex-row" style={{ gap: 12 }}>
                 <View className="flex-1">
                   <ThemedText className="font-semibold text-brand-blue mb-1 text-sm">Radios (U, V, E)</ThemedText>
                   <Controller
@@ -459,7 +459,7 @@ export default function AddTemplateScreen() {
                 </View>
               </View>
 
-              <View className="flex-row gap-3">
+              <View className="flex-row" style={{ gap: 12 }}>
                 <View className="flex-1">
                   <ThemedText className="font-semibold text-brand-blue mb-1 text-sm">Chalecos</ThemedText>
                   <Controller
@@ -491,7 +491,7 @@ export default function AddTemplateScreen() {
                   return (
                     <View className="mt-2">
                       <ThemedText className="font-semibold text-brand-blue mb-2 text-sm">¿Lleva balsas salvavidas por defecto?</ThemedText>
-                      <View className="flex-row items-center gap-2 mb-3">
+                      <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
                         <Switch
                           value={currentVal.carried}
                           onValueChange={(val) => onChange({ ...currentVal, carried: val })}
@@ -504,8 +504,8 @@ export default function AddTemplateScreen() {
                       </View>
 
                       {currentVal.carried && (
-                        <View className="bg-slate-50 p-3 rounded-xl border border-slate-200 gap-3">
-                          <View className="flex-row gap-3">
+                        <View className="bg-slate-50 p-3 rounded-xl border border-slate-200" style={{ gap: 12 }}>
+                          <View className="flex-row" style={{ gap: 12 }}>
                             <View className="flex-1">
                               <ThemedText className="font-semibold text-slate-500 mb-1 text-xs">Cantidad</ThemedText>
                               <TextInput returnKeyType="done"
@@ -530,7 +530,7 @@ export default function AddTemplateScreen() {
                             </View>
                           </View>
 
-                          <View className="flex-row gap-3 mt-1">
+                          <View className="flex-row mt-1" style={{ gap: 12 }}>
                             <View className="flex-1">
                               <ThemedText className="font-semibold text-slate-500 mb-1 text-xs">¿Cubiertas?</ThemedText>
                               <View className="flex-row items-center mt-1">
@@ -576,7 +576,7 @@ export default function AddTemplateScreen() {
         <TouchableOpacity
           onPress={handleSubmit(onSubmit)}
           disabled={isSubmitting}
-          className="bg-brand-gold py-4 rounded-xl items-center flex-row justify-center gap-2 shadow-sm"
+          className="bg-brand-gold py-4 rounded-xl items-center flex-row justify-center" style={{ gap: 8 }}
         >
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" size="small" />

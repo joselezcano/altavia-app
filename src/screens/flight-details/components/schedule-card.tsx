@@ -7,18 +7,18 @@ import {
 
 export function ScheduleCard({ reservation }: { reservation: ClientReservationItem }) {
     return (
-        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200 shadow-sm">
+        <View className="bg-brand-white rounded-3xl p-5 border border-slate-200">
             <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-3">
                 Itinerario
             </ThemedText>
 
-            <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 gap-3">
+            <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100" style={{ gap: 12 }}>
                 {/* Outbound Section */}
                 <View>
                     <ThemedText className="text-xs font-bold text-brand-gold uppercase tracking-wider mb-1.5">
                         Vuelo de Ida
                     </ThemedText>
-                    <View className="gap-1 pl-2 border-l-2 border-brand-gold/40">
+                    <View className="pl-2 border-l-2 border-[rgba(1,101,255,0.4)]" style={{ gap: 4 }}>
                         <View className="flex-row items-center justify-between">
                             <ThemedText className="text-xs text-slate-500 font-medium">Salida:</ThemedText>
                             <ThemedText className="text-xs font-bold text-slate-800">
@@ -48,7 +48,7 @@ export function ScheduleCard({ reservation }: { reservation: ClientReservationIt
                             <ThemedText className="text-xs font-bold text-brand-gold uppercase tracking-wider mb-1.5">
                                 Vuelo de Vuelta
                             </ThemedText>
-                            <View className="gap-1 pl-2 border-l-2 border-brand-gold/40">
+                            <View className="pl-2 border-l-2 border-[rgba(1,101,255,0.4)]" style={{ gap: 4 }}>
                                 <View className="flex-row items-center justify-between">
                                     <ThemedText className="text-xs text-slate-500 font-medium">Salida:</ThemedText>
                                     <ThemedText className="text-xs font-bold text-slate-800">

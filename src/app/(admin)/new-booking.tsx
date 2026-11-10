@@ -1168,7 +1168,7 @@ const styles = StyleSheet.create({
   },
   stepNumber: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#64748B",
   },
   stepNumberActive: {
@@ -1178,11 +1178,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#64748B",
     marginTop: 4,
-    fontWeight: "500",
+    fontFamily: "NotoSans_500Medium",
   },
   stepLabelCurrent: {
     color: "#030436",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   card: {
     backgroundColor: "#FFFFFF",
@@ -1207,10 +1207,11 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   cardSubtitle: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 12,
     color: "#64748B",
     marginTop: 2,
@@ -1233,15 +1234,16 @@ const styles = StyleSheet.create({
   },
   clientAvatarText: {
     color: "#0165FF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 16,
   },
   clientNameText: {
     fontSize: 15,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   clientSubText: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 12,
     color: "#64748B",
     marginTop: 1,
@@ -1249,7 +1251,7 @@ const styles = StyleSheet.create({
   clientDocText: {
     fontSize: 11,
     color: "#94A3B8",
-    fontWeight: "500",
+    fontFamily: "NotoSans_500Medium",
   },
   changeClientButton: {
     flexDirection: "row",
@@ -1265,7 +1267,7 @@ const styles = StyleSheet.create({
   changeClientText: {
     fontSize: 11,
     color: "#030436",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
   },
   searchBarContainer: {
     flexDirection: "row",
@@ -1280,6 +1282,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   searchInput: {
+    fontFamily: "NotoSans_400Regular",
     flex: 1,
     fontSize: 13,
     color: "#030436",
@@ -1304,19 +1307,21 @@ const styles = StyleSheet.create({
   },
   clientAvatarSmallText: {
     color: "#030436",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 13,
   },
   clientItemName: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   clientItemSub: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#64748B",
   },
   noClientsText: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 12,
     color: "#94A3B8",
     textAlign: "center",
@@ -1335,7 +1340,7 @@ const styles = StyleSheet.create({
   },
   newClientButtonText: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 13,
   },
   nextButton: {
@@ -1353,7 +1358,7 @@ const styles = StyleSheet.create({
   },
   nextButtonText: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 14,
   },
   nextButtonFlex: {
@@ -1379,7 +1384,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: "#030436",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     fontSize: 13,
   },
   aircraftBadgeBox: {
@@ -1393,22 +1398,23 @@ const styles = StyleSheet.create({
   },
   aircraftBadgeTitle: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
   },
   aircraftBadgeSub: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#CBD5E1",
   },
   inputLabel: {
     fontSize: 12,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     marginBottom: 4,
   },
   inputLabelBold: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   distancePreviewBox: {
@@ -1418,12 +1424,13 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   previewLabel: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#64748B",
   },
   previewValue: {
     fontSize: 11,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   switchRow: {
@@ -1438,10 +1445,11 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   switchSub: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#64748B",
   },
@@ -1467,7 +1475,7 @@ const styles = StyleSheet.create({
   },
   paxCountValue: {
     fontSize: 14,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   priceCalculationBox: {
@@ -1478,12 +1486,13 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   priceSublabel: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 12,
     color: "#64748B",
   },
   priceSubvalue: {
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     color: "#030436",
   },
   priceDivider: {
@@ -1493,18 +1502,18 @@ const styles = StyleSheet.create({
   },
   suggestedTitle: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   suggestedValue: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#0165FF",
   },
   resetPriceText: {
     fontSize: 11,
     color: "#00529B",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
   },
   priceInputWrapper: {
     flexDirection: "row",
@@ -1517,29 +1526,30 @@ const styles = StyleSheet.create({
   },
   priceCurrencySymbol: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     marginRight: 6,
   },
   priceTextInput: {
     flex: 1,
     fontSize: 22,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     paddingVertical: 10,
   },
   priceCurrencyBadge: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#94A3B8",
   },
   pygEquivalentText: {
     fontSize: 12,
     color: "#059669",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
     marginTop: 4,
   },
   notesTextInput: {
+    fontFamily: "NotoSans_400Regular",
     backgroundColor: "#F8FAFC",
     borderWidth: 1,
     borderColor: "#E2E8F0",
@@ -1558,13 +1568,14 @@ const styles = StyleSheet.create({
   },
   summaryBoxTitle: {
     fontSize: 12,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     marginBottom: 4,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   summaryBoxLine: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 12,
     color: "#334155",
     lineHeight: 18,
@@ -1581,7 +1592,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     fontSize: 14,
   },
 
@@ -1609,10 +1620,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   directBookingText: {
+    fontFamily: "NotoSans_400Regular",
     color: "#059669",
     fontSize: 14,
   },
   directBookingHint: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#64748B",
     textAlign: "center",
@@ -1631,11 +1644,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   editBannerText: {
+    fontFamily: "NotoSans_400Regular",
     flex: 1,
     fontSize: 13,
     color: "#030436",
   },
   editBannerLink: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 13,
     color: "#0165FF",
   },
@@ -1670,10 +1685,11 @@ const styles = StyleSheet.create({
   },
   modalHeaderTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
   },
   modalHeaderSub: {
+    fontFamily: "NotoSans_400Regular",
     fontSize: 11,
     color: "#64748B",
   },
@@ -1703,19 +1719,20 @@ const styles = StyleSheet.create({
   typeTabText: {
     fontSize: 12,
     color: "#64748B",
-    fontWeight: "600",
+    fontFamily: "NotoSans_600SemiBold",
   },
   typeTabTextActive: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
   },
   modalInputLabel: {
     fontSize: 11,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#030436",
     marginBottom: 3,
   },
   modalInput: {
+    fontFamily: "NotoSans_400Regular",
     backgroundColor: "#F8FAFC",
     borderWidth: 1,
     borderColor: "#E2E8F0",
@@ -1735,7 +1752,7 @@ const styles = StyleSheet.create({
   },
   modalCancelButtonText: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#64748B",
   },
   modalSaveButton: {
@@ -1747,7 +1764,7 @@ const styles = StyleSheet.create({
   },
   modalSaveButtonText: {
     fontSize: 13,
-    fontWeight: "bold",
+    fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
   },
 });

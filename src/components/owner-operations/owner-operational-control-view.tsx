@@ -1557,7 +1557,7 @@ const styles = StyleSheet.create({
         letterSpacing: 2,
         textTransform: "uppercase",
         color: "#93A3B6",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     pdfBtn: {
         flexDirection: "row",
@@ -1570,7 +1570,7 @@ const styles = StyleSheet.create({
     },
     pdfBtnText: {
         fontSize: 12,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#1540C9",
     },
     aircraftSelectorScroll: {
@@ -1592,7 +1592,7 @@ const styles = StyleSheet.create({
     },
     aircraftPillText: {
         fontSize: 12,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#52647A",
     },
     aircraftPillTextActive: {
@@ -1617,7 +1617,7 @@ const styles = StyleSheet.create({
     },
     periodTabText: {
         fontSize: 15.5,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#52647A",
     },
     periodTabTextActive: {
@@ -1643,6 +1643,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#EEF3FE",
     },
     pendingPayText: {
+        fontFamily: "NotoSans_400Regular",
         flex: 1,
         fontSize: 13.5,
         color: "#52647A",
@@ -1650,7 +1651,7 @@ const styles = StyleSheet.create({
     },
     pendingPayLink: {
         fontSize: 13.5,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#1540C9",
     },
     demoBanner: {
@@ -1665,10 +1666,11 @@ const styles = StyleSheet.create({
     },
     demoBannerTitle: {
         fontSize: 13,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#091626",
     },
     demoBannerSub: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 12,
         color: "#52647A",
         marginTop: 2,
@@ -1694,12 +1696,12 @@ const styles = StyleSheet.create({
     periodNavArrowText: {
         fontSize: 20,
         color: "#52647A",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         lineHeight: 22,
     },
     periodNavLabel: {
         fontSize: 16.5,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#091626",
         minWidth: 150,
         textAlign: "center",
@@ -1721,11 +1723,11 @@ const styles = StyleSheet.create({
         letterSpacing: 1.1,
         textTransform: "uppercase",
         color: "#52647A",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     verdictNoneText: {
         fontSize: 26,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#52647A",
         marginTop: 14,
     },
@@ -1738,20 +1740,20 @@ const styles = StyleSheet.create({
     },
     verdictPrefixLabel: {
         fontSize: 13,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         letterSpacing: 1,
         textTransform: "uppercase",
         color: "#52647A",
     },
     verdictBigNumber: {
         fontSize: 44,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         letterSpacing: -1,
     },
     verdictGsSub: {
         fontSize: 14.5,
         color: "#93A3B6",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         marginTop: 6,
     },
     statusPill: {
@@ -1777,9 +1779,10 @@ const styles = StyleSheet.create({
     },
     statusPillText: {
         fontSize: 12.5,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     verdictNarrative: {
+        fontFamily: "NotoSans_400Regular",
         marginTop: 14,
         color: "#52647A",
         fontSize: 15.5,
@@ -1806,18 +1809,18 @@ const styles = StyleSheet.create({
         letterSpacing: 0.8,
         textTransform: "uppercase",
         color: "#52647A",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     row3Value: {
         marginTop: 8,
         fontSize: 23,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#091626",
     },
     row3Gs: {
         fontSize: 11.5,
         color: "#52647A",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         marginTop: 4,
     },
     primaryAddButton: {
@@ -1834,12 +1837,12 @@ const styles = StyleSheet.create({
     primaryAddButtonPlus: {
         fontSize: 19,
         color: "#FFFFFF",
-        fontWeight: "400",
+        fontFamily: "NotoSans_400Regular",
         lineHeight: 20,
     },
     primaryAddButtonText: {
         color: "#FFFFFF",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         fontSize: 15.5,
     },
     ghostAddButton: {
@@ -1856,13 +1859,14 @@ const styles = StyleSheet.create({
         marginTop: 14,
     },
     ghostAddButtonPlus: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 17,
         color: "#1540C9",
         lineHeight: 19,
     },
     ghostAddButtonText: {
         color: "#1540C9",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         fontSize: 14,
     },
     listSectionHeader: {
@@ -1870,7 +1874,7 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
         textTransform: "uppercase",
         color: "#52647A",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         marginTop: 38,
         marginBottom: 4,
     },
@@ -1886,11 +1890,12 @@ const styles = StyleSheet.create({
     },
     emptyBoxTitle: {
         color: "#52647A",
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         fontSize: 14.5,
         marginBottom: 4,
     },
     emptyBoxSub: {
+        fontFamily: "NotoSans_400Regular",
         color: "#52647A",
         fontSize: 14.5,
         lineHeight: 22,
@@ -1914,7 +1919,7 @@ const styles = StyleSheet.create({
     },
     itemTitle: {
         fontSize: 15.5,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#091626",
     },
     itemSub: {
@@ -1928,7 +1933,7 @@ const styles = StyleSheet.create({
     },
     itemRightAmount: {
         fontSize: 17,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#091626",
     },
     itemTag: {
@@ -1936,10 +1941,11 @@ const styles = StyleSheet.create({
         letterSpacing: 0.7,
         textTransform: "uppercase",
         color: "#52647A",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         marginTop: 4,
     },
     fuelSummaryMsg: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14,
         color: "#52647A",
         marginTop: 14,
@@ -1950,7 +1956,7 @@ const styles = StyleSheet.create({
     },
     boldInk: {
         color: "#091626",
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     breakdownContainer: {
         marginTop: 12,
@@ -1969,12 +1975,13 @@ const styles = StyleSheet.create({
         marginBottom: 7,
     },
     breakdownLabel: {
+        fontFamily: "NotoSans_400Regular",
         fontSize: 14.5,
         color: "#091626",
     },
     breakdownValue: {
         fontSize: 15.5,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         color: "#091626",
     },
     breakdownBarTrack: {
@@ -1999,12 +2006,12 @@ const styles = StyleSheet.create({
     },
     breakdownTotalLabel: {
         fontSize: 14.5,
-        fontWeight: "600",
+        fontFamily: "NotoSans_600SemiBold",
         color: "#091626",
     },
     breakdownTotalValue: {
         fontSize: 26,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
     },
     monthByMonthContainer: {
         marginTop: 12,
@@ -2023,7 +2030,7 @@ const styles = StyleSheet.create({
     monthRowName: {
         flex: 1,
         fontSize: 15,
-        fontWeight: "500",
+        fontFamily: "NotoSans_500Medium",
         color: "#091626",
         textTransform: "capitalize",
     },
@@ -2036,13 +2043,13 @@ const styles = StyleSheet.create({
     },
     monthRowResult: {
         fontSize: 15,
-        fontWeight: "700",
+        fontFamily: "NotoSans_700Bold",
         minWidth: 84,
         textAlign: "right",
     },
     monthRowResultOff: {
         color: "#93A3B6",
-        fontWeight: "400",
+        fontFamily: "NotoSans_400Regular",
     },
     fundRow: {
         flexDirection: "row",
