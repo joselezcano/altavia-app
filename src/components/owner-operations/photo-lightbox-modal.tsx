@@ -12,12 +12,15 @@ interface PhotoLightboxModalProps {
     visible: boolean;
     imageUri: string | null;
     onClose: () => void;
+    /** Texto al pie. Por defecto, el del comprobante del plan de vuelo. */
+    caption?: string;
 }
 
 export function PhotoLightboxModal({
     visible,
     imageUri,
     onClose,
+    caption,
 }: PhotoLightboxModalProps) {
     if (!imageUri) return null;
 
@@ -50,7 +53,8 @@ export function PhotoLightboxModal({
                 </View>
 
                 <Text style={styles.captionText}>
-                    Comprobante de Plan de Vuelo · Tocá en cualquier lugar para cerrar
+                    {caption ||
+                        "Comprobante de Plan de Vuelo · Tocá en cualquier lugar para cerrar"}
                 </Text>
             </TouchableOpacity>
         </Modal>

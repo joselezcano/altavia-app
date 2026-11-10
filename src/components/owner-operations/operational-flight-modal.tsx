@@ -16,10 +16,12 @@ import {
     formatIsoToDmy,
     formatSignedUsd,
     formatUsd,
+    getFuelPaymentStatus,
     getHourlyFuelCostUsd,
     getSafeTc,
     getTodayIso,
     num,
+    PAYABLE_METHOD_LABELS,
 } from "@/utils/aircraft-operations-calc";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
@@ -86,6 +88,11 @@ export function OperationalFlightModal({
     // Forma de pago del combustible
     const [fuelPago, setFuelPago] = useState<FuelPaymentMethod>("contado");
     const [fuelDias, setFuelDias] = useState("30");
+    // Cuentas por pagar del combustible a crédito
+    const [fuelProveedor, setFuelProveedor] = useState("");
+    const [fuelFacturaNumero, setFuelFacturaNumero] = useState("");
+    const [fuelFacturaFotoUrl, setFuelFacturaFotoUrl] = useState<string | null>(null);
+    const [isPickingFuelFactura, setIsPickingFuelFactura] = useState(false);
 
     // Piloto
     const [pilotoHora, setPilotoHora] = useState("");
@@ -130,6 +137,9 @@ export function OperationalFlightModal({
             setFuelCur(flight.fuelCur || "GS");
             setFuelPago(flight.fuelPago === "credito" ? "credito" : "contado");
             setFuelDias(flight.fuelDias != null ? String(flight.fuelDias) : "30");
+            setFuelProveedor(flight.fuelProveedor || "");
+            setFuelFacturaNumero(flight.fuelFacturaNumero || "");
+            setFuelFacturaFotoUrl(flight.fuelFacturaFotoUrl || null);
             setPilotoHora(flight.pilotoHora != null ? String(flight.pilotoHora) : "");
             setPilotoHoraCur(flight.pilotoHoraCur || "USD");
             setPlanBase(flight.planBase != null ? String(flight.planBase) : "");
@@ -156,6 +166,9 @@ export function OperationalFlightModal({
             setFuelCur("GS");
             setFuelPago("contado");
             setFuelDias("30");
+            setFuelProveedor("");
+            setFuelFacturaNumero("");
+            setFuelFacturaFotoUrl(null);
             setPilotoHora("");
             setPilotoHoraCur("USD");
             setPlanBase("");
@@ -290,6 +303,29 @@ export function OperationalFlightModal({
         }
     };
 
+    const handlePickFuelFactura = async (source: "library" | "camera") => {
+        try {
+            setIsPickingFuelFactura(true);
+            const uri = await pickFlightPlanImage(source, { fileUriOnly: true });
+            if (uri) setFuelFacturaFotoUrl(uri);
+        } catch (err: any) {
+            Alert.alert("Factura", err.message || "No se pudo seleccionar la imagen.");
+        } finally {
+            setIsPickingFuelFactura(false);
+        }
+    };
+
+    // Estado del pago del combustible a crédito (se registra desde «Por pagar»).
+    const fuelPaymentStatusText = (() => {
+        if (!flight || flight.fuelPago !== "credito" || fuelPago !== "credito") return "";
+        if (getFuelPaymentStatus(flight) === "pagado") {
+            if (!flight.fuelEstadoPago) return "Se asume pagado al vencer (vuelo cargado antes del seguimiento de pagos).";
+            const medio = flight.fuelMedioPago ? ` · ${PAYABLE_METHOD_LABELS[flight.fuelMedioPago]}` : "";
+            return `Pagado el ${formatIsoToDmy(flight.fuelFechaPago || "")}${medio}.`;
+        }
+        return "Pendiente de pago. Registrá el pago desde la pestaña «Por pagar».";
+    })();
+
     const handleSubmit = async () => {
         if (!fecha.trim()) {
             Alert.alert("Fecha requerida", "Ingresá la fecha del vuelo (AAAA-MM-DD).");
@@ -331,6 +367,20 @@ export function OperationalFlightModal({
             planCur,
             fuelPago,
             fuelDias: Math.max(1, Math.round(num(fuelDias) || 30)),
+            fuelProveedor: fuelProveedor.trim() || null,
+            fuelFacturaNumero: fuelFacturaNumero.trim() || null,
+            fuelFacturaFotoUrl: fuelFacturaFotoUrl || null,
+            // Combustible que pasa a crédito (vuelo nuevo o antes al contado): queda pendiente
+            // de pago. En un vuelo que ya era a crédito no se toca: el pago se registra en «Por pagar».
+            ...(fuelPago === "credito" && flight?.fuelPago !== "credito"
+                ? {
+                      fuelEstadoPago: "pendiente" as const,
+                      fuelFechaPago: null,
+                      fuelMedioPago: null,
+                      fuelReciboFotoUrl: null,
+                      fuelNotasPago: null,
+                  }
+                : {}),
             fotoUrl,
             reservationId: flight?.reservationId ?? null,
             noches: flight?.noches ?? 0,
@@ -770,6 +820,84 @@ export function OperationalFlightModal({
                                                 {creditDueDateFormatted}
                                             </Text>
                                             .
+                                        </Text>
+                                    )}
+
+                                    <Text style={[styles.subLabel, { marginTop: 12 }]}>
+                                        Proveedor del combustible
+                                    </Text>
+                                    <TextInput
+                                        value={fuelProveedor}
+                                        onChangeText={setFuelProveedor}
+                                        placeholder="Ej: Petropar Aeropuerto"
+                                        placeholderTextColor="#93A3B6"
+                                        style={styles.input}
+                                    />
+
+                                    <Text style={[styles.subLabel, { marginTop: 12 }]}>
+                                        Nº de factura
+                                    </Text>
+                                    <TextInput
+                                        value={fuelFacturaNumero}
+                                        onChangeText={setFuelFacturaNumero}
+                                        placeholder="001-001-0001234"
+                                        placeholderTextColor="#93A3B6"
+                                        style={styles.input}
+                                    />
+
+                                    <Text style={[styles.subLabel, { marginTop: 12 }]}>
+                                        Foto de la factura
+                                    </Text>
+                                    <View style={styles.photoActionsRow}>
+                                        <TouchableOpacity
+                                            onPress={() => handlePickFuelFactura("library")}
+                                            disabled={isPickingFuelFactura}
+                                            style={styles.photoPickerBtn}
+                                        >
+                                            <Ionicons name="image-outline" size={18} color="#1540C9" />
+                                            <Text style={styles.photoPickerBtnText}>
+                                                {isPickingFuelFactura ? "Cargando…" : "Galería"}
+                                            </Text>
+                                        </TouchableOpacity>
+                                        {Platform.OS !== "web" && (
+                                            <TouchableOpacity
+                                                onPress={() => handlePickFuelFactura("camera")}
+                                                disabled={isPickingFuelFactura}
+                                                style={styles.photoPickerBtn}
+                                            >
+                                                <Ionicons name="camera-outline" size={18} color="#1540C9" />
+                                                <Text style={styles.photoPickerBtnText}>Cámara</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    </View>
+                                    {fuelFacturaFotoUrl ? (
+                                        <View style={{ marginTop: 12 }}>
+                                            <TouchableOpacity
+                                                onPress={() => onOpenLightbox(fuelFacturaFotoUrl)}
+                                                activeOpacity={0.85}
+                                            >
+                                                <Image
+                                                    source={{ uri: fuelFacturaFotoUrl }}
+                                                    style={styles.photoThumb}
+                                                    resizeMode="cover"
+                                                />
+                                            </TouchableOpacity>
+                                            <View style={styles.photoFooterRow}>
+                                                <Text style={styles.hint}>
+                                                    Tocá la foto para verla en grande.
+                                                </Text>
+                                                <TouchableOpacity onPress={() => setFuelFacturaFotoUrl(null)}>
+                                                    <Text style={styles.linkButtonText}>
+                                                        Quitar la foto
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    ) : null}
+
+                                    {!!fuelPaymentStatusText && (
+                                        <Text style={[styles.hint, { color: "#091626" }]}>
+                                            {fuelPaymentStatusText}
                                         </Text>
                                     )}
                                 </View>

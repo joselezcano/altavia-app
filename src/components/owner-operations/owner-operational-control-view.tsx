@@ -4,19 +4,25 @@ import {
     useDeleteOperationalFlight,
     useOperationalExpenses,
     useOperationalFlights,
+    useRegisterPayablePayment,
     useSaveAircraftOperationsConfig,
     useSaveOperationalExpense,
     useSaveOperationalFlight,
+    useUndoPayablePayment,
 } from "@/hooks/useAircraftOperations";
 import { AircraftSpecsDoc } from "@/hooks/useOwnerAircrafts";
 import {
     AircraftOperationsConfig,
+    GioSectionView,
     OperationalExpenseDoc,
     OperationalFlightDoc,
-    OperationalPeriodView,
+    PayableItem,
+    PayablePaymentInput,
 } from "@/types/aircraft-operations";
 import {
     calcFlightFinancials,
+    computeAccountsPayable,
+    computeMonthPendingPaymentUsd,
     computeMonthFuelPayments,
     computeMonthStats,
     computeOverhaulFund,
@@ -32,6 +38,8 @@ import {
     generateOperationalReportPdf,
     getDemoZpBocData,
     getExpenseAmountUsd,
+    getExpenseDueDate,
+    getExpensePaymentStatus,
     getHourlyContributionCfg,
     getMonthlyFixedCostsUsd,
     getMonthKey,
@@ -41,6 +49,7 @@ import {
     num,
     shiftMonthKey,
 } from "@/utils/aircraft-operations-calc";
+import { confirmAction } from "@/utils/dialogs";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -54,10 +63,12 @@ import {
     View,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import { AccountsPayablePanel } from "./accounts-payable-panel";
 import { BreakEvenGauge } from "./break-even-gauge";
 import { OperationalExpenseModal } from "./operational-expense-modal";
 import { OperationalFlightModal } from "./operational-flight-modal";
 import { OperationsSettingsPanel } from "./operations-settings-panel";
+import { PayablePaymentModal } from "./payable-payment-modal";
 import { PhotoLightboxModal } from "./photo-lightbox-modal";
 
 interface OwnerOperationalControlViewProps {
@@ -132,8 +143,8 @@ export function OwnerOperationalControlView({
     // Los registros de GIO pertenecen siempre al dueño de la aeronave seleccionada.
     const ownerUid = currentAircraft.ownerId || defaultOwnerUid;
 
-    // Vista actual: "M" (Mes) o "Y" (Año)
-    const [view, setView] = useState<OperationalPeriodView>("M");
+    // Vista actual: "M" (Mes), "Y" (Año) o "P" (Cuentas por pagar)
+    const [view, setView] = useState<GioSectionView>("M");
     const [curMonth, setCurMonth] = useState<string>(() =>
         getTodayIso().slice(0, 7)
     );
@@ -155,7 +166,12 @@ export function OwnerOperationalControlView({
         useState<OperationalExpenseDoc | null>(null);
 
     const [lightboxUri, setLightboxUri] = useState<string | null>(null);
+    const [lightboxCaption, setLightboxCaption] = useState<string | undefined>(undefined);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+    // Cuentas por pagar: ítem al que se le registra el pago y el que se está deshaciendo
+    const [payingItem, setPayingItem] = useState<PayableItem | null>(null);
+    const [undoingKey, setUndoingKey] = useState<string | null>(null);
 
     // Consultas a Firestore mediante TanStack Query
     const { data: config, isLoading: isLoadingConfig } =
@@ -178,6 +194,8 @@ export function OwnerOperationalControlView({
     const deleteFlightMutation = useDeleteOperationalFlight();
     const saveExpenseMutation = useSaveOperationalExpense();
     const deleteExpenseMutation = useDeleteOperationalExpense();
+    const registerPaymentMutation = useRegisterPayablePayment();
+    const undoPaymentMutation = useUndoPayablePayment();
 
     // Datos demostrativos opcionales
     const demoBundle = useMemo(
@@ -266,6 +284,17 @@ export function OwnerOperationalControlView({
         if (!config) return { ap: 0, us: 0, sa: 0 };
         return computeOverhaulFund(activeFlights, activeExpenses, config);
     }, [activeFlights, activeExpenses, config]);
+
+    // Cuentas por pagar (solo seguimiento de pagos; el resultado sigue siendo por devengado)
+    const payablesSummary = useMemo(() => {
+        if (!config) return null;
+        return computeAccountsPayable(curMonth, activeFlights, activeExpenses, config);
+    }, [curMonth, activeFlights, activeExpenses, config]);
+
+    const monthPendingPaymentUsd = useMemo(() => {
+        if (!config) return 0;
+        return computeMonthPendingPaymentUsd(curMonth, activeFlights, activeExpenses, config);
+    }, [curMonth, activeFlights, activeExpenses, config]);
 
     const isLoading = isLoadingConfig || isLoadingFlights || isLoadingExpenses;
 
@@ -369,11 +398,85 @@ export function OwnerOperationalControlView({
         }
     };
 
+    const openLightbox = (uri: string, caption?: string) => {
+        setLightboxCaption(caption);
+        setLightboxUri(uri);
+    };
+
+    const isDemoItem = (item: PayableItem) => item.sourceId.startsWith("demo-");
+
+    const handleOpenPayableItem = (item: PayableItem) => {
+        if (item.expense) {
+            setEditingExpense(item.expense);
+            setExpenseModalVisible(true);
+        } else if (item.flight) {
+            setEditingFlight(item.flight);
+            setFlightModalVisible(true);
+        }
+    };
+
+    const handleRequestPayment = (item: PayableItem) => {
+        if (isDemoItem(item)) {
+            Toast.show({
+                type: "info",
+                text1: "Datos de ejemplo",
+                text2: "Los pagos se registran sobre vuelos y gastos reales.",
+            });
+            return;
+        }
+        setPayingItem(item);
+    };
+
+    const handleConfirmPayment = async (input: PayablePaymentInput) => {
+        if (!payingItem) return;
+        try {
+            await registerPaymentMutation.mutateAsync({ item: payingItem, input });
+            const mKey = getMonthKey(input.fechaPago);
+            if (mKey) setCurMonth(mKey);
+            Toast.show({
+                type: "success",
+                text1: "Pago registrado",
+                text2: `${payingItem.proveedor || payingItem.concepto} · ${formatUsd(payingItem.amountUsd)}`,
+            });
+            setPayingItem(null);
+        } catch (err: any) {
+            Alert.alert(
+                "Error al registrar el pago",
+                err?.message || "No se pudo registrar el pago. Reintentá."
+            );
+        }
+    };
+
+    const handleUndoPayment = async (item: PayableItem) => {
+        if (isDemoItem(item)) {
+            Toast.show({ type: "info", text1: "Datos de ejemplo" });
+            return;
+        }
+        const ok = await confirmAction({
+            title: item.pagoAsumido ? "¿Marcar como no pagado?" : "¿Deshacer el pago?",
+            message: item.pagoAsumido
+                ? `«${item.concepto}» vuelve a quedar pendiente de pago.`
+                : `«${item.concepto}» vuelve a quedar pendiente. Se borran la fecha, el medio, la foto del recibo y las notas del pago.`,
+            confirmText: item.pagoAsumido ? "Marcar pendiente" : "Deshacer pago",
+            destructive: true,
+        });
+        if (!ok) return;
+        try {
+            setUndoingKey(item.key);
+            await undoPaymentMutation.mutateAsync(item);
+            Toast.show({ type: "info", text1: "Pago deshecho", text2: item.concepto });
+        } catch (err: any) {
+            Alert.alert("Error", err?.message || "No se pudo deshacer el pago.");
+        } finally {
+            setUndoingKey(null);
+        }
+    };
+
     const handleExportCurrentReportPdf = async () => {
         if (!config || !monthStats || !yearBundle) return;
         try {
             setIsExportingPdf(true);
-            const isMonth = view === "M";
+            const isMonth = view !== "Y";
             const label = isMonth ? formatMonthLabel(curMonth) : `Año ${curYear}`;
             const targetStats = isMonth ? monthStats : yearBundle.yearStats;
 
@@ -394,7 +497,7 @@ export function OwnerOperationalControlView({
         }
     };
 
-    if (isLoading || !config || !monthStats || !yearBundle) {
+    if (isLoading || !config || !monthStats || !yearBundle || !payablesSummary) {
         return (
             <View style={styles.loadingWrap}>
                 <View style={styles.verdictEyebrowRow}>
@@ -545,6 +648,28 @@ export function OwnerOperationalControlView({
                         >
                             Año
                         </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => setView("P")}
+                        style={[
+                            styles.periodTabButton,
+                            view === "P" ? styles.periodTabButtonActive : null,
+                        ]}
+                        activeOpacity={0.85}
+                    >
+                        <Text
+                            style={[
+                                styles.periodTabText,
+                                view === "P" ? styles.periodTabTextActive : null,
+                            ]}
+                            numberOfLines={1}
+                        >
+                            Por pagar
+                        </Text>
+                        {payablesSummary.cantidadVencidos > 0 && (
+                            <View style={styles.tabOverdueDot} />
+                        )}
                     </TouchableOpacity>
                 </View>
 
@@ -728,6 +853,25 @@ export function OwnerOperationalControlView({
                             </Text>
                         </View>
                     </View>
+
+                    {/* Indicador: pendiente de pago de las compras del mes (no cambia el resultado) */}
+                    {monthPendingPaymentUsd > 0.5 && (
+                        <TouchableOpacity
+                            onPress={() => setView("P")}
+                            style={styles.pendingPayRow}
+                            activeOpacity={0.75}
+                        >
+                            <Ionicons name="time-outline" size={16} color="#1540C9" />
+                            <Text style={styles.pendingPayText}>
+                                Pendiente de pago:{" "}
+                                <Text style={styles.boldInk}>
+                                    USD {formatAmt(monthPendingPaymentUsd)}
+                                </Text>{" "}
+                                ({formatGsFromUsd(monthPendingPaymentUsd, config)})
+                            </Text>
+                            <Text style={styles.pendingPayLink}>Ver ›</Text>
+                        </TouchableOpacity>
+                    )}
 
                     {/* Botón Principal: + Cargar un vuelo */}
                     <TouchableOpacity
@@ -914,6 +1058,10 @@ export function OwnerOperationalControlView({
                                 .map((g) => {
                                     const isMaint = isMaintenanceExpense(g);
                                     const usdVal = getExpenseAmountUsd(g, config);
+                                    const isPendingPay =
+                                        getExpensePaymentStatus(g) === "pendiente";
+                                    const isOverduePay =
+                                        isPendingPay && getExpenseDueDate(g) < getTodayIso();
                                     return (
                                         <TouchableOpacity
                                             key={g.id}
@@ -951,11 +1099,20 @@ export function OwnerOperationalControlView({
                                                 <Text style={styles.itemRightAmount}>
                                                     −${formatAmt(usdVal)}
                                                 </Text>
-                                                {isMaint && (
+                                                {isPendingPay ? (
+                                                    <Text
+                                                        style={[
+                                                            styles.itemTag,
+                                                            isOverduePay ? styles.negText : null,
+                                                        ]}
+                                                    >
+                                                        {isOverduePay ? "VENCIDO" : "A PAGAR"}
+                                                    </Text>
+                                                ) : isMaint ? (
                                                     <Text style={styles.itemTag}>
                                                         SALE DEL FONDO
                                                     </Text>
-                                                )}
+                                                ) : null}
                                             </View>
                                         </TouchableOpacity>
                                     );
@@ -1267,6 +1424,23 @@ export function OwnerOperationalControlView({
                 </View>
             )}
 
+            {/* ================================================================= */}
+            {/* CUENTAS POR PAGAR ("P")                                           */}
+            {/* ================================================================= */}
+            {view === "P" && (
+                <AccountsPayablePanel
+                    summary={payablesSummary}
+                    config={config}
+                    monthKey={curMonth}
+                    onShiftMonth={(delta) => setCurMonth((m) => shiftMonthKey(m, delta))}
+                    busyKey={undoingKey}
+                    onRegisterPayment={handleRequestPayment}
+                    onUndoPayment={handleUndoPayment}
+                    onOpenPhoto={(uri) => openLightbox(uri, "Tocá en cualquier lugar para cerrar")}
+                    onOpenItem={handleOpenPayableItem}
+                />
+            )}
+
             {/* DESPLEGABLES INFERIORES: Cómo se calcula + Ajustes de costos y tarifas */}
             <OperationsSettingsPanel
                 config={config}
@@ -1290,7 +1464,7 @@ export function OwnerOperationalControlView({
                 }}
                 onSave={handleSaveFlight}
                 onDelete={editingFlight ? handleDeleteFlight : undefined}
-                onOpenLightbox={(uri) => setLightboxUri(uri)}
+                onOpenLightbox={(uri) => openLightbox(uri)}
             />
 
             <OperationalExpenseModal
@@ -1307,12 +1481,26 @@ export function OwnerOperationalControlView({
                 }}
                 onSave={handleSaveExpense}
                 onDelete={editingExpense ? handleDeleteExpense : undefined}
+                onOpenLightbox={(uri) => openLightbox(uri, "Factura · Tocá en cualquier lugar para cerrar")}
+            />
+
+            <PayablePaymentModal
+                visible={!!payingItem}
+                item={payingItem}
+                config={config}
+                isSaving={registerPaymentMutation.isPending}
+                onClose={() => setPayingItem(null)}
+                onConfirm={handleConfirmPayment}
             />
 
             <PhotoLightboxModal
                 visible={!!lightboxUri}
                 imageUri={lightboxUri}
-                onClose={() => setLightboxUri(null)}
+                caption={lightboxCaption}
+                onClose={() => {
+                    setLightboxUri(null);
+                    setLightboxCaption(undefined);
+                }}
             />
         </View>
     );
@@ -1434,6 +1622,36 @@ const styles = StyleSheet.create({
     },
     periodTabTextActive: {
         color: "#FFFFFF",
+    },
+    tabOverdueDot: {
+        position: "absolute",
+        top: 7,
+        right: 9,
+        width: 7,
+        height: 7,
+        borderRadius: 3.5,
+        backgroundColor: "#BC3324",
+    },
+    pendingPayRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        marginTop: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 12,
+        backgroundColor: "#EEF3FE",
+    },
+    pendingPayText: {
+        flex: 1,
+        fontSize: 13.5,
+        color: "#52647A",
+        lineHeight: 19,
+    },
+    pendingPayLink: {
+        fontSize: 13.5,
+        fontWeight: "700",
+        color: "#1540C9",
     },
     demoBanner: {
         flexDirection: "row",

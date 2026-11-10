@@ -1,4 +1,5 @@
 import {
+    AccountsPayableSummary,
     AircraftOperationsConfig,
     FixedMonthlyExpense,
     FlightFinancialCalc,
@@ -9,6 +10,10 @@ import {
     OperationalFlightDoc,
     OperationalFlightDraft,
     OverhaulFundStatus,
+    PayableItem,
+    PayableMethod,
+    PayableStatus,
+    PaymentCondition,
     PeriodOperationalStats,
 } from "@/types/aircraft-operations";
 import * as Print from "expo-print";
@@ -517,6 +522,258 @@ export function computeMonthFuelPayments(
         totalMonthFuelUsd,
         futurePendingFuelUsd,
     };
+}
+
+// ============================================================================
+// CUENTAS POR PAGAR (seguimiento de pagos; no cambia el resultado del mes,
+// que sigue siendo por devengado).
+// ============================================================================
+
+export const PAYABLE_METHOD_LABELS: Record<PayableMethod, string> = {
+    transferencia: "Transferencia",
+    efectivo: "Efectivo",
+    cheque: "Cheque",
+    tarjeta: "Tarjeta",
+    otro: "Otro",
+};
+
+export const PAYABLE_METHODS: PayableMethod[] = [
+    "transferencia",
+    "efectivo",
+    "cheque",
+    "tarjeta",
+    "otro",
+];
+
+/** Plazo por defecto de una factura a crédito (días). */
+export const DEFAULT_PAYABLE_DAYS = 30;
+
+/** Días entre dos fechas ISO (to - from). */
+export function diffDaysIso(fromIso: string, toIso: string): number {
+    const parse = (iso: string) => {
+        const p = (iso || "").split("-");
+        if (p.length !== 3) return NaN;
+        return Date.UTC(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    };
+    const a = parse(fromIso);
+    const b = parse(toIso);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return 0;
+    return Math.round((b - a) / 86400000);
+}
+
+/** true si el texto es una fecha AAAA-MM-DD válida. */
+export function isValidIsoDate(iso: string | null | undefined): boolean {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+    const p = iso.split("-").map(Number);
+    const d = new Date(Date.UTC(p[0], p[1] - 1, p[2]));
+    return (
+        d.getUTCFullYear() === p[0] &&
+        d.getUTCMonth() === p[1] - 1 &&
+        d.getUTCDate() === p[2]
+    );
+}
+
+export function getExpensePaymentCondition(g: OperationalExpenseDoc): PaymentCondition {
+    return g.condicionPago === "credito" ? "credito" : "contado";
+}
+
+/** Vencimiento de un gasto: el cargado, o factura (o fecha del gasto) + 30 días. Contado = su fecha. */
+export function getExpenseDueDate(g: OperationalExpenseDoc): string {
+    if (getExpensePaymentCondition(g) !== "credito") return g.fecha;
+    if (isValidIsoDate(g.vencimiento)) return g.vencimiento as string;
+    const base = isValidIsoDate(g.facturaFecha) ? (g.facturaFecha as string) : g.fecha;
+    return addDaysToIso(base, DEFAULT_PAYABLE_DAYS);
+}
+
+/** Gasto al contado (o documento viejo sin condición) = pagado. A crédito: según estadoPago. */
+export function getExpensePaymentStatus(g: OperationalExpenseDoc): PayableStatus {
+    if (getExpensePaymentCondition(g) !== "credito") return "pagado";
+    return g.estadoPago === "pagado" ? "pagado" : "pendiente";
+}
+
+/**
+ * Estado de pago del combustible de un vuelo.
+ * - Contado: pagado.
+ * - Crédito con fuelEstadoPago: el registrado.
+ * - Crédito sin fuelEstadoPago (vuelos cargados antes de este módulo): pendiente mientras
+ *   no venza; ya vencido se asume pagado en su vencimiento (mismo criterio que
+ *   "Pagos de combustible", que da por hecho que sale de la caja ese día).
+ */
+export function getFuelPaymentStatus(v: OperationalFlightDoc, hoy = getTodayIso()): PayableStatus {
+    if (v.fuelPago !== "credito") return "pagado";
+    if (v.fuelEstadoPago === "pagado" || v.fuelEstadoPago === "pendiente") {
+        return v.fuelEstadoPago;
+    }
+    return getFuelDueDate(v) >= hoy ? "pendiente" : "pagado";
+}
+
+function buildExpensePayable(
+    g: OperationalExpenseDoc,
+    cfg: AircraftOperationsConfig,
+    hoy: string
+): PayableItem {
+    const esCredito = getExpensePaymentCondition(g) === "credito";
+    const estado = getExpensePaymentStatus(g);
+    const vencimiento = getExpenseDueDate(g);
+    const dias = diffDaysIso(hoy, vencimiento);
+    return {
+        key: `gasto-${g.id}`,
+        kind: "gasto",
+        sourceId: g.id,
+        ownerId: g.ownerId,
+        concepto: g.concepto || "Gasto",
+        proveedor: g.proveedor || "",
+        proveedorRuc: g.proveedorRuc || null,
+        facturaNumero: g.facturaNumero || null,
+        facturaFotoUrl: g.facturaFotoUrl || null,
+        fecha: g.fecha,
+        vencimiento,
+        amountUsd: getExpenseAmountUsd(g, cfg),
+        esCredito,
+        estado,
+        fechaPago:
+            estado === "pagado"
+                ? esCredito
+                    ? g.fechaPago || vencimiento
+                    : g.fecha
+                : null,
+        medioPago: estado === "pagado" ? g.medioPago || null : null,
+        reciboFotoUrl: g.reciboFotoUrl || null,
+        notasPago: g.notasPago || null,
+        pagoAsumido: false,
+        vencido: estado === "pendiente" && dias < 0,
+        diasParaVencer: dias,
+        expense: g,
+    };
+}
+
+function buildFuelPayable(
+    v: OperationalFlightDoc,
+    cfg: AircraftOperationsConfig,
+    hoy: string
+): PayableItem {
+    const esCredito = v.fuelPago === "credito";
+    const estado = getFuelPaymentStatus(v, hoy);
+    const vencimiento = getFuelDueDate(v);
+    const dias = diffDaysIso(hoy, vencimiento);
+    const ruta = v.ruta ? ` · ${v.ruta}` : "";
+    return {
+        key: `combustible-${v.id}`,
+        kind: "combustible",
+        sourceId: v.id,
+        ownerId: v.ownerId,
+        concepto: `Combustible del vuelo del ${formatIsoToDmy(v.fecha)}${ruta}`,
+        proveedor: v.fuelProveedor || "",
+        proveedorRuc: null,
+        facturaNumero: v.fuelFacturaNumero || null,
+        facturaFotoUrl: v.fuelFacturaFotoUrl || null,
+        fecha: v.fecha,
+        vencimiento,
+        amountUsd: calcFlightFinancials(v, cfg).fuel,
+        esCredito,
+        estado,
+        fechaPago:
+            estado === "pagado"
+                ? esCredito
+                    ? v.fuelFechaPago || vencimiento
+                    : v.fecha
+                : null,
+        medioPago: estado === "pagado" ? v.fuelMedioPago || null : null,
+        reciboFotoUrl: v.fuelReciboFotoUrl || null,
+        notasPago: v.fuelNotasPago || null,
+        pagoAsumido: esCredito && estado === "pagado" && !v.fuelEstadoPago,
+        vencido: estado === "pendiente" && dias < 0,
+        diasParaVencer: dias,
+        flight: v,
+    };
+}
+
+/** Todas las compras (gastos sueltos y combustible) como ítems de cuentas por pagar. */
+export function buildPayableItems(
+    allFlights: OperationalFlightDoc[],
+    allExpenses: OperationalExpenseDoc[],
+    cfg: AircraftOperationsConfig,
+    hoy = getTodayIso()
+): PayableItem[] {
+    const items: PayableItem[] = [];
+    allExpenses.forEach((g) => {
+        if (!g.fecha) return;
+        const it = buildExpensePayable(g, cfg, hoy);
+        if (it.amountUsd > 0) items.push(it);
+    });
+    allFlights.forEach((v) => {
+        if (!v.fecha) return;
+        const it = buildFuelPayable(v, cfg, hoy);
+        if (it.amountUsd > 0.5) items.push(it);
+    });
+    return items;
+}
+
+/**
+ * Resumen de cuentas por pagar: todo lo pendiente (ordenado por vencimiento)
+ * y lo pagado en el mes elegido.
+ */
+export function computeAccountsPayable(
+    monthKey: string,
+    allFlights: OperationalFlightDoc[],
+    allExpenses: OperationalExpenseDoc[],
+    cfg: AircraftOperationsConfig,
+    hoy = getTodayIso()
+): AccountsPayableSummary {
+    const items = buildPayableItems(allFlights, allExpenses, cfg, hoy);
+
+    const pendientes = items
+        .filter((it) => it.estado === "pendiente")
+        .sort((a, b) =>
+            a.vencimiento === b.vencimiento
+                ? a.fecha < b.fecha
+                    ? -1
+                    : 1
+                : a.vencimiento < b.vencimiento
+                  ? -1
+                  : 1
+        );
+
+    const pagadosMes = items
+        .filter(
+            (it) =>
+                it.esCredito &&
+                it.estado === "pagado" &&
+                getMonthKey(it.fechaPago || "") === monthKey
+        )
+        .sort((a, b) => ((a.fechaPago || "") < (b.fechaPago || "") ? 1 : -1));
+
+    const totalContadoMesUsd = items
+        .filter((it) => !it.esCredito && getMonthKey(it.fecha) === monthKey)
+        .reduce((acc, it) => acc + it.amountUsd, 0);
+
+    const vencidos = pendientes.filter((it) => it.vencido);
+
+    return {
+        pendientes,
+        pagadosMes,
+        totalPendienteUsd: pendientes.reduce((acc, it) => acc + it.amountUsd, 0),
+        totalVencidoUsd: vencidos.reduce((acc, it) => acc + it.amountUsd, 0),
+        cantidadVencidos: vencidos.length,
+        totalPagadoMesUsd: pagadosMes.reduce((acc, it) => acc + it.amountUsd, 0),
+        totalContadoMesUsd,
+    };
+}
+
+/**
+ * Lo que sigue pendiente de pago de las compras del mes (gastos y combustible
+ * con fecha en ese mes). Solo informativo: no cambia el resultado del mes.
+ */
+export function computeMonthPendingPaymentUsd(
+    monthKey: string,
+    allFlights: OperationalFlightDoc[],
+    allExpenses: OperationalExpenseDoc[],
+    cfg: AircraftOperationsConfig,
+    hoy = getTodayIso()
+): number {
+    return buildPayableItems(allFlights, allExpenses, cfg, hoy)
+        .filter((it) => it.estado === "pendiente" && getMonthKey(it.fecha) === monthKey)
+        .reduce((acc, it) => acc + it.amountUsd, 0);
 }
 
 /**

@@ -8,6 +8,20 @@ export type OperationalExpenseType = "mantenimiento" | "otro";
 
 export type OperationalPeriodView = "M" | "Y";
 
+/** Secciones de GIO: Mes, Año o Cuentas por pagar ("P"). */
+export type GioSectionView = OperationalPeriodView | "P";
+
+/** Condición de pago de un gasto suelto. Sin el campo (documentos viejos) = "contado". */
+export type PaymentCondition = "contado" | "credito";
+
+/** Estado de pago de una compra a crédito. Sin el campo (documentos viejos) = "pagado". */
+export type PayableStatus = "pendiente" | "pagado";
+
+export type PayableMethod = "transferencia" | "efectivo" | "cheque" | "tarjeta" | "otro";
+
+/** Origen de una cuenta por pagar: gasto suelto o combustible de un vuelo. */
+export type PayableKind = "gasto" | "combustible";
+
 export type FinanceModuleTab = "operations" | "sifen";
 
 export interface FixedMonthlyExpense {
@@ -71,6 +85,15 @@ export interface OperationalFlightDoc {
     horasEstimadas?: boolean; // true mientras las horas sean la estimación por distancia (falta el Hobbs real)
     noches?: number; // noches fuera de base (de la reserva): costo de pernocte del piloto
     hangarUsd?: number | null; // hangaraje total pagado por el vuelo (USD)
+    // Cuentas por pagar del combustible a crédito (opcionales; el vencimiento sale de fuelDias).
+    fuelProveedor?: string | null;
+    fuelFacturaNumero?: string | null;
+    fuelFacturaFotoUrl?: string | null;
+    fuelEstadoPago?: PayableStatus | null;
+    fuelFechaPago?: string | null; // YYYY-MM-DD
+    fuelMedioPago?: PayableMethod | null;
+    fuelReciboFotoUrl?: string | null;
+    fuelNotasPago?: string | null;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -111,8 +134,65 @@ export interface OperationalExpenseDoc {
     monto: number;
     moneda: OperationalCurrency;
     tipo: OperationalExpenseType; // "mantenimiento" (sale del fondo overhaul) | "otro" (resta del mes)
+    // Cuentas por pagar (opcionales). Sin condicionPago el gasto es "contado, pagado" en su fecha.
+    condicionPago?: PaymentCondition | null;
+    proveedorRuc?: string | null;
+    facturaNumero?: string | null;
+    facturaFecha?: string | null; // YYYY-MM-DD
+    vencimiento?: string | null; // YYYY-MM-DD (por defecto, factura + 30 días)
+    facturaFotoUrl?: string | null;
+    estadoPago?: PayableStatus | null;
+    fechaPago?: string | null; // YYYY-MM-DD
+    medioPago?: PayableMethod | null;
+    reciboFotoUrl?: string | null;
+    notasPago?: string | null;
     createdAt?: string;
     updatedAt?: string;
+}
+
+/** Ítem unificado de "Cuentas por pagar" (gasto a crédito o combustible a crédito). */
+export interface PayableItem {
+    key: string; // "gasto-<id>" | "combustible-<id>"
+    kind: PayableKind;
+    sourceId: string; // id del gasto o del vuelo
+    ownerId: string;
+    concepto: string;
+    proveedor: string;
+    proveedorRuc: string | null;
+    facturaNumero: string | null;
+    facturaFotoUrl: string | null;
+    fecha: string; // fecha del gasto o del vuelo (YYYY-MM-DD)
+    vencimiento: string; // YYYY-MM-DD
+    amountUsd: number;
+    esCredito: boolean;
+    estado: PayableStatus;
+    fechaPago: string | null;
+    medioPago: PayableMethod | null;
+    reciboFotoUrl: string | null;
+    notasPago: string | null;
+    pagoAsumido: boolean; // combustible a crédito viejo, ya vencido y sin pago registrado: se asume pagado
+    vencido: boolean; // pendiente con vencimiento anterior a hoy
+    diasParaVencer: number; // negativo si ya venció
+    expense?: OperationalExpenseDoc;
+    flight?: OperationalFlightDoc;
+}
+
+/** Datos del formulario "Registrar pago". */
+export interface PayablePaymentInput {
+    fechaPago: string;
+    medioPago: PayableMethod;
+    reciboUri: string | null; // URL ya subida o URI local a subir
+    notasPago: string;
+}
+
+export interface AccountsPayableSummary {
+    pendientes: PayableItem[]; // ordenados por vencimiento
+    pagadosMes: PayableItem[]; // compras a crédito pagadas en el mes elegido
+    totalPendienteUsd: number;
+    totalVencidoUsd: number;
+    cantidadVencidos: number;
+    totalPagadoMesUsd: number;
+    totalContadoMesUsd: number; // gastos y combustible al contado del mes elegido
 }
 
 export interface OperationalExpenseDraft {
@@ -180,3 +260,26 @@ export interface MonthSummaryRow {
     stats: PeriodOperationalStats;
 }
 
+
+/** Props de PayablePaymentModal (registrar el pago de una compra a crédito). */
+export interface PayablePaymentModalProps {
+    visible: boolean;
+    item: PayableItem | null;
+    config: AircraftOperationsConfig;
+    isSaving: boolean;
+    onClose: () => void;
+    onConfirm: (input: PayablePaymentInput) => Promise<void>;
+}
+
+/** Props de AccountsPayablePanel (sección "Por pagar" de GIO). */
+export interface AccountsPayablePanelProps {
+    summary: AccountsPayableSummary;
+    config: AircraftOperationsConfig;
+    monthKey: string;
+    onShiftMonth: (delta: number) => void;
+    busyKey: string | null; // ítem con una operación en curso (deshacer)
+    onRegisterPayment: (item: PayableItem) => void;
+    onUndoPayment: (item: PayableItem) => void;
+    onOpenPhoto: (uri: string) => void;
+    onOpenItem: (item: PayableItem) => void;
+}
