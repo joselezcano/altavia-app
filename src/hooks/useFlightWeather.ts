@@ -63,11 +63,20 @@ const forecastQuery = (location: WeatherLocation | null) => {
  * Ante un error devuelve `data: null`: la UI simplemente no muestra el bloque.
  */
 export function useFlightWeather(request: FlightWeatherRequest | null) {
-    const results = useQueries({
-        queries: [forecastQuery(request?.origin ?? null), forecastQuery(request?.destination ?? null)],
-    });
+    // Consultas sin duplicados: TanStack avisa "Duplicate Queries" si dos tienen la misma clave
+    // (vuelo sin clima → sin consultas; mismo aeropuerto en origen y destino → una sola).
+    const originKey = request ? weatherLocationKey(request.origin).join(",") : null;
+    const destinationKey = request ? weatherLocationKey(request.destination).join(",") : null;
+    const locations: WeatherLocation[] = [];
+    if (request) {
+        locations.push(request.origin);
+        if (destinationKey !== originKey) locations.push(request.destination);
+    }
+    const results = useQueries({ queries: locations.map((loc) => forecastQuery(loc)) });
 
-    const [originResult, destinationResult] = results;
+    const empty = { data: undefined, isLoading: false } as const;
+    const originResult = results[0] ?? empty;
+    const destinationResult = destinationKey === originKey ? originResult : results[1] ?? empty;
     const departureMs = request?.departureTime.getTime();
     const arrivalMs = request?.arrivalTime?.getTime();
 
