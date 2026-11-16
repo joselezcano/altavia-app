@@ -13,55 +13,55 @@ Roles que vas a usar:
 
 ## 0. Antes de empezar
 
-- [ ] Desplegado: `firebase deploy --only firestore:rules,storage,functions,hosting`
-- [ ] Build nuevo instalado (dev build o TestFlight) con el login nuevo.
-- [ ] Las páginas abren: `https://altavia-app.web.app/pagar/` y `.../presupuesto/` (muestran "link no válido", no un error 404).
+- [x] Desplegado: `firebase deploy --only firestore:rules,storage,functions,hosting`
+- [x] Build nuevo instalado (dev build o TestFlight) con el login nuevo.
+- [x] Las páginas abren: `https://altavia-app.web.app/pagar/` y `.../presupuesto/` (muestran "link no válido", no un error 404).
 - [ ] Tipo de cambio cargado (Contadores/cambioDelDia). Se ve en cualquier precio en Gs.
 - [ ] Mary tiene una cuenta Google que pueda usar en el teléfono.
 
 ## 1. Dar de alta a Mary (Admin → Julio)
 
 **1.1 Crear su perfil**
-- [ ] Mary entra a la app con Google y completa el formulario inicial. Queda como CLIENTE.
-- [ ] Admin: menú **Usuarios** → buscar a Mary (nombre, mail o documento) → aparece.
-- [ ] Tocar **agregar PILOT** → confirmar. Chip "PILOT" en su ficha.
-- [ ] (Si aparece "Crear perfil" junto al rol, tocarlo: significa que tenía el rol sin su documento.)
+- [x] Mary entra a la app con Google y completa el formulario inicial. Queda como CLIENTE.
+- [x] Admin: menú **Usuarios** → buscar a Mary (nombre, mail o documento) → aparece.
+- [x] Tocar **agregar PILOT** → confirmar. Chip "PILOT" en su ficha.
+- [-] (Si aparece "Crear perfil" junto al rol, tocarlo: significa que tenía el rol sin su documento.)
 
 **1.2 Enlazarla con Julio**
-- [ ] Julio → **Pilotos** → vincular por el **correo de Mary** → aparece en su lista (sin aceptación).
-- [ ] Julio → Mary → activar **encargada**.
-- [ ] Julio → Mary → **Aviones a su cargo** → marcar el Cessna 414 (ZP-BOC).
+- [x] Julio → **Pilotos** → vincular por el **correo de Mary** → aparece en su lista (sin aceptación).
+- [x] Julio → Mary → activar **encargada**.
+- [x] Julio → Mary → **Aviones a su cargo** → marcar el Cessna 414 (ZP-BOC).
 
 **1.3 Mary entra**
-- [ ] Mary cierra sesión y vuelve a entrar. Si tiene varios roles, aparece el selector; elige **Piloto**.
-- [ ] Ve 4 pestañas: **Mis Vuelos, Mis Planes, Mi Flota, Contable**.
-- [ ] **Mi Flota** muestra el ZP-BOC.
-- [ ] Desde el avatar: **Mis propietarios** muestra a Julio.
+- [x] Mary cierra sesión y vuelve a entrar. Si tiene varios roles, aparece el selector; elige **Piloto**.
+- [x] Ve 4 pestañas: **Mis Vuelos, Mis Planes, Mi Flota, Contable**.
+- [x] **Mi Flota** muestra el ZP-BOC.
+- [x] Desde el avatar: **Mis propietarios** muestra a Julio.
 
 ## 2. Tarifa del ZP-BOC (el problema detectado)
 
-- [ ] Mary → **Contable** → elegir ZP-BOC (que sea el avión real y no uno "de ejemplo").
-- [ ] **Ajustes de costos y tarifas**: tarifa por hora **900** (sin IVA), pernocte **100**, hangaraje por noche, factor de bloque **1.12**, piloto **100/h**, piloto pernocte **100**.
-- [ ] Tocar **Guardar** (aunque no cambies nada).
-- [ ] Esperar ~10 segundos. Como admin: **Control de Flota** → el ZP-BOC muestra "USD 900 / hora…" en lugar de "Sin tarifa por hora".
-- [ ] Ficha técnica del ZP-BOC: **velocidad crucero** cargada (Cessna 414 ≈ 180 kt).
-- [ ] **Aeropuerto base** del ZP-BOC cargado (ej. SGAS). De esto dependen el traslado y el regreso vacío.
-- [ ] Si Control de Flota sigue sin tarifa: revisar que las functions estén desplegadas y que el avión tenga `ownerId` de Julio.
+- [x] Mary → **Contable** → elegir ZP-BOC (que sea el avión real y no uno "de ejemplo").
+- [x] **Ajustes de costos y tarifas**: tarifa por hora **900** (sin IVA), pernocte **100**, hangaraje por noche, factor de bloque **1.12**, piloto **100/h**, piloto pernocte **100**.
+- [x] Tocar **Guardar** (aunque no cambies nada).
+- [x] Esperar ~10 segundos. Como admin: **Control de Flota** → el ZP-BOC muestra "USD 900 / hora…" en lugar de "Sin tarifa por hora".
+- [x] Ficha técnica del ZP-BOC: **velocidad crucero** cargada (Cessna 414 ≈ 180 kt).
+- [x] **Aeropuerto base** del ZP-BOC cargado (ej. SGAS). De esto dependen el traslado y el regreso vacío.
+- [x] Si Control de Flota sigue sin tarifa: revisar que las functions estén desplegadas y que el avión tenga `ownerId` de Julio.
 
 ## 3. Mary: presupuesto completo
 
 **3.1 Cliente**
 - [ ] Nueva reserva → crear cliente con **alta rápida** (nombre, teléfono, CI/RUC).
-- [ ] Repetir el alta con el **mismo documento** → avisa "Ya existe un cliente con ese documento" y no lo duplica.
-- [ ] Crear otro cliente **sin correo** → se guarda igual.
+- [x] Repetir el alta con el **mismo documento** → avisa "Ya existe un cliente con ese documento" y no lo duplica.
+- [x] Crear otro cliente **sin correo** → se guarda igual.
 
 **3.2 Vuelo**
-- [ ] Origen SGAS, destino SGES, solo ida, fecha futura.
-- [ ] Paso 3 "Presupuesto": se ven las líneas sugeridas.
-  - [ ] **Servicio de vuelo** = horas × 900 (con factor de bloque).
-  - [ ] Sin noches fuera: no aparecen pernocte ni hangaraje.
-  - [ ] **Comisión de la pasarela** aparece **oculta** ("incluida en el servicio de vuelo").
-  - [ ] **Copiloto**: con el interruptor apagado no aparece; encendido aparece en **USD 0** por hora.
+- [x] Origen SGAS, destino SGES, solo ida, fecha futura.
+- [x] Paso 3 "Presupuesto": se ven las líneas sugeridas.
+  - [x] **Servicio de vuelo** = horas × 900 (con factor de bloque).
+  - [x] Sin noches fuera: no aparecen pernocte ni hangaraje.
+  - [x] **Comisión de la pasarela** aparece **oculta** ("incluida en el servicio de vuelo").
+  - [x] **Copiloto**: con el interruptor apagado no aparece; encendido aparece en **USD 0** por hora.
 - [ ] Ida y vuelta con regreso a otro día → aparecen **pernocte** y **hangaraje** de 1 noche.
 - [ ] Editar un monto a mano → aparece el sugerido con "usar sugerido".
 - [ ] Apagar/encender **Mostrar en el presupuesto** de una línea.
@@ -72,10 +72,10 @@ Roles que vas a usar:
 - [ ] Cambiar fecha o pasajeros en el paso 2 → los montos que editaste **se mantienen**.
 
 **3.3 Guardar y enviar**
-- [ ] **Guardar presupuesto** → abre el detalle.
-- [ ] Vista "como lo ve el cliente": sin costos internos; la comisión oculta está sumada al servicio de vuelo.
-- [ ] **Compartir PDF** → se genera con la marca y la leyenda "Montos sin IVA…".
-- [ ] **Enviar por WhatsApp** → abre WhatsApp con mensaje y link. (Probar con cliente con teléfono y con otro sin teléfono.)
+- [x] **Guardar presupuesto** → abre el detalle.
+- [x] Vista "como lo ve el cliente": sin costos internos; la comisión oculta está sumada al servicio de vuelo.
+- [x] **Compartir PDF** → se genera con la marca y la leyenda "Montos sin IVA…".
+- [x] **Enviar por WhatsApp** → abre WhatsApp con mensaje y link. (Probar con cliente con teléfono y con otro sin teléfono.)
 - [ ] El estado pasa a **Enviado**.
 
 **3.4 Hoja del cliente (abrir el link en el navegador del teléfono)**

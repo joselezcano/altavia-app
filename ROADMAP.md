@@ -60,6 +60,9 @@
 
 ## FASE 5 — QA, Pruebas y Despliegue
 - [ ] Auditoría de los logs legales y generación de facturas de prueba.
+- [ ] **QA etapa 1 (en curso):** terminar la [guía de pruebas](docs/guia-de-pruebas.md). Hecho hasta la sección 3.3; faltan 3.4 a 13.
+- [ ] **Manuales de uso (PDF, en `docs/guias/`):** hecha la guía 1 (presupuesto → reserva). Faltan: 2) El día del vuelo y boarding pass, 3) Módulo Contable (GIO), 4) Alta de usuarios y roles, 5) Guía del cliente.
+- [ ] **Mejoras de la app del cliente:** propuesta del 2026-11-16 (marca, tipografía, contraste, funciones); pendiente de aprobación.
 - [ ] Ajustes UI/UX finales y despliegue en producción.
 - [ ] Publicación en App Store (iOS) y Google Play (Android).
 - [ ] Entrega de código fuente completo, documentación técnica y credenciales de acceso.
