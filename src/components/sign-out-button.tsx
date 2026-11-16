@@ -1,19 +1,31 @@
+import { BRAND_COLORS, BRAND_RADII, BRAND_TYPE } from "@/constants/brand";
 import { useAuth } from "@/hooks/useAuth";
-import { TouchableOpacity } from "react-native";
-import { ThemedText } from "./themed-text";
+import { brandFont } from "@/utils/brand-fonts";
 import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
+/** Botón "Cerrar sesión". Componentes nativos: se usa dentro de la hoja de cuenta (<Modal>). */
 export default function SignOutButton() {
   const { signOut } = useAuth();
   return (
-    <TouchableOpacity 
-      className="border border-red-200 bg-red-50 py-3 px-4 rounded-xl flex-row items-center justify-center active:bg-red-50" style={{ gap: 8 }} 
-      onPress={signOut}
-    >
-      <Ionicons name="log-out-outline" size={18} color="#ef4444" />
-      <ThemedText className="text-red-500 font-semibold text-sm">
-        Cerrar Sesión
-      </ThemedText>
+    <TouchableOpacity style={styles.button} onPress={signOut} activeOpacity={0.85} accessibilityRole="button">
+      <Ionicons name="log-out-outline" size={19} color={BRAND_COLORS.navy} />
+      <Text style={[styles.text, brandFont(700)]}>Cerrar sesión</Text>
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: BRAND_COLORS.navy,
+    backgroundColor: BRAND_COLORS.white,
+    borderRadius: BRAND_RADII.input,
+    paddingVertical: 13,
+  },
+  text: { fontFamily: "NotoSans_700Bold", fontSize: BRAND_TYPE.body, color: BRAND_COLORS.navy },
+});

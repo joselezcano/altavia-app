@@ -1,212 +1,62 @@
-import React, { useState } from "react";
-import { View, TouchableOpacity, Modal, Text, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { AccountSheet } from "@/components/account/account-sheet";
+import { BRAND_COLORS, BRAND_TYPE } from "@/constants/brand";
 import { useAuth } from "@/hooks/useAuth";
-import { ThemedText } from "./themed-text";
-import SignOutButton from "./sign-out-button";
+import { UserAvatarProps } from "@/types/components";
+import { brandFont } from "@/utils/brand-fonts";
+import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-interface UserAvatarProps {
-  size?: number;
-  showDetails?: boolean;
-  bgClassName?: string;
-  textClassName?: string;
-}
-
-export default function UserAvatar({
-  size = 44,
-  showDetails = false,
-  bgClassName = "bg-brand-blue",
-  textClassName = "text-white",
-}: UserAvatarProps) {
-  const { user, userData, role, roles, selectRole } = useAuth();
-  const router = useRouter();
-  const [modalVisible, setModalVisible] = useState(false);
+/**
+ * Avatar del usuario. Al tocarlo abre la hoja de cuenta, que es la misma para todos los roles.
+ * `light`: círculo blanco con la inicial en navy (sobre fondos oscuros o fotos).
+ */
+export default function UserAvatar({ size = 44, showDetails = false, light = false }: UserAvatarProps) {
+  const { user, userData } = useAuth();
+  const [open, setOpen] = useState(false);
 
   const displayName =
-    userData?.firstName && userData?.lastName
-      ? `${userData.firstName} ${userData.lastName}`
-      : user?.email?.split("@")[0] || "Usuario";
-
-  const userInitial = displayName.charAt(0).toUpperCase();
-
-  const getRoleLabel = () => {
-    switch (role) {
-      case "ADMIN":
-        return "Administrador";
-      case "PILOT":
-        return "Piloto";
-      case "OWNER":
-        return "Propietario";
-      case "CLIENT":
-        return "Cliente";
-      default:
-        return "Usuario";
-    }
-  };
+    `${userData?.firstName ?? ""} ${userData?.lastName ?? ""}`.trim() || user?.email?.split("@")[0] || "Usuario";
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <>
       <TouchableOpacity
-        onPress={() => setModalVisible(true)}
-        className="flex-row items-center active:opacity-80" style={{ gap: 12 }}
+        onPress={() => setOpen(true)}
+        style={styles.trigger}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel="Abrir mi cuenta"
       >
         <View
-          style={{ width: size, height: size }}
-          className={`rounded-full items-center justify-center  ${bgClassName}`}
+          style={[
+            styles.circle,
+            { width: size, height: size, borderRadius: size / 2 },
+            light ? styles.circleLight : styles.circleDark,
+          ]}
         >
-          <ThemedText className={`font-semibold text-base ${textClassName}`}>
-            {userInitial}
-          </ThemedText>
+          <Text style={[styles.initial, brandFont(700), { color: light ? BRAND_COLORS.navy : BRAND_COLORS.white }]}>
+            {initial}
+          </Text>
         </View>
         {showDetails && (
-          <View className="flex-1">
-            <ThemedText className="font-bold text-slate-800 text-sm" numberOfLines={1}>
-              {displayName}
-            </ThemedText>
-            <ThemedText className="text-xs text-slate-500" numberOfLines={1}>
-              {user?.email}
-            </ThemedText>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.name, brandFont(700)]} numberOfLines={1}>{displayName}</Text>
+            <Text style={[styles.email, brandFont(400)]} numberOfLines={1}>{user?.email}</Text>
           </View>
         )}
       </TouchableOpacity>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={{ flex: 1, backgroundColor: "rgba(3, 4, 54, 0.4)" }}
-          activeOpacity={1}
-          onPress={() => setModalVisible(false)}
-        >
-          <View className="flex-1 justify-end">
-            <View
-              className="bg-white rounded-t-3xl p-6 border-t border-slate-100"
-              onStartShouldSetResponder={() => true}
-              onTouchEnd={(e) => e.stopPropagation()}
-            >
-              <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mb-6" />
-
-              {/* Info de Perfil */}
-              <View className="items-center mb-6">
-                <View className="w-16 h-16 rounded-full bg-brand-blue items-center justify-center mb-3">
-                  <ThemedText className="text-white font-bold text-2xl">
-                    {userInitial}
-                  </ThemedText>
-                </View>
-                <ThemedText className="font-bold text-lg text-brand-blue">
-                  {displayName}
-                </ThemedText>
-                <ThemedText className="text-sm text-slate-500">
-                  {user?.email}
-                </ThemedText>
-                <View className="mt-2 bg-[rgba(1,101,255,0.15)] px-3 py-1 rounded-full">
-                  <ThemedText className="text-brand-gold text-xs font-semibold uppercase tracking-wider">
-                    {getRoleLabel()}
-                  </ThemedText>
-                </View>
-              </View>
-
-              {/* Selector de Rol (si posee múltiples roles) */}
-              {roles && roles.length > 1 && (
-                <View className="w-full border-t border-slate-100 pt-4 mb-6">
-                  <ThemedText className="text-xs font-bold text-slate-400 mb-3 text-center uppercase tracking-wider">
-                    Cambiar Perfil
-                  </ThemedText>
-                  <View className="flex-row flex-wrap justify-center" style={{ gap: 8 }}>
-                    {roles.map((r) => {
-                      const isActive = r === role;
-                      return (
-                        <TouchableOpacity
-                          key={r}
-                          onPress={async () => {
-                            if (!isActive) {
-                              setModalVisible(false);
-                              await selectRole(r);
-                            }
-                          }}
-                          className={`px-4 py-2 rounded-full border ${
-                            isActive
-                              ? "bg-brand-gold border-brand-gold"
-                              : "bg-slate-50 border-slate-200 active:bg-slate-100"
-                          }`}
-                        >
-                          <ThemedText
-                            className={`text-xs font-bold uppercase tracking-wider ${
-                              isActive ? "text-white" : "text-slate-600"
-                            }`}
-                          >
-                            {r === "ADMIN"
-                              ? "Admin"
-                              : r === "PILOT"
-                              ? "Piloto"
-                              : r === "OWNER"
-                              ? "Propietario"
-                              : "Cliente"}
-                          </ThemedText>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-              )}
-
-              {/* Mis propietarios (solo piloto): abre la ruta oculta /my-owners */}
-              {role === "PILOT" && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setModalVisible(false);
-                    router.push("/my-owners");
-                  }}
-                  style={avatarStyles.ownersButton}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="briefcase-outline" size={18} color="#030436" />
-                  <Text style={avatarStyles.ownersButtonText}>Mis propietarios</Text>
-                </TouchableOpacity>
-              )}
-
-              {/* Botón de Cierre de Sesión */}
-              <View className="mb-4">
-                <SignOutButton />
-              </View>
-
-              {/* Botón para Cerrar Modal */}
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                className="w-full bg-slate-100 py-3 rounded-xl items-center"
-              >
-                <ThemedText className="text-slate-700 font-semibold">
-                  Cancelar
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      <AccountSheet visible={open} onClose={() => setOpen(false)} />
     </>
   );
 }
 
-const avatarStyles = StyleSheet.create({
-  ownersButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  ownersButtonText: {
-    color: "#030436",
-    fontFamily: "NotoSans_600SemiBold",
-    fontSize: 14,
-  },
+const styles = StyleSheet.create({
+  trigger: { flexDirection: "row", alignItems: "center", gap: 12 },
+  circle: { alignItems: "center", justifyContent: "center" },
+  circleDark: { backgroundColor: BRAND_COLORS.navy },
+  circleLight: { backgroundColor: BRAND_COLORS.white },
+  initial: { fontFamily: "NotoSans_700Bold", fontSize: BRAND_TYPE.body + 1 },
+  name: { fontFamily: "NotoSans_700Bold", fontSize: BRAND_TYPE.body - 1, color: BRAND_COLORS.navy },
+  email: { fontFamily: "NotoSans_400Regular", fontSize: BRAND_TYPE.label, color: BRAND_COLORS.textMuted },
 });
