@@ -1,3 +1,4 @@
+import { ScreenHeader } from "@/components/screen-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAuth } from "@/hooks/useAuth";
@@ -120,23 +121,7 @@ export default function MyOwnersScreen() {
 
   return (
     <ThemedView className="flex-1 px-4" style={{ paddingTop: insets.top }}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={goBack} style={styles.backButton} activeOpacity={0.7}>
-          <Ionicons name="arrow-back" size={22} color="#030436" />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <ThemedText
-            type="caption"
-            className="uppercase font-bold text-brand-gold tracking-widest text-xs"
-          >
-            Mi perfil
-          </ThemedText>
-          <ThemedText type="title" className="text-2xl font-bold mt-0.5">
-            Mis propietarios
-          </ThemedText>
-        </View>
-      </View>
+      <ScreenHeader title="Mis propietarios" subtitle="Mi perfil" onBack={goBack} withInset={false} />
 
       <ThemedText type="caption" className="text-slate-500 mb-4">
         Propietarios para los que volás. Si te desvinculás, dejarás de ver sus aeronaves.

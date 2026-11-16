@@ -353,7 +353,7 @@ export default function EventRecurrenceEditScreen() {
         >
             <ThemedView className="flex-1 px-4 pt-2">
                 {/* Header */}
-                <AircraftDetailsHeader header="Editar Indisponibilidad" />
+                <AircraftDetailsHeader header="Editar indisponibilidad" subtitle="Bloqueo del calendario" />
 
                 {isLoadingEvent && !isInitialized ? (
                     <View className="flex-1 items-center justify-center py-12">

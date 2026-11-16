@@ -1,3 +1,4 @@
+import { ScreenHeader } from "@/components/screen-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAircraftAvailability } from "@/hooks/useAircraftAvailability";
@@ -291,38 +292,24 @@ export default function DayScheduleScreen() {
 
     return (
         <ThemedView className="flex-1 bg-brand-light px-4 pt-2">
-            {/* Header */}
-            <View className="flex-row items-center justify-between mb-4 mt-2">
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="flex-row items-center p-1"
-                >
-                    <Ionicons name="arrow-back" size={24} color="#030436" />
-                    <ThemedText className="font-semibold text-brand-blue ml-1">
-                        Calendario
-                    </ThemedText>
-                </TouchableOpacity>
-                <ThemedText className="font-bold text-brand-blue text-lg">
-                    Agenda diaria
-                </ThemedText>
-                <TouchableOpacity
-                    onPress={() => {
-                        router.push({
-                            pathname: "./event-recurrence",
-                            params: {
-                                aircraftId: id,
-                                selectedDate,
-                                model,
-                                registration,
-                            },
-                        });
-                    }}
-                    className="flex-row items-center p-1 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5"
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="add" size={24} color="#0165FF" />
-                </TouchableOpacity>
-            </View>
+            <ScreenHeader
+                title="Agenda diaria"
+                subtitle={getFormattedDate()}
+                right={
+                    <TouchableOpacity
+                        onPress={() => {
+                            router.push({
+                                pathname: "./event-recurrence",
+                                params: { aircraftId: id, selectedDate, model, registration },
+                            });
+                        }}
+                        style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E2E8F0", alignItems: "center", justifyContent: "center" }}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons name="add" size={22} color="#0165FF" />
+                    </TouchableOpacity>
+                }
+            />
 
             {/* Title Card */}
             <AircraftDetailsTitleCard

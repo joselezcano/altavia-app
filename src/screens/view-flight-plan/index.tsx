@@ -1,3 +1,4 @@
+import { ScreenHeader } from "@/components/screen-header";
 import { LoadingCard } from "@/components/loading-card";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -42,25 +43,7 @@ export default function ViewFlightPlanScreen() {
 
     return (
         <ThemedView className="flex-1 bg-brand-light px-4" style={{ paddingTop: insets.top }}>
-            {/* Header */}
-            <View className="flex-row items-center justify-between mb-4 mt-2">
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200"
-                    activeOpacity={0.8}
-                >
-                    <Ionicons name="arrow-back" size={20} color="#030436" />
-                </TouchableOpacity>
-                <View className="items-center">
-                    <ThemedText type="caption" className="uppercase font-bold text-brand-gold tracking-widest text-[10px]">
-                        Plan de Vuelo Registrado
-                    </ThemedText>
-                    <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg">
-                        Detalles del Plan
-                    </ThemedText>
-                </View>
-                <View className="w-10" />
-            </View>
+            <ScreenHeader title="Detalles del plan" subtitle="Plan de vuelo registrado" withInset={false} />
 
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
                 {isLoading

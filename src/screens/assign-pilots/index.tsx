@@ -166,7 +166,7 @@ export default function AssignPilotsScreen() {
     return (
         <ThemedView className="flex-1 px-4 pt-2">
             {/* Header */}
-            <AircraftDetailsHeader header="Pilotos" />
+            <AircraftDetailsHeader header="Pilotos" subtitle="Pilotos de la aeronave" />
 
             {/* Target Aircraft Card */}
             <AircraftDetailsTitleCard title="Asignar Pilotos" model={aircraftModel || "Aeronave"} registration={aircraftRegistration || ""} />

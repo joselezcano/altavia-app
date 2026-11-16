@@ -306,7 +306,7 @@ export default function AircraftCalendarScreen() {
     return (
         <ThemedView className="flex-1 px-4 pt-2">
             {/* Header */}
-            <AircraftDetailsHeader header="Calendario" />
+            <AircraftDetailsHeader header="Calendario" subtitle="Disponibilidad y reservas" />
 
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
                 {/* Title Section Card */}

@@ -1,3 +1,4 @@
+import { ScreenHeader } from "@/components/screen-header";
 import { FormNavigationButtons } from "@/components/form-navigation-buttons";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -200,22 +201,7 @@ export default function AddAircraftScreen() {
             style={{ paddingTop: insets.top }}
         >
             <ThemedView className="flex-1 px-4">
-                {/* Header */}
-                <View className="flex-row items-center justify-between mb-4 mt-2">
-                    <TouchableOpacity
-                        onPress={() => router.back()}
-                        className="flex-row items-center p-1"
-                    >
-                        <Ionicons name="arrow-back" size={24} color="#030436" />
-                        <ThemedText className="font-semibold text-brand-blue ml-1">
-                            Cancelar
-                        </ThemedText>
-                    </TouchableOpacity>
-                    <ThemedText className="font-bold text-brand-blue text-lg">
-                        Registrar Aeronave
-                    </ThemedText>
-                    <View style={{ width: 60 }} />
-                </View>
+                <ScreenHeader title="Registrar aeronave" subtitle={`Paso ${currentStep} de 4`} withInset={false} />
 
                 {/* Step Indicator */}
                 <View className="flex-row justify-between mb-6 px-2">

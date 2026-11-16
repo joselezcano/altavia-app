@@ -1,26 +1,15 @@
-import { ThemedText } from "@/components/themed-text";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { TouchableOpacity, View } from "react-native";
+import { ScreenHeader } from "@/components/screen-header";
+import { ReactNode } from "react";
 
-export function AircraftDetailsHeader({ header }: { header: string }) {
-    const router = useRouter();
-
-    return (
-        <View className="flex-row items-center justify-between mb-4 mt-2">
-            <TouchableOpacity
-                onPress={() => router.back()}
-                className="flex-row items-center p-1"
-            >
-                <Ionicons name="arrow-back" size={24} color="#030436" />
-                <ThemedText className="font-semibold text-brand-blue ml-1">
-                    Volver
-                </ThemedText>
-            </TouchableOpacity>
-            <ThemedText className="font-bold text-brand-blue text-lg">
-                {header}
-            </ThemedText>
-            <View style={{ width: 60 }} />
-        </View>
-    );
+/** Encabezado de las pantallas de aeronave: usa el ScreenHeader común (atrás encuadrado, título y detalle). */
+export function AircraftDetailsHeader({
+    header,
+    subtitle,
+    right,
+}: {
+    header: string;
+    subtitle?: string;
+    right?: ReactNode;
+}) {
+    return <ScreenHeader title={header} subtitle={subtitle} right={right} />;
 }

@@ -141,7 +141,7 @@ export default function AircraftPhotosScreen() {
   return (
     <ThemedView className="flex-1 px-4 pt-2">
       {/* Header */}
-      <AircraftDetailsHeader header="Fotografías" />
+      <AircraftDetailsHeader header="Fotografías" subtitle="Galería de la aeronave" />
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {/* Title Section Card */}

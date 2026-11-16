@@ -33,7 +33,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { Href, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, Linking, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
@@ -79,7 +79,7 @@ export default function QuoteDetailsScreen() {
     const { role } = useAuth();
     const { quoteId } = useLocalSearchParams<{ quoteId: string }>();
     const id = quoteId ? String(quoteId) : undefined;
-    const { data: quote, isLoading, error, refetch } = useQuote(id);
+    const { data: quote, isLoading, error, refetch, isRefetching } = useQuote(id);
     const setStatus = useSetQuoteStatus();
     const deleteQuote = useDeleteQuote();
     const convert = useConvertQuote();
@@ -277,7 +277,11 @@ export default function QuoteDetailsScreen() {
                 <QuoteStatusBadge status={status} />
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 48, gap: 14 }}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: insets.bottom + 48, gap: 14 }}
+                refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} />}
+            >
                 {/* Acciones */}
                 <View style={{ gap: 8 }}>
                     {quote.status === "accepted" && (

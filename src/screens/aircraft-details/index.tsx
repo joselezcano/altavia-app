@@ -59,7 +59,7 @@ export default function AircraftDetailsScreen() {
     return (
         <ThemedView className="flex-1 px-4 pt-2">
             {/* Header */}
-            <AircraftDetailsHeader header="Aeronave" />
+            <AircraftDetailsHeader header="Aeronave" subtitle={`${basic_specs.registration} · ${basic_specs.model}`} />
 
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
                 {/* Title Section Card */}

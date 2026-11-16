@@ -1,3 +1,4 @@
+import { ScreenHeader } from "@/components/screen-header";
 import { FlightSummaryCard } from "@/components/flight-summary-card";
 import { PassengerManifestModal } from "@/components/passenger-manifest-modal";
 import { db } from "@/config/firebase";
@@ -249,18 +250,11 @@ export default function AdminReservationsScreen() {
         cleanPhone = "595" + cleanPhone;
       }
 
-      const whatsappDeepLink = cleanPhone
-        ? `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(messageText)}`
-        : `whatsapp://send?text=${encodeURIComponent(messageText)}`;
-
-      const canOpen = await Linking.canOpenURL(whatsappDeepLink);
-      if (canOpen) {
-        await Linking.openURL(whatsappDeepLink);
-      } else {
-        await Linking.openURL(
-          `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`
-        );
-      }
+      // https://wa.me abre WhatsApp si está instalado (o WhatsApp Web) y no requiere declarar el esquema en iOS.
+      const waUrl = cleanPhone
+        ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`
+        : `https://wa.me/?text=${encodeURIComponent(messageText)}`;
+      await Linking.openURL(waUrl);
     } catch (err: any) {
       Alert.alert("Error", err?.message || "No se pudo generar el enlace de Bancard.");
     } finally {
@@ -532,8 +526,9 @@ export default function AdminReservationsScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
-      {/* Top Header */}
+    <View style={[styles.container, { paddingTop: role === "ADMIN" ? insets.top + 8 : insets.top }]}>
+      {/* Top Header: el admin usa el header del Drawer; el resto, el encabezado común con "volver". */}
+      {role === "ADMIN" ? (
       <View style={styles.header}>
         <View>
           <Text style={styles.headerEyebrow}>Control Operativo</Text>
@@ -549,6 +544,24 @@ export default function AdminReservationsScreen() {
           <Text style={styles.newBookingHeaderText}>Nueva Reserva</Text>
         </TouchableOpacity>
       </View>
+
+      ) : (
+        <ScreenHeader
+          title="Reservas y Cobros"
+          subtitle="Control operativo"
+          withInset={false}
+          right={
+        <TouchableOpacity
+          onPress={() => newBookingRoute && router.push(toHref(newBookingRoute))}
+          style={styles.newBookingHeaderButton}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={18} color="#FFFFFF" />
+          <Text style={styles.newBookingHeaderText}>Nueva Reserva</Text>
+        </TouchableOpacity>
+          }
+        />
+      )}
 
       {/* Horizontal Status Filter Bar */}
       <View style={{ marginBottom: 12 }}>

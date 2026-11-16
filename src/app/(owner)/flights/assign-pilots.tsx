@@ -1,3 +1,4 @@
+import { ScreenHeader } from "@/components/screen-header";
 import { ThemedText } from "@/components/themed-text";
 import { grossFromNet, reservationNetPrice } from "@/utils/flight-pricing";
 import { ThemedView } from "@/components/themed-view";
@@ -268,18 +269,11 @@ export default function AssignFlightPilotsScreen() {
         cleanPhone = "595" + cleanPhone;
       }
 
-      const whatsappDeepLink = cleanPhone
-        ? `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(messageText)}`
-        : `whatsapp://send?text=${encodeURIComponent(messageText)}`;
-
-      const canOpen = await Linking.canOpenURL(whatsappDeepLink);
-      if (canOpen) {
-        await Linking.openURL(whatsappDeepLink);
-      } else {
-        await Linking.openURL(
-          `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`
-        );
-      }
+      // https://wa.me abre WhatsApp si está instalado (o WhatsApp Web) y no requiere declarar el esquema en iOS.
+      const waUrl = cleanPhone
+        ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`
+        : `https://wa.me/?text=${encodeURIComponent(messageText)}`;
+      await Linking.openURL(waUrl);
     } catch (e: any) {
       console.error("Error al generar enlace de WhatsApp:", e);
       Alert.alert("Error", e?.message || "No se pudo generar el enlace de pago de Bancard.");
@@ -353,15 +347,7 @@ export default function AssignFlightPilotsScreen() {
 
   return (
     <ThemedView className="flex-1 px-4 pt-2" style={{ paddingTop: insets.top }}>
-      {/* Header */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center" }}>
-          <Ionicons name="arrow-back" size={24} color="#030436" />
-          <Text style={styles.backButtonText}>Volver</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tripulación y Tarifa</Text>
-        <View style={{ width: 60 }} />
-      </View>
+      <ScreenHeader title="Tripulación y tarifa" subtitle="Asignar piloto y aprobar" withInset={false} />
 
       {/* Target Flight Card */}
       <View style={styles.flightSummaryCard}>

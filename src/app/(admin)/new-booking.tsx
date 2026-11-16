@@ -1,3 +1,4 @@
+import { ScreenHeader } from "@/components/screen-header";
 import AirportPicker from "@/components/airport-picker";
 import { QuoteEditor } from "@/components/quote/quote-editor";
 import { BRAND_COLORS } from "@/constants/brand";
@@ -534,8 +535,20 @@ function NewBookingForm({ initialQuote, initialClient, initialOrigin, initialDes
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1, backgroundColor: "#F8FAFC" }}
     >
-      <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
-        {isEditingQuote && initialQuote && (
+      <View style={[styles.container, { paddingTop: role === "ADMIN" ? insets.top + 8 : insets.top }]}>
+        {role !== "ADMIN" && (
+          <ScreenHeader
+            title={isEditingQuote ? "Editar presupuesto" : "Nuevo presupuesto"}
+            subtitle={
+              isEditingQuote && initialQuote
+                ? `#${quoteShortNumber(initialQuote.id)} · v${initialQuote.version ?? 1}`
+                : "Cliente, ruta y tarifa"
+            }
+            onBack={isEditingQuote ? leaveQuoteEditor : undefined}
+            withInset={false}
+          />
+        )}
+        {role === "ADMIN" && isEditingQuote && initialQuote && (
           <View style={styles.editBanner}>
             <Ionicons name="document-text-outline" size={18} color={BRAND_COLORS.azur} />
             <Text style={[styles.editBannerText, brandFont(700)]}>
@@ -994,7 +1007,10 @@ function NewBookingForm({ initialQuote, initialClient, initialOrigin, initialDes
         animationType="slide"
         onRequestClose={() => setIsQuickClientModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
           <View style={styles.modalContent}>
             {/* Header */}
             <View style={styles.modalHeader}>
@@ -1010,7 +1026,7 @@ function NewBookingForm({ initialQuote, initialClient, initialOrigin, initialDes
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 420 }}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={{ maxHeight: 420 }}>
               {/* Type Switcher */}
               <View style={styles.modalTypeRow}>
                 <TouchableOpacity
@@ -1131,7 +1147,7 @@ function NewBookingForm({ initialQuote, initialClient, initialOrigin, initialDes
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </KeyboardAvoidingView>
   );

@@ -1,3 +1,4 @@
+import { ScreenHeader } from "@/components/screen-header";
 import { FormNavigationButtons } from "@/components/form-navigation-buttons";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -104,14 +105,7 @@ export default function EditAircraftSpecsScreen() {
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.flex}>
             <ThemedView className="flex-1 px-4 pt-2">
-                <View style={styles.headerRow}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                        <Ionicons name="arrow-back" size={24} color="#030436" />
-                        <Text style={styles.backText}>Cancelar</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.title}>Editar {aircraft.basic_specs.registration}</Text>
-                    <View style={{ width: 60 }} />
-                </View>
+                <ScreenHeader title={`Editar ${aircraft.basic_specs.registration}`} subtitle={`Especificaciones técnicas · Paso ${currentStep} de 4`} />
 
                 <View style={styles.stepsRow}>
                     {STEP_LABELS.map((label, idx) => {

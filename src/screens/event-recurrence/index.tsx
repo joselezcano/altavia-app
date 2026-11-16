@@ -360,7 +360,7 @@ export default function EventRecurrenceScreen() {
         >
             <ThemedView className="flex-1 px-4 pt-2">
                 {/* Header */}
-                <AircraftDetailsHeader header="Añadir Indisponibilidad" />
+                <AircraftDetailsHeader header="Añadir indisponibilidad" subtitle="Bloqueo del calendario" />
 
                 <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
                     {/* 1. Selected Date Form Input Card (Shown First) */}

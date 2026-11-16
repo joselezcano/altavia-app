@@ -4,6 +4,7 @@
  *  - Pagada: solo reprogramar fechas y horas; el precio queda fijo.
  * Los bloqueos de calendario se recrean en useEditReservation. La fila de GIO la sincroniza el servidor.
  */
+import { ScreenHeader } from "@/components/screen-header";
 import AirportPicker from "@/components/airport-picker";
 import { CustomDatePicker } from "@/components/custom-date-picker";
 import { LoadingCard } from "@/components/loading-card";
@@ -57,18 +58,8 @@ export default function EditReservationScreen() {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.screen}
         >
-            <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
-                {/* Cabecera */}
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backCircle} activeOpacity={0.8}>
-                        <Ionicons name="arrow-back" size={20} color={BRAND_BLUE} />
-                    </TouchableOpacity>
-                    <View style={{ alignItems: "center" }}>
-                        <Text style={styles.headerEyebrow}>Gestión de Reserva</Text>
-                        <Text style={styles.headerTitle}>Editar Reserva</Text>
-                    </View>
-                    <View style={{ width: 40 }} />
-                </View>
+            <View style={[styles.container, { paddingTop: insets.top }]}>
+                <ScreenHeader title="Editar reserva" subtitle="Gestión de reserva" withInset={false} />
 
                 {isLoading ? (
                     <LoadingCard message="Cargando la reserva..." />
