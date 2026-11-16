@@ -1,22 +1,24 @@
+import { RoleOption } from "@/components/account/role-option";
+import { ScreenHeader } from "@/components/screen-header";
+import { roleLabel } from "@/constants/roles";
 import SignOutButton from "@/components/sign-out-button";
+import { brandFont } from "@/utils/brand-fonts";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import UserAvatar from "@/components/user-avatar";
 import { auth, db, functions } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { StartKycSessionResponse } from "@/types/kyc";
 import { ClientBoardingPassList } from "@/components/client-boarding-pass-list";
-import { BRAND_COLORS } from "@/constants/brand";
+import { BRAND_COLORS, BRAND_RADII, BRAND_TYPE } from "@/constants/brand";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import * as Clipboard from "expo-clipboard";
 import * as WebBrowser from "expo-web-browser";
 import { deleteUser } from "firebase/auth";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 import { useRef, useState } from "react";
-import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 const DEBOUNCE_COOLDOWN_MS = 3000; // 3-second cooldown to prevent accidental double taps or spam
@@ -96,7 +98,7 @@ export default function ProfileScreen() {
       console.error("Error al eliminar cuenta:", error);
       Alert.alert(
         "Error",
-        "No se pudo completar la eliminación de la cuenta. Por favor intenta más tarde."
+        "No se pudo eliminar la cuenta. Intentá más tarde."
       );
     }
   };
@@ -108,20 +110,6 @@ export default function ProfileScreen() {
 
   const userInitial = displayName.charAt(0).toUpperCase();
 
-  const handleCopyUid = async () => {
-    if (user?.uid) {
-      try {
-        await Clipboard.setStringAsync(user.uid);
-        Toast.show({
-          type: "success",
-          text1: "Copiado",
-          text2: "ID de usuario copiado al portapapeles",
-        });
-      } catch (error) {
-        console.error("Error al copiar UID al portapapeles:", error);
-      }
-    }
-  };
 
   /**
    * Flow for Didit.me KYC verification with anti-spam / double-click protection
@@ -134,7 +122,7 @@ export default function ProfileScreen() {
     if (now - lastClickTimeRef.current < DEBOUNCE_COOLDOWN_MS) {
       Toast.show({
         type: "info",
-        text1: "Por favor espera",
+        text1: "Un momento",
         text2: "Tu solicitud de verificación está procesándose.",
       });
       return;
@@ -186,137 +174,61 @@ export default function ProfileScreen() {
     } catch (error: any) {
       setIsVerifying(false);
       console.error("Error al iniciar verificación Didit:", error);
-      Alert.alert("Error de Verificación", "No se pudo abrir el flujo de verificación. Por favor intente nuevamente.");
+      Alert.alert("Error de Verificación", "No se pudo abrir la verificación. Intentá de nuevo.");
     }
   };
 
-  const getRoleLabel = (r: string) => {
-    switch (r) {
-      case "ADMIN":
-        return "Administrador";
-      case "PILOT":
-        return "Piloto";
-      case "OWNER":
-        return "Propietario";
-      case "CLIENT":
-        return "Cliente";
-      default:
-        return "Usuario";
-    }
-  };
 
-  const upcomingOptions = [
-    {
-      id: "payment",
-      title: "Métodos de Pago",
-      subtitle: "Gestioná tus tarjetas de crédito y débito",
-      icon: "card-outline" as const,
-    },
-    {
-      id: "passengers",
-      title: "Acompañantes Frecuentes",
-      subtitle: "Guardá los datos de tus pasajeros habituales",
-      icon: "people-outline" as const,
-    },
-    {
-      id: "preferences",
-      title: "Preferencias de Vuelo",
-      subtitle: "Catering, bebidas y comodidades a bordo",
-      icon: "sparkles-outline" as const,
-    },
-    {
-      id: "billing",
-      title: "Historial de Facturación",
-      subtitle: "Descargá tus recibos y facturas fiscales",
-      icon: "receipt-outline" as const,
-    },
-    {
-      id: "notifications",
-      title: "Notificaciones",
-      subtitle: "Alertas de vuelo y cambios de itinerario",
-      icon: "notifications-outline" as const,
-    },
-  ];
 
   if (isLoadingProfile) {
     return (
-      <ThemedView className="flex-1 bg-brand-light justify-center items-center">
-        <ActivityIndicator size="large" color="#030436" />
-      </ThemedView>
+      <View style={[pStyles.screen, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={BRAND_COLORS.navy} />
+      </View>
     );
   }
 
   return (
-    <ThemedView className="flex-1 bg-brand-light px-4 pt-2">
-      {/* Top Header */}
-      <View className="flex-row items-center justify-between mb-4 mt-2">
-        <View>
-          <ThemedText type="caption" className="uppercase font-bold text-brand-gold tracking-widest">
-            Mi Cuenta
-          </ThemedText>
-          <ThemedText type="title" className="mt-0.5 text-xl">
-            Mi Perfil
-          </ThemedText>
-        </View>
-        <UserAvatar size={44} />
-      </View>
+    <View style={pStyles.screen}>
+      <ScreenHeader title="Mi perfil" subtitle="Tus datos y tu cuenta" hideBack />
 
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
-
-        {/* User Card */}
-        <View className="bg-white rounded-3xl p-5 mb-5 border border-slate-100 items-center">
-          <View className="w-20 h-20 rounded-full bg-brand-blue items-center justify-center mb-3">
-            <ThemedText className="text-white font-bold text-3xl">
-              {userInitial}
-            </ThemedText>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
+        {/* Tarjeta del usuario */}
+        <View style={[pStyles.card, { alignItems: "center", paddingVertical: 22 }]}>
+          <View style={pStyles.avatar}>
+            <Text style={[pStyles.avatarText, brandFont(700)]}>{userInitial}</Text>
           </View>
-          <ThemedText type="subtitle" className="font-extrabold text-xl text-brand-blue">
-            {displayName}
-          </ThemedText>
-          <ThemedText className="text-sm text-slate-500 mt-0.5">
-            {user?.email}
-          </ThemedText>
-          <View className="mt-2.5 bg-[rgba(1,101,255,0.15)] px-3 py-1 rounded-full border border-[rgba(1,101,255,0.2)]">
-            <ThemedText className="text-brand-gold text-xs font-bold uppercase tracking-wider">
-              {role ? getRoleLabel(role) : "Cliente"}
-            </ThemedText>
+          <Text style={[pStyles.name, brandFont(800)]}>{displayName}</Text>
+          {!!user?.email && <Text style={[pStyles.muted, brandFont(400)]}>{user.email}</Text>}
+          <View style={pStyles.rolePill}>
+            <Text style={[pStyles.rolePillText, brandFont(700)]}>{roleLabel(role)}</Text>
           </View>
         </View>
 
-        {/* KYC Verification Required Alert Banner (Positioned below User Card) */}
+        {/* Verificación de identidad pendiente */}
         {!userProfile?.kycVerified && (
-          <View className="bg-[rgba(245,158,11,0.1)] border border-amber-200 rounded-3xl p-5 mb-5 flex-row items-center overflow-hidden relative" style={{ gap: 16 }}>
-            <View className="flex-1 pr-1">
-              <View className="flex-row items-center mb-1" style={{ gap: 6 }}>
-                <Ionicons name="alert-circle" size={18} color="#b45309" />
-                <ThemedText className="font-extrabold text-amber-900 text-base">
-                  Verificación Requerida
-                </ThemedText>
-              </View>
-              <ThemedText className="text-xs text-amber-900 leading-relaxed">
-                Para confirmar tus reservas y abordar sin demoras, valida tu documento con Didit.me.
-              </ThemedText>
+          <View style={[pStyles.card, pStyles.kycCard]}>
+            <View style={{ flex: 1 }}>
+              <Text style={[pStyles.cardTitle, brandFont(700)]}>Verificá tu identidad</Text>
+              <Text style={[pStyles.body, brandFont(400), { marginTop: 4 }]}>
+                Para confirmar tus reservas y embarcar sin demoras, validá tu documento. Lleva un par de minutos.
+              </Text>
               <TouchableOpacity
                 disabled={isVerifying}
                 onPress={handleStartKyc}
-                className={`bg-brand-blue py-2.5 px-4 rounded-xl mt-3 flex-row items-center justify-center gap-2  ${isVerifying ? "opacity-60" : "active:bg-brand-blue"
-                  }`}
-                activeOpacity={0.8}
+                style={[profileStyles.kycButton, isVerifying ? { opacity: 0.6 } : null]}
+                activeOpacity={0.85}
               >
                 {isVerifying ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <>
-                    <ThemedText className="text-white font-bold text-xs">
-                      Verificar con Didit.me
-                    </ThemedText>
-                    <Ionicons name="arrow-forward" size={14} color="#FFFFFF" />
+                    <Text style={[pStyles.buttonText, brandFont(700)]}>Verificar mi identidad</Text>
+                    <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
                   </>
                 )}
               </TouchableOpacity>
             </View>
-
-            {/* Identidad (KYC): ícono de documento con la paleta de la marca */}
             <View style={kycIconStyles.box}>
               <MaterialCommunityIcons name="card-account-details-outline" size={40} color={BRAND_COLORS.white} />
               <View style={kycIconStyles.badge}>
@@ -329,158 +241,65 @@ export default function ProfileScreen() {
         {/* Accesos a los boarding pass de los próximos vuelos pagados */}
         <ClientBoardingPassList clientId={user?.uid} />
 
-        {/* Personal Details */}
-        <ThemedText className="text-xs font-extrabold text-slate-400 mb-2.5 uppercase tracking-wider pl-1">
-          Información Personal
-        </ThemedText>
-        <View className="bg-white rounded-3xl p-4 mb-5 border border-slate-100" style={{ rowGap: 14 }}>
-          <View className="flex-row justify-between items-center">
-            <View>
-              <ThemedText className="text-xs text-slate-400 font-medium">Nombre</ThemedText>
-              <ThemedText className="font-bold text-slate-800 text-sm mt-0.5">{userProfile?.firstName || "N/A"}</ThemedText>
+        {/* Datos personales */}
+        <Text style={[pStyles.sectionTitle, brandFont(700)]}>Datos personales</Text>
+        <View style={pStyles.card}>
+          {[
+            { label: "Nombre", value: userProfile?.firstName || "—" },
+            { label: "Apellido", value: userProfile?.lastName || "—" },
+            { label: "Correo", value: user?.email || "—" },
+          ].map((row, idx) => (
+            <View key={row.label} style={[pStyles.dataRow, idx > 0 ? pStyles.dataRowDivider : null]}>
+              <Text style={[pStyles.label, brandFont(600)]}>{row.label}</Text>
+              <Text style={[pStyles.value, brandFont(700)]} numberOfLines={1}>{row.value}</Text>
             </View>
-          </View>
-          <View className="border-t border-slate-50" />
-
-          <View className="flex-row justify-between items-center">
-            <View>
-              <ThemedText className="text-xs text-slate-400 font-medium">Apellido</ThemedText>
-              <ThemedText className="font-bold text-slate-800 text-sm mt-0.5">{userProfile?.lastName || "N/A"}</ThemedText>
+          ))}
+          <View style={[pStyles.dataRow, pStyles.dataRowDivider]}>
+            <Text style={[pStyles.label, brandFont(600)]}>Identidad</Text>
+            <View style={[pStyles.statusPill, userProfile?.kycVerified ? pStyles.statusOk : pStyles.statusPending]}>
+              <Ionicons
+                name={userProfile?.kycVerified ? "checkmark-circle" : "time-outline"}
+                size={15}
+                color={userProfile?.kycVerified ? BRAND_COLORS.white : BRAND_COLORS.navy}
+              />
+              <Text
+                style={[
+                  pStyles.statusText,
+                  brandFont(700),
+                  { color: userProfile?.kycVerified ? BRAND_COLORS.white : BRAND_COLORS.navy },
+                ]}
+              >
+                {userProfile?.kycVerified ? "Verificada" : "Pendiente"}
+              </Text>
             </View>
-          </View>
-          <View className="border-t border-slate-50" />
-
-          <View className="flex-row justify-between items-center">
-            <View className="flex-1 pr-2">
-              <ThemedText className="text-xs text-slate-400 font-medium">Estado KYC (Identidad)</ThemedText>
-              <View className="flex-row items-center mt-1" style={{ gap: 6 }}>
-                <Ionicons
-                  name={userProfile?.kycVerified ? "checkmark-circle-outline" : "ellipse-outline"}
-                  size={16}
-                  color={userProfile?.kycVerified ? "#059669" : "#dc2626"}
-                />
-                <ThemedText className={`font-bold text-sm ${userProfile?.kycVerified ? "text-emerald-600" : "text-rose-600"}`}>
-                  {userProfile?.kycVerified ? "Verificado" : "Pendiente de Verificación"}
-                </ThemedText>
-              </View>
-            </View>
-          </View>
-          <View className="border-t border-slate-50" />
-
-          <View className="flex-row justify-between items-center">
-            <View className="flex-1 pr-2">
-              <ThemedText className="text-xs text-slate-400 font-medium">ID de Usuario (UID)</ThemedText>
-              <ThemedText className="font-bold text-slate-700 text-xs mt-0.5" numberOfLines={1}>
-                {user?.uid}
-              </ThemedText>
-            </View>
-            <TouchableOpacity
-              onPress={handleCopyUid}
-              className="bg-slate-100 p-2 rounded-xl active:bg-slate-200"
-            >
-              <Ionicons name="copy-outline" size={16} color="#475569" />
-            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Change Role Section (Conditional) */}
+        {/* Cambiar de perfil (mismo selector que la hoja de cuenta) */}
         {roles && roles.length > 1 && (
           <>
-            <ThemedText className="text-xs font-extrabold text-slate-400 mb-2.5 uppercase tracking-wider pl-1">
-              Cambiar de Perfil
-            </ThemedText>
-            <View className="bg-white rounded-3xl p-4 mb-5 border border-slate-100">
-              <ThemedText className="text-xs text-slate-500 mb-3 text-center">
-                Tenés múltiples roles asignados. Seleccioná uno para cambiar de sesión:
-              </ThemedText>
-              <View className="flex-row flex-wrap justify-center" style={{ gap: 8 }}>
-                {roles.map((r) => {
-                  const isActive = r === role;
-                  return (
-                    <TouchableOpacity
-                      key={r}
-                      onPress={async () => {
-                        if (!isActive) {
-                          await selectRole(r);
-                        }
-                      }}
-                      className={`px-4 py-2 rounded-xl border ${isActive
-                        ? "bg-brand-gold border-brand-gold"
-                        : "bg-slate-50 border-slate-200 active:bg-slate-100"
-                        }`}
-                    >
-                      <ThemedText
-                        className={`text-xs font-bold uppercase tracking-wider ${isActive ? "text-white" : "text-slate-600"
-                          }`}
-                      >
-                        {getRoleLabel(r)}
-                      </ThemedText>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+            <Text style={[pStyles.sectionTitle, brandFont(700)]}>Cambiar de perfil</Text>
+            <View style={{ gap: 8, marginBottom: 20 }}>
+              {roles.map((r) => (
+                <RoleOption key={r} role={r} active={r === role} onPress={() => selectRole(r)} />
+              ))}
             </View>
           </>
         )}
 
-        {/* Upcoming Features Section */}
-        <ThemedText className="text-xs font-extrabold text-slate-400 mb-2.5 uppercase tracking-wider pl-1">
-          Ajustes y Preferencias (Próximamente)
-        </ThemedText>
-        <View className="bg-white rounded-3xl p-4 mb-6 border border-slate-100" style={{ rowGap: 16 }}>
-          {upcomingOptions.map((opt, idx) => (
-            <View key={opt.id}>
-              {idx > 0 && <View className="border-t border-slate-50 mb-3.5" />}
-              <View className="flex-row items-center justify-between opacity-60">
-                <View className="flex-row items-center flex-1" style={{ gap: 12 }}>
-                  <View className="w-9 h-9 rounded-xl bg-slate-100 items-center justify-center">
-                    <Ionicons name={opt.icon} size={18} color="#64748B" />
-                  </View>
-                  <View className="flex-1">
-                    <ThemedText className="font-bold text-slate-800 text-sm">{opt.title}</ThemedText>
-                    <ThemedText className="text-xs text-slate-500 mt-0.5">{opt.subtitle}</ThemedText>
-                  </View>
-                </View>
-                <View className="bg-slate-100 px-2 py-0.5 rounded-md">
-                  <ThemedText className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Próximamente</ThemedText>
-                </View>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        {/* Security & Account Management (DINAC Compliance Disclosure) */}
-        <ThemedText className="text-xs font-extrabold text-slate-400 mb-2.5 uppercase tracking-wider pl-1">
-          Seguridad y Gestión de Cuenta
-        </ThemedText>
-        <View className="bg-white rounded-3xl p-4 mb-6 border border-slate-100">
-          <View className="flex-row items-center mb-2.5" style={{ gap: 12 }}>
-            <View className="w-9 h-9 rounded-xl bg-rose-50 items-center justify-center">
-              <Ionicons name="shield-outline" size={18} color="#e11d48" />
-            </View>
-            <View className="flex-1">
-              <ThemedText className="font-bold text-slate-800 text-sm">Privacidad y Retención DINAC</ThemedText>
-              <ThemedText className="text-xs text-slate-500 mt-0.5">
-                Derecho al olvido y resguardo operacional
-              </ThemedText>
-            </View>
-          </View>
-          <ThemedText className="text-[11px] text-slate-500 mb-3.5 leading-relaxed">
-            Puedes eliminar tu cuenta y credenciales. Por normativas de seguridad aérea (DINAC), los registros históricos de vuelos y reservas se retienen de forma inmutable y confidencial para auditoría.
-          </ThemedText>
-          <TouchableOpacity
-            onPress={() => setShowDeleteModal(true)}
-            className="border border-rose-200 bg-rose-50 py-3 rounded-xl flex-row items-center justify-center active:bg-rose-100" style={{ gap: 8 }}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="trash-outline" size={16} color="#e11d48" />
-            <ThemedText className="text-rose-600 font-bold text-xs">
-              Eliminar mi cuenta
-            </ThemedText>
+        {/* Privacidad y eliminación de cuenta */}
+        <Text style={[pStyles.sectionTitle, brandFont(700)]}>Privacidad</Text>
+        <View style={pStyles.card}>
+          <Text style={[pStyles.cardTitle, brandFont(700)]}>Eliminar mi cuenta</Text>
+          <Text style={[pStyles.body, brandFont(400), { marginTop: 4, marginBottom: 14 }]}>
+            Podés eliminar tu cuenta cuando quieras. Por normas de seguridad aérea (DINAC), el historial de vuelos y reservas se conserva de forma confidencial.
+          </Text>
+          <TouchableOpacity onPress={() => setShowDeleteModal(true)} style={pStyles.deleteButton} activeOpacity={0.85}>
+            <Ionicons name="trash-outline" size={18} color="#BE123C" />
+            <Text style={[pStyles.deleteText, brandFont(700)]}>Eliminar mi cuenta</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Log Out */}
         <SignOutButton />
 
         {/* Account Deletion Confirmation Modal */}
@@ -490,63 +309,41 @@ export default function ProfileScreen() {
           animationType="fade"
           onRequestClose={() => setShowDeleteModal(false)}
         >
-          <View className="flex-1 bg-[rgba(0,0,0,0.6)] justify-center items-center px-6">
-            <View className="bg-white rounded-3xl p-6 w-full max-w-sm border border-slate-100">
-              <View className="w-12 h-12 rounded-full bg-rose-100 items-center justify-center mx-auto mb-4">
+          <View style={profileStyles.modalScrim}>
+            <View style={profileStyles.modalCard}>
+              <View style={profileStyles.modalIcon}>
                 <Ionicons name="warning-outline" size={26} color="#e11d48" />
               </View>
-
-              <ThemedText className="text-center font-extrabold text-lg text-slate-900 mb-2">
-                ¿Eliminar tu cuenta?
-              </ThemedText>
-
-              <ThemedText className="text-xs text-slate-600 leading-relaxed text-center mb-4">
-                Esta acción cancelará tu acceso a Alta Vía y anonimizará tus datos personales de perfil.
-              </ThemedText>
-
-              {/* DINAC Legal Retention Warning Box */}
-              <View className="bg-[rgba(245,158,11,0.1)] border border-amber-200 p-3 rounded-2xl mb-5">
-                <View className="flex-row items-center mb-1" style={{ gap: 6 }}>
-                  <Ionicons name="airplane-outline" size={14} color="#b45309" />
-                  <ThemedText className="text-[11px] font-bold text-amber-900">
-                    Aviso Legal Aeronáutico (DINAC)
-                  </ThemedText>
+              <Text style={[profileStyles.modalTitle, brandFont(800)]}>¿Eliminar tu cuenta?</Text>
+              <Text style={[profileStyles.modalText, brandFont(400)]}>
+                Vas a perder el acceso a AltaGo y se anonimizarán tus datos personales.
+              </Text>
+              <View style={profileStyles.modalWarn}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <Ionicons name="airplane-outline" size={14} color={BRAND_COLORS.navy} />
+                  <Text style={[profileStyles.modalWarnTitle, brandFont(700)]}>Aviso legal aeronáutico (DINAC)</Text>
                 </View>
-                <ThemedText className="text-[10px] text-amber-900 leading-relaxed">
-                  Conforme al Código Aeronáutico (Ley N° 1860/02) y regulaciones de seguridad operacional, los registros de vuelos reservados, bitácoras y manifiestos de pasajeros NO se eliminan, quedando resguardados de forma inmutable para fines regulatorios.
-                </ThemedText>
+                <Text style={[profileStyles.modalWarnText, brandFont(400)]}>
+                  Según el Código Aeronáutico (Ley N° 1860/02), los registros de vuelos, bitácoras y manifiestos de pasajeros no se eliminan: se conservan para fines regulatorios.
+                </Text>
               </View>
-
-              <View className="" style={{ gap: 10 }}>
-                <TouchableOpacity
-                  disabled={isDeleting}
-                  onPress={handleDeleteAccount}
-                  className="bg-rose-600 py-3.5 rounded-xl items-center justify-center active:bg-rose-700"
-                >
+              <View style={{ gap: 10 }}>
+                <TouchableOpacity disabled={isDeleting} onPress={handleDeleteAccount} style={profileStyles.modalDanger} activeOpacity={0.85}>
                   {isDeleting ? (
                     <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
-                    <ThemedText className="text-white font-bold text-xs">
-                      Confirmar y Eliminar Cuenta
-                    </ThemedText>
+                    <Text style={[profileStyles.modalDangerText, brandFont(700)]}>Sí, eliminar mi cuenta</Text>
                   )}
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                  disabled={isDeleting}
-                  onPress={() => setShowDeleteModal(false)}
-                  className="bg-slate-100 py-3 rounded-xl items-center justify-center active:bg-slate-200"
-                >
-                  <ThemedText className="text-slate-700 font-semibold text-xs">
-                    Cancelar
-                  </ThemedText>
+                <TouchableOpacity disabled={isDeleting} onPress={() => setShowDeleteModal(false)} style={profileStyles.modalCancel} activeOpacity={0.85}>
+                  <Text style={[profileStyles.modalCancelText, brandFont(700)]}>Cancelar</Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         </Modal>
       </ScrollView>
-    </ThemedView>
+    </View>
   );
 }
 
@@ -572,4 +369,109 @@ const kycIconStyles = StyleSheet.create({
     borderWidth: 2,
     borderColor: BRAND_COLORS.navy,
   },
+});
+
+const profileStyles = StyleSheet.create({
+  kycButton: {
+    backgroundColor: BRAND_COLORS.navy,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  modalScrim: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", paddingHorizontal: 24 },
+  modalCard: { backgroundColor: "#FFFFFF", borderRadius: 24, padding: 24, width: "100%", maxWidth: 380 },
+  modalIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#FFE4E6",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    marginBottom: 14,
+  },
+  modalTitle: { fontFamily: "NotoSans_800ExtraBold", fontSize: 19, color: BRAND_COLORS.navy, textAlign: "center", marginBottom: 6 },
+  modalText: { fontFamily: "NotoSans_400Regular", fontSize: 15, color: BRAND_COLORS.textMuted, textAlign: "center", lineHeight: 20, marginBottom: 16 },
+  modalWarn: { backgroundColor: BRAND_COLORS.surfaceTint, borderWidth: 1, borderColor: BRAND_COLORS.crystal, borderRadius: 16, padding: 12, marginBottom: 18 },
+  modalWarnTitle: { fontFamily: "NotoSans_700Bold", fontSize: 13, color: BRAND_COLORS.navy },
+  modalWarnText: { fontFamily: "NotoSans_400Regular", fontSize: 13, color: BRAND_COLORS.navy, lineHeight: 19 },
+  modalDanger: { backgroundColor: "#BE123C", paddingVertical: 14, borderRadius: 14, alignItems: "center" },
+  modalDangerText: { fontFamily: "NotoSans_700Bold", fontSize: 15, color: "#FFFFFF" },
+  modalCancel: { backgroundColor: BRAND_COLORS.backgroundAlt, paddingVertical: 13, borderRadius: 14, alignItems: "center" },
+  modalCancelText: { fontFamily: "NotoSans_700Bold", fontSize: 15, color: BRAND_COLORS.navy },
+});
+
+const pStyles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: BRAND_COLORS.backgroundAlt, paddingHorizontal: 16 },
+  card: {
+    backgroundColor: BRAND_COLORS.white,
+    borderRadius: BRAND_RADII.card,
+    borderWidth: 1,
+    borderColor: BRAND_COLORS.border,
+    padding: 16,
+    marginBottom: 20,
+  },
+  avatar: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: BRAND_COLORS.navy,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  avatarText: { fontFamily: "NotoSans_700Bold", fontSize: 30, color: BRAND_COLORS.white },
+  name: { fontFamily: "NotoSans_800ExtraBold", fontSize: BRAND_TYPE.screenTitle, color: BRAND_COLORS.navy, textAlign: "center" },
+  muted: { fontFamily: "NotoSans_400Regular", fontSize: BRAND_TYPE.body, color: BRAND_COLORS.textMuted, marginTop: 2 },
+  rolePill: {
+    marginTop: 12,
+    backgroundColor: BRAND_COLORS.surfaceTint,
+    borderRadius: BRAND_RADII.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+  },
+  rolePillText: {
+    fontFamily: "NotoSans_700Bold",
+    fontSize: BRAND_TYPE.secondary,
+    color: BRAND_COLORS.navy,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  kycCard: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: BRAND_COLORS.surfaceTint, borderColor: BRAND_COLORS.crystal },
+  cardTitle: { fontFamily: "NotoSans_700Bold", fontSize: BRAND_TYPE.cardTitle, color: BRAND_COLORS.navy },
+  body: { fontFamily: "NotoSans_400Regular", fontSize: BRAND_TYPE.body, color: BRAND_COLORS.navy, lineHeight: 22 },
+  buttonText: { fontFamily: "NotoSans_700Bold", fontSize: BRAND_TYPE.body, color: BRAND_COLORS.white },
+  sectionTitle: {
+    fontFamily: "NotoSans_700Bold",
+    fontSize: BRAND_TYPE.secondary,
+    color: BRAND_COLORS.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    paddingLeft: 4,
+  },
+  dataRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingVertical: 12 },
+  dataRowDivider: { borderTopWidth: 1, borderTopColor: BRAND_COLORS.border },
+  label: { fontFamily: "NotoSans_600SemiBold", fontSize: BRAND_TYPE.body, color: BRAND_COLORS.textMuted },
+  value: { fontFamily: "NotoSans_700Bold", fontSize: BRAND_TYPE.body, color: BRAND_COLORS.navy, flexShrink: 1, textAlign: "right" },
+  statusPill: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: BRAND_RADII.pill, paddingHorizontal: 12, paddingVertical: 5 },
+  statusOk: { backgroundColor: BRAND_COLORS.navy },
+  statusPending: { backgroundColor: BRAND_COLORS.surfaceTint, borderWidth: 1, borderColor: BRAND_COLORS.crystal },
+  statusText: { fontFamily: "NotoSans_700Bold", fontSize: BRAND_TYPE.secondary },
+  deleteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#BE123C",
+    borderRadius: BRAND_RADII.input,
+    paddingVertical: 13,
+  },
+  deleteText: { fontFamily: "NotoSans_700Bold", fontSize: BRAND_TYPE.body, color: "#BE123C" },
 });

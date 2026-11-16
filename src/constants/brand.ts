@@ -61,3 +61,15 @@ export const BRAND_LOGO_ASPECT = {
   vertical: 770 / 669,
   isotipo: 544 / 655,
 } as const;
+
+/**
+ * Escala tipográfica de la app del cliente (Noto Sans). Mínimo absoluto: 12 px.
+ * Se usa con brandFont(peso) para la familia.
+ */
+export const BRAND_TYPE = {
+  screenTitle: 22, // título de pantalla (ExtraBold)
+  cardTitle: 17, // título de tarjeta (Bold)
+  body: 15, // texto (Regular)
+  secondary: 13, // texto secundario (Regular)
+  label: 12, // etiquetas en mayúsculas y chips (Bold)
+} as const;

@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Ionicons } from "@expo/vector-icons";
 import * as Device from "expo-device";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   addDoc,
   collection,
@@ -27,6 +28,7 @@ const CURRENT_CONTRACT_VERSION = "1.0";
 export default function TermsScreen() {
   const { user } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [hasCheckedDisclaimer, setHasCheckedDisclaimer] = useState(false);
@@ -90,7 +92,7 @@ export default function TermsScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 pt-12">
+    <ThemedView className="flex-1" style={{ paddingTop: insets.top + 12 }}>
       <View className="px-6 pb-4 border-b border-slate-200">
         <ThemedText type="title" className="text-2xl">
           Acuerdos Legales
@@ -116,7 +118,7 @@ export default function TermsScreen() {
 
         {/* Aquí va el texto largo completo (Placeholder para simular altura) */}
         <View className="h-[1200px]">
-          <ThemedText className="text-slate-400 mt-10 text-center">
+          <ThemedText className="text-slate-500 mt-10 text-center">
             [Contenido extenso del contrato legal provisto por los abogados.
             Debe ocupar suficiente espacio para forzar el scroll.]
           </ThemedText>
@@ -135,14 +137,19 @@ export default function TermsScreen() {
           disabled={!hasScrolledToBottom} // Opcional: Impedir marcar el check si no ha scrolleado
         >
           <View
-            className={`w-6 h-6 rounded border items-center justify-center mr-3 ${hasCheckedDisclaimer ? "bg-brand-blue border-brand-blue" : "border-slate-400 bg-white"}`}
+            className="w-6 h-6 rounded border items-center justify-center mr-3"
+            style={{
+              backgroundColor: hasCheckedDisclaimer ? "#030436" : "#FFFFFF",
+              borderColor: hasCheckedDisclaimer ? "#030436" : "#64748B",
+            }}
           >
             {hasCheckedDisclaimer && (
               <Ionicons name="checkmark" size={16} color="white" />
             )}
           </View>
           <ThemedText
-            className={`flex-1 ${!hasScrolledToBottom ? "opacity-50" : ""}`}
+            className="flex-1"
+            style={{ opacity: hasScrolledToBottom ? 1 : 0.5 }}
           >
             Confirmo que leí y acepto los Términos, entiendo que la plataforma
             es un intermediario tecnológico y no una aerolínea.
@@ -150,7 +157,8 @@ export default function TermsScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          className={`rounded-xl py-4 items-center  ${!hasScrolledToBottom || !hasCheckedDisclaimer ? "bg-slate-300" : "bg-brand-blue active:bg-brand-blue"}`}
+          className="rounded-xl py-4 items-center"
+          style={{ backgroundColor: !hasScrolledToBottom || !hasCheckedDisclaimer ? "#94A3B8" : "#030436" }}
           onPress={handleAccept}
           disabled={
             !hasScrolledToBottom || !hasCheckedDisclaimer || isSubmitting

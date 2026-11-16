@@ -76,9 +76,9 @@ export function ClientBoardingPassList({ clientId }: { clientId: string | undefi
 
 const styles = StyleSheet.create({
     sectionTitle: {
-        fontFamily: "NotoSans_400Regular",
-        color: "#94A3B8",
-        fontSize: 12,
+        fontFamily: "NotoSans_700Bold",
+        color: BRAND_COLORS.textMuted,
+        fontSize: 13,
         letterSpacing: 1,
         marginBottom: 10,
         paddingLeft: 4,

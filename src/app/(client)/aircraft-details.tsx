@@ -1,5 +1,10 @@
 import { ThemedText } from "@/components/themed-text";
 import { grossFromNet } from "@/utils/flight-pricing";
+import { ScreenHeader } from "@/components/screen-header";
+import { WhatsAppContactButton } from "@/components/whatsapp-contact-button";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { formatClientGs, formatClientUsd, formatFlightDateTime, formatFlightDuration } from "@/utils/client-format";
+import { BRAND_COLORS, BRAND_RADII } from "@/constants/brand";
 import { FlightQuote } from "@/types/pricing";
 import { ThemedView } from "@/components/themed-view";
 import { db } from "@/config/firebase";
@@ -53,6 +58,7 @@ export default function AircraftDetailsScreen() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  const { data: exchange } = useExchangeRate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [createdReservation, setCreatedReservation] = useState<AircraftReservation | null>(null);
@@ -169,7 +175,7 @@ export default function AircraftDetailsScreen() {
       if (isAlreadyBooked) {
         Alert.alert(
           "Horario no disponible",
-          "Esta aeronave ya cuenta con una reserva para ese horario. Por favor selecciona otra aeronave o modifica la fecha de tu vuelo."
+          "Este avión ya está reservado en ese horario. Elegí otra fecha u hora, o escribinos por WhatsApp."
         );
         queryClient.invalidateQueries({ queryKey: ["available-aircrafts"] });
         setIsSubmitting(false);
@@ -300,15 +306,15 @@ export default function AircraftDetailsScreen() {
 
       Toast.show({
         type: "success",
-        text1: "¡Reserva Registrada!",
-        text2: `Vuelo reservado en la aeronave ${model} (${registration})`,
+        text1: "¡Solicitud enviada!",
+        text2: "Te avisamos cuando tu vuelo esté confirmado.",
       });
     } catch (error) {
       console.error("Error al crear la reserva:", error);
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: "Ocurrió un error al procesar la reserva. Por favor reintenta.",
+        text2: "No se pudo enviar la solicitud. Intentá de nuevo.",
       });
     } finally {
       setIsSubmitting(false);
@@ -316,32 +322,18 @@ export default function AircraftDetailsScreen() {
   };
 
   return (
-    <ThemedView className="flex-1 bg-brand-light px-4 pt-2">
-      {/* Header with Back Button */}
-      <View className="flex-row items-center justify-between mb-6 mt-2">
-        <TouchableOpacity
-          onPress={() => {
-            if (params.searchData) {
-              router.push({
-                pathname: "/(client)/search-results",
-                params: {
-                  searchData: params.searchData,
-                },
-              });
-            } else {
-              router.back();
-            }
-          }}
-          className="w-10 h-10 rounded-full bg-slate-100 items-center justify-center border border-slate-200"
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={20} color="#030436" />
-        </TouchableOpacity>
-        <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg">
-          Datos de la Aeronave
-        </ThemedText>
-        <View className="w-10" />
-      </View>
+    <ThemedView className="flex-1 bg-brand-light px-4">
+      <ScreenHeader
+        title="Detalle del avión"
+        subtitle={`${model} · ${registration}`}
+        onBack={() => {
+          if (params.searchData) {
+            router.push({ pathname: "/(client)/search-results", params: { searchData: params.searchData } });
+          } else {
+            router.back();
+          }
+        }}
+      />
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {/* Card containing aircraft model and registration */}
@@ -367,16 +359,14 @@ export default function AircraftDetailsScreen() {
           {/* Specs breakdown grid */}
           <View className="" style={{ gap: 12 }}>
             <View className="flex-row justify-between items-center">
-              <ThemedText className="text-slate-500 text-sm font-medium">Capacidad de Pasajeros:</ThemedText>
-              <ThemedText className="font-bold text-brand-blue">{paxCount}</ThemedText>
+              <ThemedText className="text-slate-500 text-sm font-medium">Capacidad:</ThemedText>
+              <ThemedText className="font-bold text-brand-blue">{paxCount} pasajeros</ThemedText>
             </View>
 
             <View className="flex-row justify-between items-center">
               <ThemedText className="text-slate-500 text-sm font-medium">Tiempo de vuelo:</ThemedText>
               <ThemedText className="font-bold text-brand-blue">
-                {flightDurationHours && flightDurationHours < 1
-                  ? `${Math.round(flightDurationHours * 60)} minutos`
-                  : `${flightDurationHours?.toFixed(1)} horas`}
+                {formatFlightDuration(flightDurationHours)}
               </ThemedText>
             </View>
 
@@ -388,17 +378,17 @@ export default function AircraftDetailsScreen() {
             <View className="h-px bg-slate-100 my-4" />
 
             <View className="flex-row justify-between items-center">
-              <ThemedText className="text-slate-500 text-sm font-medium">Tipo de Aeronave:</ThemedText>
+              <ThemedText className="text-slate-500 text-sm font-medium">Tipo:</ThemedText>
               <ThemedText className="font-bold text-brand-blue">{type}</ThemedText>
             </View>
 
             <View className="flex-row justify-between items-center">
-              <ThemedText className="text-slate-500 text-sm font-medium">Velocidad de Crucero:</ThemedText>
+              <ThemedText className="text-slate-500 text-sm font-medium">Velocidad crucero:</ThemedText>
               <ThemedText className="font-bold text-brand-blue">{cruiseSpeed} nudos</ThemedText>
             </View>
 
             <View className="flex-row justify-between items-center">
-              <ThemedText className="text-slate-500 text-sm font-medium">Techo de Servicio:</ThemedText>
+              <ThemedText className="text-slate-500 text-sm font-medium">Techo de servicio:</ThemedText>
               <ThemedText className="font-bold text-brand-blue">{serviceCeiling} pies</ThemedText>
             </View>
           </View>
@@ -408,36 +398,42 @@ export default function AircraftDetailsScreen() {
         <View className="bg-brand-blue rounded-3xl p-5 mb-4 border border-[rgba(3,4,54,0.3)]">
           <View className="flex-row items-center justify-between mb-2">
             <View>
-              <ThemedText type="caption" className="uppercase font-bold text-brand-gold tracking-widest text-[10px]">
-                Cotización de Vuelo
+              <ThemedText type="caption" className="uppercase font-bold tracking-widest text-xs" style={{ color: "#7AB4FF" }}>
+                Precio estimado
               </ThemedText>
-              <ThemedText className="text-white text-lg font-bold">
-                {estimatedPrice !== null ? `USD $${estimatedPrice.toLocaleString("en-US")}` : "Cotización a Confirmar"}
+              <ThemedText className="text-white text-2xl font-bold">
+                {estimatedPrice !== null ? `${formatClientUsd(estimatedPrice)} + IVA` : "Precio a confirmar"}
               </ThemedText>
+              {estimatedPrice !== null && (
+                <ThemedText className="text-sm" style={{ color: "#D5E3FF" }}>
+                  Total con IVA: {formatClientUsd(grossFromNet(estimatedPrice))}
+                  {formatClientGs(grossFromNet(estimatedPrice), exchange?.dolar) ? ` · ${formatClientGs(grossFromNet(estimatedPrice), exchange?.dolar)}` : ""}
+                </ThemedText>
+              )}
             </View>
             <View className="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.1)] items-center justify-center">
-              <MaterialCommunityIcons name="currency-usd" size={24} color="#0165FF" />
+              <MaterialCommunityIcons name="currency-usd" size={24} color="#7AB4FF" />
             </View>
           </View>
 
           <View className="h-px bg-[rgba(255,255,255,0.1)] my-3" />
 
           <View className="flex-row justify-between items-center">
-            <ThemedText className="text-slate-300 text-xs">Modalidad:</ThemedText>
-            <ThemedText className="text-white text-xs font-bold">
+            <ThemedText className="text-slate-200 text-sm">Modalidad:</ThemedText>
+            <ThemedText className="text-white text-sm font-bold">
               {searchForm?.schedule?.roundtrip ? "Ida y Vuelta" : "Solo Ida"}
             </ThemedText>
           </View>
 
           <View className="flex-row justify-between items-center mt-1.5">
-            <ThemedText className="text-slate-300 text-xs">Distancia total:</ThemedText>
-            <ThemedText className="text-white text-xs font-bold">
+            <ThemedText className="text-slate-200 text-sm">Distancia total:</ThemedText>
+            <ThemedText className="text-white text-sm font-bold">
               {(distanceNm * (searchForm?.schedule?.roundtrip ? 2 : 1)).toFixed(0)} NM ({((distanceKm || 0) * (searchForm?.schedule?.roundtrip ? 2 : 1)).toFixed(0)} km)
             </ThemedText>
           </View>
 
-          <ThemedText className="text-[11px] text-slate-400 mt-3 italic">
-            * El valor final se confirmará tras la aprobación del propietario o encargado del avión.
+          <ThemedText className="text-sm text-slate-200 mt-3">
+            El precio final se confirma cuando operaciones apruebe tu vuelo. Todavía no se cobra nada.
           </ThemedText>
         </View>
 
@@ -445,9 +441,7 @@ export default function AircraftDetailsScreen() {
         <TouchableOpacity
           onPress={handleReserve}
           disabled={isSubmitting || !!createdReservation}
-          className={`py-4 rounded-xl items-center justify-center  flex-row gap-2 mb-10 ${
-            isSubmitting || !!createdReservation ? "bg-slate-300" : "bg-brand-gold"
-          }`}
+          style={[reserveStyles.button, isSubmitting || !!createdReservation ? reserveStyles.buttonDisabled : null]}
           activeOpacity={0.8}
         >
           {isSubmitting ? (
@@ -456,11 +450,19 @@ export default function AircraftDetailsScreen() {
             <>
               <Ionicons name="checkmark-circle-outline" size={22} color="#FFFFFF" />
               <ThemedText className="text-white font-bold text-base">
-                {createdReservation ? "Vuelo Reservado" : "Reservar"}
+                {createdReservation ? "Solicitud enviada" : "Solicitar reserva"}
               </ThemedText>
             </>
           )}
         </TouchableOpacity>
+
+        <View style={{ marginBottom: 40, gap: 8 }}>
+          <Text style={reserveStyles.help}>¿Dudas sobre el vuelo o el precio?</Text>
+          <WhatsAppContactButton
+            variant="outline"
+            message={`Hola, quiero consultar por el vuelo ${searchForm?.trip?.origin_airport_ident ?? ""} → ${searchForm?.trip?.destination_airport_ident ?? ""} en el ${model}.`}
+          />
+        </View>
       </ScrollView>
 
       {/* Confirmation Screen Modal */}
@@ -477,10 +479,10 @@ export default function AircraftDetailsScreen() {
             </View>
 
             <Text style={modalStyles.title}>
-              ¡Reserva Confirmada!
+              ¡Solicitud enviada!
             </Text>
             <Text style={modalStyles.subtitle}>
-              Tu solicitud de vuelo ha sido registrada exitosamente en nuestro sistema.
+              Te avisamos cuando operaciones confirme el avión y la tripulación. Recién ahí se habilita el pago.
             </Text>
 
             {/* Flight Details Card */}
@@ -518,10 +520,7 @@ export default function AircraftDetailsScreen() {
                 <View style={modalStyles.detailRow}>
                   <Text style={modalStyles.label}>Ida:</Text>
                   <Text style={modalStyles.value}>
-                    {createdReservation.schedule.outbound_flight_departure_time.toLocaleString("es-ES", {
-                      dateStyle: "short",
-                      timeStyle: "short",
-                    })}
+                    {formatFlightDateTime(createdReservation.schedule.outbound_flight_departure_time)}
                   </Text>
                 </View>
 
@@ -529,10 +528,7 @@ export default function AircraftDetailsScreen() {
                   <View style={modalStyles.detailRow}>
                     <Text style={modalStyles.label}>Vuelta:</Text>
                     <Text style={modalStyles.value}>
-                      {createdReservation.schedule.return_flight_departure_time.toLocaleString("es-ES", {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      })}
+                      {formatFlightDateTime(createdReservation.schedule.return_flight_departure_time)}
                     </Text>
                   </View>
                 )}
@@ -541,7 +537,7 @@ export default function AircraftDetailsScreen() {
                   <Text style={modalStyles.label}>Estado:</Text>
                   <View style={modalStyles.statusBadge}>
                     <Text style={modalStyles.statusBadgeText}>
-                      {createdReservation.client_status} / {createdReservation.internal_status}
+                      Esperando confirmación
                     </Text>
                   </View>
                 </View>
@@ -608,8 +604,8 @@ const modalStyles = StyleSheet.create({
     marginBottom: 4,
   },
   subtitle: {
-    color: "#64748B",
-    fontSize: 12,
+    color: "#475569",
+    fontSize: 14,
     textAlign: "center",
     marginBottom: 20,
     fontFamily: "NotoSans_500Medium",
@@ -631,12 +627,12 @@ const modalStyles = StyleSheet.create({
   },
   label: {
     fontFamily: "NotoSans_400Regular",
-    color: "#64748B",
-    fontSize: 12,
+    color: "#475569",
+    fontSize: 13,
   },
   value: {
     color: "#1E293B",
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: "NotoSans_700Bold",
   },
   boldValue: {
@@ -658,10 +654,9 @@ const modalStyles = StyleSheet.create({
     borderColor: "#FDE68A",
   },
   statusBadgeText: {
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: "NotoSans_700Bold",
     color: "#92400E",
-    textTransform: "uppercase",
   },
   actionButton: {
     backgroundColor: "#030436",
@@ -684,4 +679,19 @@ const modalStyles = StyleSheet.create({
     fontFamily: "NotoSans_700Bold",
     fontSize: 14,
   },
+});
+
+const reserveStyles = StyleSheet.create({
+  button: {
+    backgroundColor: BRAND_COLORS.azur,
+    paddingVertical: 16,
+    borderRadius: BRAND_RADII.input,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 18,
+  },
+  buttonDisabled: { backgroundColor: "#64748B" },
+  help: { fontFamily: "NotoSans_400Regular", fontSize: 13, color: "#5B5D7A", textAlign: "center" },
 });

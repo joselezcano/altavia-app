@@ -15,7 +15,14 @@ export function useClientReservations(clientId: string | undefined) {
         where("clientId", "==", clientId)
       );
 
-      const snapshot = await getDocs(q);
+      let snapshot;
+      try {
+        snapshot = await getDocs(q);
+      } catch (error) {
+        // Captura errores de permisos o de índice compuesto (traen el link para crearlo).
+        console.error("Error al leer las reservas del cliente:", error);
+        throw error;
+      }
       const items: ClientReservationItem[] = [];
 
       const specsCache = new Map<string, AircraftSpecs | null>();

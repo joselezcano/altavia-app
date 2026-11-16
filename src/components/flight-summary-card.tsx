@@ -3,6 +3,7 @@ import { ThemedText } from "@/components/themed-text";
 import { BRAND_COLORS, BRAND_RADII } from "@/constants/brand";
 import { useFlightWeather } from "@/hooks/useFlightWeather";
 import { FlightSummaryCardProps } from "@/types/components";
+import { formatUsd } from "@/utils/quote-format";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
     LayoutAnimation,
@@ -138,7 +139,7 @@ export function FlightSummaryCard({
                         )}
                     </View>
                     {priceUsd !== undefined && priceUsd > 0 && (
-                        <ThemedText style={styles.price}>USD ${priceUsd.toLocaleString("en-US")}</ThemedText>
+                        <ThemedText style={styles.price}>{formatUsd(priceUsd)}</ThemedText>
                     )}
                 </View>
 
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
     },
     eyebrow: {
         flex: 1,
-        fontSize: 11,
+        fontSize: 12,
         fontFamily: "NotoSans_700Bold",
         color: BRAND_COLORS.azur,
         textTransform: "uppercase",
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
         maxWidth: "55%",
     },
     badgeText: {
-        fontSize: 11,
+        fontSize: 12,
         fontFamily: "NotoSans_700Bold",
     },
     routeRow: {
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
     },
     city: {
         fontFamily: "NotoSans_400Regular",
-        fontSize: 11,
+        fontSize: 12,
         color: BRAND_COLORS.textMuted,
         marginTop: 1,
     },
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
         marginVertical: 4,
     },
     roundtrip: {
-        fontSize: 9,
+        fontSize: 11,
         fontFamily: "NotoSans_700Bold",
         color: BRAND_COLORS.azur,
     },
@@ -286,12 +287,12 @@ const styles = StyleSheet.create({
         paddingVertical: 3,
     },
     chipText: {
-        fontSize: 11,
+        fontSize: 12,
         fontFamily: "NotoSans_600SemiBold",
         color: BRAND_COLORS.navy,
     },
     price: {
-        fontSize: 14,
+        fontSize: 15,
         fontFamily: "NotoSans_800ExtraBold",
         color: BRAND_COLORS.navy,
     },

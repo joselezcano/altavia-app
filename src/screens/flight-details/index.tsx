@@ -1,3 +1,4 @@
+import { ScreenHeader } from "@/components/screen-header";
 import { BancardPaymentModal } from "@/components/bancard-modal";
 import { fetchPaidReservationFields } from "@/utils/paid-reservation";
 import { FlightWeatherCard } from "@/components/flight-weather";
@@ -27,6 +28,9 @@ import { RouteCard } from "@/screens/flight-details/components/route-card";
 import { ScheduleCard } from "@/screens/flight-details/components/schedule-card";
 import { BOARDING_STATUSES, isCanceled, isPaidForBoarding } from "@/utils/boarding-pass";
 import { generateAndShareInvoicePdf } from "@/utils/electronic-invoice";
+import { generateAndSharePaymentReceiptPdf } from "@/utils/payment-receipt";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { brandFont } from "@/utils/brand-fonts";
 import { getFlightData, getStatusBadge, PILOT_OPERATIONAL_STATUSES } from "@/utils/flight-status";
 import { buildLegWeatherRequest, buildReservationWeatherRequest } from "@/utils/flight-weather";
 import { isReservationPaid } from "@/utils/paid-reservation";
@@ -40,6 +44,8 @@ import { useMemo, useState } from "react";
 import {
     Alert,
     ScrollView,
+    StyleSheet,
+    Text,
     TouchableOpacity,
     View
 } from "react-native";
@@ -51,7 +57,13 @@ export default function FlightDetailsScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const queryClient = useQueryClient();
-    const { user, role, profileData } = useAuth();
+    const { user, role, profileData, userData } = useAuth();
+    const { data: exchange } = useExchangeRate();
+    const receiptOptions = {
+        clientName: `${userData?.firstName ?? ""} ${userData?.lastName ?? ""}`.trim(),
+        clientEmail: user?.email ?? undefined,
+        exchangeRate: exchange?.dolar,
+    };
 
     const params = useLocalSearchParams<{
         reservationId: string;
@@ -90,14 +102,11 @@ export default function FlightDetailsScreen() {
 
             setIsPayingBancard(false);
 
-            setTimeout(async () => {
-                await generateAndShareInvoicePdf({
-                    ...reservation,
-                    ...paid,
-                }, user?.email || undefined);
+            setTimeout(() => {
+                generateAndSharePaymentReceiptPdf({ ...reservation, ...paid }, receiptOptions);
             }, 500);
 
-            Alert.alert("¡Pago Exitoso!", `Pago confirmado vía Bancard vPOS. Factura electrónica Nº ${paid.invoice_number ?? ""} emitida.`);
+            Alert.alert("¡Pago recibido!", "Tu vuelo quedó confirmado. Te compartimos el comprobante de pago.");
         } catch (error) {
             console.error("Error al registrar pago Bancard en Firestore:", error);
             Alert.alert("Error", "No se pudo actualizar el pago.");
@@ -300,25 +309,7 @@ export default function FlightDetailsScreen() {
 
     return (
         <ThemedView className="flex-1 bg-brand-light px-4" style={{ paddingTop: insets.top }}>
-            {/* Header */}
-            <View className="flex-row items-center justify-between mb-4 mt-2">
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200"
-                    activeOpacity={0.8}
-                >
-                    <Ionicons name="arrow-back" size={20} color="#030436" />
-                </TouchableOpacity>
-                <View className="items-center">
-                    <ThemedText type="caption" className="uppercase font-bold text-brand-gold tracking-widest text-[10px]">
-                        Detalles de Reserva
-                    </ThemedText>
-                    <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg">
-                        Información del Vuelo
-                    </ThemedText>
-                </View>
-                <View className="w-10" />
-            </View>
+            <ScreenHeader title="Información del vuelo" subtitle="Detalles de la reserva" withInset={false} />
 
             {/* Pilot Tool Bar */}
             {reservation && role === "PILOT" &&
@@ -424,11 +415,11 @@ export default function FlightDetailsScreen() {
                                         <View className="flex-row items-center mb-1.5" style={{ gap: 8 }}>
                                             <Ionicons name="card" size={18} color="#1e40af" />
                                             <ThemedText className="font-bold text-blue-900 text-sm">
-                                                ¡Vuelo Aprobado! Listo para Pago
+                                                Vuelo aprobado: falta el pago
                                             </ThemedText>
                                         </View>
-                                        <ThemedText className="text-xs text-blue-800 leading-4 mb-3">
-                                            La tripulación y la aeronave han sido confirmadas por operaciones. Procede con el pago para emitir tus billetes y asegurar el viaje.
+                                        <ThemedText className="text-sm text-blue-900 leading-5 mb-3">
+                                            Confirmamos el avión y la tripulación. Pagá con tarjeta para asegurar tu vuelo.
                                         </ThemedText>
                                         <TouchableOpacity
                                             onPress={() => setIsPayingBancard(true)}
@@ -444,7 +435,7 @@ export default function FlightDetailsScreen() {
                                             activeOpacity={0.8}
                                         >
                                             <MaterialCommunityIcons name="credit-card-check-outline" size={18} color="#FFFFFF" />
-                                            <ThemedText className="text-white font-bold text-sm">Pagar Vuelo por Bancard</ThemedText>
+                                            <ThemedText className="text-white font-bold text-sm">Pagar con tarjeta</ThemedText>
                                             <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
                                         </TouchableOpacity>
                                     </View>
@@ -474,8 +465,29 @@ export default function FlightDetailsScreen() {
                                     />
                                 )}
 
-                                {/* Confirmed Payment & Electronic Invoice Card */}
-                                {reservation && (reservation.internal_status === "confirmed" || !!reservation.invoice_number) && (
+                                {/* Cliente: pago confirmado + comprobante (sin factura mientras SIFEN no esté conectado) */}
+                                {reservation && role === "CLIENT" && isReservationPaid(reservation) && (
+                                    <View style={receiptStyles.card}>
+                                        <View style={receiptStyles.row}>
+                                            <Ionicons name="checkmark-circle" size={20} color="#047857" />
+                                            <Text style={[receiptStyles.title, brandFont(700)]}>Pago confirmado</Text>
+                                        </View>
+                                        <Text style={[receiptStyles.text, brandFont(400)]}>
+                                            Tu vuelo está pago. La factura legal te la envía ALTAVIA S.A.
+                                        </Text>
+                                        <TouchableOpacity
+                                            onPress={() => generateAndSharePaymentReceiptPdf(reservation, receiptOptions)}
+                                            style={receiptStyles.button}
+                                            activeOpacity={0.85}
+                                        >
+                                            <Ionicons name="receipt-outline" size={17} color="#FFFFFF" />
+                                            <Text style={[receiptStyles.buttonText, brandFont(700)]}>Comprobante de pago</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+
+                                {/* Confirmed Payment & Electronic Invoice Card (staff) */}
+                                {reservation && role !== "CLIENT" && (reservation.internal_status === "confirmed" || !!reservation.invoice_number) && (
                                     <View
                                         className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4"
                                         style={{
@@ -714,3 +726,21 @@ export default function FlightDetailsScreen() {
         </ThemedView>
     );
 }
+
+const receiptStyles = StyleSheet.create({
+    card: { backgroundColor: "#ECFDF5", borderWidth: 1, borderColor: "#A7F3D0", borderRadius: 16, padding: 14, gap: 6 },
+    row: { flexDirection: "row", alignItems: "center", gap: 8 },
+    title: { fontFamily: "NotoSans_700Bold", fontSize: 15, color: "#064E3B" },
+    text: { fontFamily: "NotoSans_400Regular", fontSize: 14, color: "#065F46", lineHeight: 20 },
+    button: {
+        marginTop: 6,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        backgroundColor: "#047857",
+        paddingVertical: 12,
+        borderRadius: 14,
+    },
+    buttonText: { fontFamily: "NotoSans_700Bold", fontSize: 14, color: "#FFFFFF" },
+});

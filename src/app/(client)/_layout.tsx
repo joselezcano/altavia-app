@@ -6,10 +6,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { brandFont } from "@/utils/brand-fonts";
 
 export default function ClientLayout() {
-  const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const { user } = useAuth();
   const { isWideScreen } = useResponsive();
@@ -23,22 +22,18 @@ export default function ClientLayout() {
   // pathname can be '/' when it is the default route
   const isHome = pathname === "/" || pathname === "/(client)" || pathname === "/(client)/" || pathname === "/(client)/index";
   return (
-    <ThemedView
-      style={{
-        flex: 1,
-        paddingTop: isHome ? 0 : insets.top,
-      }}
-    >
+    // Cada pantalla aplica su propia área segura (encabezado común o hero del inicio).
+    <ThemedView style={{ flex: 1 }}>
       <StatusBar style={isHome ? "light" : "dark"} />
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarStyle: isWideScreen ? styles.wideTabBar : styles.mobileTabBar,
           tabBarActiveTintColor: "#030436", // brand-blue
-          tabBarInactiveTintColor: "#94A3B8", // brand-muted
+          tabBarInactiveTintColor: "#64748B", // contraste 4,8:1 sobre blanco
           tabBarLabelStyle: {
-            fontWeight: "600",
-            fontSize: isWideScreen ? 12 : 11,
+            ...brandFont(600),
+            fontSize: 12,
           },
         }}
       >
@@ -68,7 +63,7 @@ export default function ClientLayout() {
             tabBarBadgeStyle: {
               backgroundColor: "#0165FF",
               color: "#FFFFFF",
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: "bold",
             },
             tabBarIcon: ({ color, size }) => (

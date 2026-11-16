@@ -2,7 +2,11 @@ import AirportPicker from "@/components/airport-picker";
 import { CustomDatePicker } from "@/components/custom-date-picker";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { ScreenHeader } from "@/components/screen-header";
 import UserAvatar from "@/components/user-avatar";
+import { WhatsAppContactButton } from "@/components/whatsapp-contact-button";
+import { BRAND_COLORS, BRAND_TYPE } from "@/constants/brand";
+import { brandFont } from "@/utils/brand-fonts";
 import { db } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { FlightSearchForm, FlightSearchFormSchema } from "@/types/client";
@@ -18,8 +22,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
   Switch,
-  TextInput,
+  Text,
   TouchableOpacity,
   View
 } from "react-native";
@@ -132,7 +137,7 @@ export default function ClientDashboard() {
       if (isValid) {
         setCurrentStep(2);
       } else {
-        Alert.alert("Campos requeridos", "Por favor completa el origen, destino y número de pasajeros.");
+        Alert.alert("Faltan datos", "Completá el origen, el destino y la cantidad de pasajeros.");
       }
     }
   };
@@ -154,7 +159,6 @@ export default function ClientDashboard() {
     );
   }
 
-  const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
 
   return (
     <KeyboardAvoidingView
@@ -162,65 +166,34 @@ export default function ClientDashboard() {
       className="flex-1 bg-brand-light"
     >
       <ThemedView className="flex-1 px-4 pt-2">
-        {/* Top Header with Back Button, Greeting & Avatar */}
-        <View className="flex-row justify-between items-center mb-4">
-          <View className="flex-row items-center" style={{ gap: 12 }}>
-            <TouchableOpacity
-              onPress={() => {
-                if (currentStep === 2) {
-                  setCurrentStep(1);
-                } else if (router.canGoBack()) {
-                  router.back();
-                } else {
-                  router.push("/(client)");
-                }
-              }}
-              className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="arrow-back" size={20} color="#030436" />
-            </TouchableOpacity>
+        <ScreenHeader
+          title={currentStep === 2 ? "Fecha y hora" : "Reservar un vuelo"}
+          subtitle={`Paso ${currentStep} de 2 · ${currentStep === 2 ? "Cuándo viajás" : "Ruta y pasajeros"}`}
+          hideBack={currentStep === 1}
+          onBack={() => setCurrentStep(1)}
+          right={<UserAvatar size={40} />}
+        />
 
-            <View>
-              <ThemedText
-                type="caption"
-                className="uppercase font-bold text-brand-gold tracking-widest text-[10px]"
-              >
-                {currentStep === 2 ? "Paso 2 de 2" : "Reservar Vuelo"}
-              </ThemedText>
-              <ThemedText type="title" className="mt-0.5 text-lg">
-                {currentStep === 2 ? "Seleccionar Horario" : (user?.email?.split("@")[0] || "Pasajero")}
-              </ThemedText>
-            </View>
-          </View>
-
-          <UserAvatar size={42} />
-        </View>
-
-        {/* Step Indicator Header */}
-        <View className="flex-row justify-between mb-4 px-4 bg-white py-3 rounded-2xl border border-slate-100">
-          {[1, 2].map((step) => (
-            <View key={step} className="items-center flex-1">
-              <View
-                className={`w-7 h-7 rounded-full items-center justify-center font-bold ${currentStep === step
-                  ? "bg-brand-blue"
-                  : currentStep > step
-                    ? "bg-brand-gold"
-                    : "bg-slate-200"
-                  }`}
-              >
-                <ThemedText
-                  className={`text-xs font-bold ${currentStep >= step ? "text-white" : "text-slate-500"
-                    }`}
-                >
-                  {step}
-                </ThemedText>
+        {/* Indicador de pasos */}
+        <View style={stepStyles.row}>
+          {[1, 2].map((step) => {
+            const active = currentStep === step;
+            const done = currentStep > step;
+            return (
+              <View key={step} style={stepStyles.item}>
+                <View style={[stepStyles.dot, active ? stepStyles.dotActive : done ? stepStyles.dotDone : null]}>
+                  {done ? (
+                    <Ionicons name="checkmark" size={15} color="#FFFFFF" />
+                  ) : (
+                    <Text style={[stepStyles.dotText, brandFont(700), active ? stepStyles.dotTextOn : null]}>{step}</Text>
+                  )}
+                </View>
+                <Text style={[stepStyles.label, brandFont(600), active ? stepStyles.labelActive : null]}>
+                  {step === 1 ? "Ruta y pasajeros" : "Fecha y hora"}
+                </Text>
               </View>
-              <ThemedText className="text-[10px] font-medium text-slate-500 mt-1">
-                {step === 1 ? "Ruta y Pasajeros" : "Horario"}
-              </ThemedText>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
@@ -228,13 +201,13 @@ export default function ClientDashboard() {
           {currentStep === 1 && (
             <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-1">
-                1. Selecciona tu Ruta y Pasajeros
+                ¿Desde dónde y hacia dónde?
               </ThemedText>
 
               {/* Origin Airport */}
               <View>
                 <ThemedText type="caption" className="font-bold mb-1">
-                  Aeropuerto Origen
+                  Aeropuerto de origen
                 </ThemedText>
                 <Controller
                   control={control}
@@ -247,7 +220,7 @@ export default function ClientDashboard() {
                         setValue("trip.origin_airport_ident", airport?.ident || "");
                         setValue("trip.origin_timezone", airport?.timezone || "");
                       }}
-                      title="Aeropuerto Origen"
+                      title="Aeropuerto de origen"
                     />
                   )}
                 />
@@ -261,7 +234,7 @@ export default function ClientDashboard() {
               {/* Destination Airport */}
               <View>
                 <ThemedText type="caption" className="font-bold mb-1">
-                  Aeropuerto Destino
+                  Aeropuerto de destino
                 </ThemedText>
                 <Controller
                   control={control}
@@ -274,7 +247,7 @@ export default function ClientDashboard() {
                         setValue("trip.destination_airport_ident", airport?.ident || "");
                         setValue("trip.destination_timezone", airport?.timezone || "");
                       }}
-                      title="Aeropuerto Destino"
+                      title="Aeropuerto de destino"
                     />
                   )}
                 />
@@ -288,7 +261,7 @@ export default function ClientDashboard() {
               {/* Passengers Count (Airbnb / E-commerce style stepper) */}
               <View>
                 <ThemedText type="caption" className="font-bold mb-1.5">
-                  Cantidad de Pasajeros
+                  Pasajeros
                 </ThemedText>
                 <Controller
                   control={control}
@@ -305,8 +278,8 @@ export default function ClientDashboard() {
                             <ThemedText className="font-bold text-brand-blue text-sm" numberOfLines={1}>
                               {count} {count === 1 ? "pasajero" : "pasajeros"}
                             </ThemedText>
-                            <ThemedText className="text-[11px] text-slate-500" numberOfLines={1}>
-                              Capacidad en cabina
+                            <ThemedText className="text-xs text-slate-600" numberOfLines={1}>
+                              Incluye adultos y menores
                             </ThemedText>
                           </View>
                         </View>
@@ -384,8 +357,8 @@ export default function ClientDashboard() {
               {/* Trip type toggle: Roundtrip */}
               <View className="flex-row items-center justify-between pt-2 border-t border-slate-100 mt-1">
                 <View>
-                  <ThemedText className="font-bold text-slate-800 text-sm">Vuelo Ida y Vuelta</ThemedText>
-                  <ThemedText className="text-xs text-slate-500">Activa si deseas consultar itinerario de retorno</ThemedText>
+                  <ThemedText className="font-bold text-slate-800 text-sm">Ida y vuelta</ThemedText>
+                  <ThemedText className="text-xs text-slate-600">Activalo si también necesitás el regreso</ThemedText>
                 </View>
                 <Controller
                   control={control}
@@ -406,8 +379,15 @@ export default function ClientDashboard() {
                 className="bg-brand-blue py-3.5 rounded-xl items-center justify-center mt-2"
                 activeOpacity={0.8}
               >
-                <ThemedText className="text-white font-bold">Seleccionar Horario</ThemedText>
+                <ThemedText className="text-white font-bold">Elegir fecha y hora</ThemedText>
               </TouchableOpacity>
+            </View>
+          )}
+
+          {currentStep === 1 && (
+            <View style={{ marginBottom: 24, gap: 8 }}>
+              <Text style={[stepStyles.helpText, brandFont(400)]}>¿Varias escalas o una ruta especial?</Text>
+              <WhatsAppContactButton variant="outline" message="Hola, quiero consultar por un vuelo con una ruta especial." />
             </View>
           )}
 
@@ -415,13 +395,13 @@ export default function ClientDashboard() {
           {currentStep === 2 && (
             <View className="bg-brand-white rounded-2xl p-5 border border-slate-100 mb-4" style={{ gap: 16 }}>
               <ThemedText type="subtitle" className="text-brand-blue font-bold text-base mb-1">
-                2. Selecciona Fechas del Vuelo
+                ¿Cuándo viajás?
               </ThemedText>
 
               {/* Outbound Date */}
               <View>
                 <ThemedText type="caption" className="font-bold mb-1">
-                  Horario de Ida
+                  Salida
                 </ThemedText>
                 <Controller
                   control={control}
@@ -446,7 +426,7 @@ export default function ClientDashboard() {
               {isRoundtrip && (
                 <View>
                   <ThemedText type="caption" className="font-bold mb-1">
-                    Horario de Vuelta
+                    Regreso
                   </ThemedText>
                   <Controller
                     control={control}
@@ -474,7 +454,7 @@ export default function ClientDashboard() {
                   className="flex-1 bg-slate-100 py-3.5 rounded-xl items-center justify-center border border-slate-200"
                   activeOpacity={0.7}
                 >
-                  <ThemedText className="text-slate-700 font-bold">Anterior</ThemedText>
+                  <ThemedText className="text-slate-700 font-bold">Atrás</ThemedText>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -483,7 +463,7 @@ export default function ClientDashboard() {
                   activeOpacity={0.8}
                 >
                   <Ionicons name="search" size={18} color="#FFFFFF" />
-                  <ThemedText className="text-white font-bold">Buscar Vuelos</ThemedText>
+                  <ThemedText className="text-white font-bold">Buscar aviones</ThemedText>
                 </TouchableOpacity>
               </View>
             </View>
@@ -496,3 +476,33 @@ export default function ClientDashboard() {
     </KeyboardAvoidingView>
   );
 }
+
+const stepStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: BRAND_COLORS.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BRAND_COLORS.border,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 14,
+  },
+  item: { flex: 1, alignItems: "center" },
+  dot: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#E2E8F0",
+  },
+  dotActive: { backgroundColor: BRAND_COLORS.navy },
+  dotDone: { backgroundColor: BRAND_COLORS.azur },
+  dotText: { fontFamily: "NotoSans_700Bold", fontSize: BRAND_TYPE.secondary, color: "#475569" },
+  dotTextOn: { color: "#FFFFFF" },
+  label: { fontFamily: "NotoSans_600SemiBold", fontSize: BRAND_TYPE.label, color: BRAND_COLORS.textMuted, marginTop: 4 },
+  labelActive: { color: BRAND_COLORS.navy },
+  helpText: { fontFamily: "NotoSans_400Regular", fontSize: BRAND_TYPE.secondary, color: BRAND_COLORS.textMuted, textAlign: "center" },
+});

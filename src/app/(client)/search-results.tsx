@@ -1,4 +1,7 @@
+import { ScreenHeader } from "@/components/screen-header";
+import { WhatsAppContactButton } from "@/components/whatsapp-contact-button";
 import { useAvailableAircrafts } from "@/hooks/useAvailableAircrafts";
+import { formatClientUsd, formatFlightDateTime, formatFlightDuration } from "@/utils/client-format";
 import { describeQuote } from "@/utils/flight-pricing";
 import { FlightSearchForm } from "@/types/client";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -13,6 +16,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+/** Mensaje de WhatsApp con la búsqueda que no dio resultados. */
+function buildSearchWhatsAppMessage(search: FlightSearchForm | null): string {
+  if (!search) return "Hola, quiero consultar por un vuelo privado con AltaGo.";
+  const from = search.trip.origin_airport?.name || search.trip.origin_airport_ident;
+  const to = search.trip.destination_airport?.name || search.trip.destination_airport_ident;
+  const when = search.schedule.outbound_flight_datetime_utc
+    ? formatFlightDateTime(new Date(search.schedule.outbound_flight_datetime_utc))
+    : "fecha a definir";
+  const pax = search.capacity.passangers;
+  return `Hola, busqué un vuelo ${from} → ${to} para el ${when} (${pax} ${pax === 1 ? "pasajero" : "pasajeros"}) y no encontré disponibilidad. ¿Me ayudan?`;
+}
 
 export default function SearchResultsScreen() {
   const router = useRouter();
@@ -51,26 +66,14 @@ export default function SearchResultsScreen() {
 
   return (
     <View style={styles.screenContainer}>
-      {/* Header with Back Button */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.push("/(client)/book");
-            }
-          }}
-          style={styles.backButton}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={20} color="#030436" />
-        </TouchableOpacity>
-        <Text style={styles.screenTitle}>
-          Resultados de Búsqueda
-        </Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <ScreenHeader
+        title="Aviones disponibles"
+        subtitle="Precios estimados, sin IVA"
+        onBack={() => {
+          if (router.canGoBack()) router.back();
+          else router.push("/(client)/book");
+        }}
+      />
 
       <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
         {/* Search Parameters Summary Card */}
@@ -104,11 +107,11 @@ export default function SearchResultsScreen() {
                 </Text>
               </View>
               <Text style={styles.dateText}>
-                Ida: {activeSearch.schedule.outbound_flight_datetime_utc ? new Date(activeSearch.schedule.outbound_flight_datetime_utc).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" }) + ' hs' : "N/A"}
+                Ida: {activeSearch.schedule.outbound_flight_datetime_utc ? formatFlightDateTime(new Date(activeSearch.schedule.outbound_flight_datetime_utc)) : "—"}
               </Text>
               {activeSearch.schedule.roundtrip && (
                 <Text style={styles.dateText}>
-                  Vuelta: {activeSearch.schedule.return_flight_datetime_utc ? new Date(activeSearch.schedule.return_flight_datetime_utc).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" }) + ' hs' : "N/A"}
+                  Vuelta: {activeSearch.schedule.return_flight_datetime_utc ? formatFlightDateTime(new Date(activeSearch.schedule.return_flight_datetime_utc)) : "—"}
                 </Text>
               )}
             </View>
@@ -120,7 +123,7 @@ export default function SearchResultsScreen() {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#030436" />
             <Text style={styles.loadingText}>
-              Buscando aeronaves disponibles y verificando itinerarios...
+              Buscando aviones disponibles para tus fechas...
             </Text>
           </View>
         )}
@@ -142,14 +145,14 @@ export default function SearchResultsScreen() {
                   activeOpacity={0.8}
                 >
                   <Ionicons name="refresh" size={16} color="#FFFFFF" />
-                  <Text style={styles.newSearchText}>Nueva Búsqueda</Text>
+                  <Text style={styles.newSearchText}>Cambiar la búsqueda</Text>
                 </TouchableOpacity>
               </View>
             )}
 
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12, paddingHorizontal: 4 }}>
               <Text style={styles.resultsCountTitle}>
-                Aeronaves Disponibles ({searchResults.length})
+                {searchResults.length === 1 ? "1 avión disponible" : `${searchResults.length} aviones disponibles`}
               </Text>
             </View>
 
@@ -157,10 +160,10 @@ export default function SearchResultsScreen() {
               <View style={styles.emptyContainer}>
                 <Ionicons name="airplane-outline" size={40} color="#94a3b8" />
                 <Text style={styles.emptyTitle}>
-                  No hay aeronaves disponibles
+                  No hay aviones disponibles
                 </Text>
                 <Text style={styles.emptySubtitle}>
-                  No encontramos aeronaves en el aeropuerto de origen con la capacidad y disponibilidad requerida para estas fechas.
+                  No encontramos un avión libre con esa capacidad para estas fechas. Probá con otro horario o escribinos y lo resolvemos.
                 </Text>
                 <TouchableOpacity
                   onPress={() => {
@@ -174,8 +177,11 @@ export default function SearchResultsScreen() {
                   activeOpacity={0.8}
                 >
                   <Ionicons name="refresh" size={16} color="#FFFFFF" />
-                  <Text style={styles.emptyActionText}>Nueva Búsqueda</Text>
+                  <Text style={styles.emptyActionText}>Cambiar la búsqueda</Text>
                 </TouchableOpacity>
+                <View style={{ alignSelf: "stretch", marginTop: 10 }}>
+                  <WhatsAppContactButton message={buildSearchWhatsAppMessage(activeSearch)} />
+                </View>
               </View>
             ) : (
               <View style={styles.resultsContainer}>
@@ -215,7 +221,7 @@ export default function SearchResultsScreen() {
                         {estimatedPrice !== null && (
                           <View style={styles.priceBadge}>
                             <Text style={styles.priceBadgeText}>
-                              USD ${estimatedPrice.toLocaleString("en-US")} + IVA
+                              {formatClientUsd(estimatedPrice)} + IVA
                             </Text>
                           </View>
                         )}
@@ -236,10 +242,10 @@ export default function SearchResultsScreen() {
                           {estimatedPrice !== null ? (
                             <View style={{ alignItems: "flex-end" }}>
                               <Text style={styles.priceLabel}>
-                                Total Estimado
+                                Precio estimado
                               </Text>
                               <Text style={styles.priceValue}>
-                                USD ${estimatedPrice.toLocaleString("en-US")} + IVA
+                                {formatClientUsd(estimatedPrice)} + IVA
                               </Text>
                               <Text style={styles.priceBreakdown}>
                                 {describeQuote(quote)}
@@ -248,7 +254,7 @@ export default function SearchResultsScreen() {
                           ) : (
                             <View style={styles.quoteBadge}>
                               <Text style={styles.quoteBadgeText}>
-                                A cotizar
+                                Precio a confirmar
                               </Text>
                             </View>
                           )}
@@ -264,12 +270,8 @@ export default function SearchResultsScreen() {
                           </View>
 
                           <View style={{ width: "48%" }}>
-                            <Text style={styles.specLabel}>Tiempo de Vuelo</Text>
-                            <Text style={styles.specDurationValue}>
-                              {flightDurationHours < 1
-                                ? `${Math.round(flightDurationHours * 60)} minutos`
-                                : `${flightDurationHours.toFixed(1)} horas`}
-                            </Text>
+                            <Text style={styles.specLabel}>Tiempo de vuelo</Text>
+                            <Text style={styles.specDurationValue}>{formatFlightDuration(flightDurationHours)}</Text>
                           </View>
                         </View>
 
@@ -291,7 +293,7 @@ export default function SearchResultsScreen() {
                           style={styles.actionButton}
                           activeOpacity={0.8}
                         >
-                          <Text style={styles.actionButtonText}>Ver Información y Reservar</Text>
+                          <Text style={styles.actionButtonText}>Ver detalle y reservar</Text>
                           <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
                         </TouchableOpacity>
                       </View>
@@ -310,9 +312,8 @@ export default function SearchResultsScreen() {
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#F5F8FD",
     paddingHorizontal: 16,
-    paddingTop: 8,
   },
   header: {
     flexDirection: "row",
@@ -387,7 +388,7 @@ const styles = StyleSheet.create({
     color: "#334155",
   },
   dateText: {
-    fontSize: 11,
+    fontSize: 12,
     color: "#64748B",
     fontFamily: "NotoSans_500Medium",
   },
@@ -453,7 +454,7 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     fontFamily: "NotoSans_400Regular",
     color: "#64748B",
-    fontSize: 12,
+    fontSize: 14,
     textAlign: "center",
     marginTop: 4,
     marginBottom: 16,
@@ -468,7 +469,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyActionText: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: "NotoSans_700Bold",
     color: "#FFFFFF",
   },
@@ -517,7 +518,7 @@ const styles = StyleSheet.create({
   },
   typeBadgeText: {
     color: "#FFFFFF",
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: "NotoSans_700Bold",
     letterSpacing: 0.5,
     textTransform: "uppercase",
@@ -531,10 +532,10 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(218, 165, 32, 0.4)",
+    borderColor: "rgba(122, 180, 255, 0.5)",
   },
   priceBadgeText: {
-    color: "#0165FF",
+    color: "#FFFFFF",
     fontFamily: "NotoSans_700Bold",
     fontSize: 14,
   },
@@ -556,15 +557,15 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   priceLabel: {
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: "NotoSans_700Bold",
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    color: "#94A3B8",
+    color: "#64748B",
   },
   priceBreakdown: {
     fontFamily: "NotoSans_400Regular",
-    fontSize: 11,
+    fontSize: 12,
     color: "#64748B",
     marginTop: 2,
     textAlign: "right",
@@ -599,7 +600,7 @@ const styles = StyleSheet.create({
   },
   specLabel: {
     fontFamily: "NotoSans_400Regular",
-    fontSize: 11,
+    fontSize: 12,
     color: "#64748B",
   },
   specValue: {

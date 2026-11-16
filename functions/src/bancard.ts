@@ -255,8 +255,9 @@ async function applyConfirmation(
           userId: res.clientId,
           reservationId: tx.reservationId,
           type: "payment_confirmed",
-          title: "¡Pago Confirmado y Factura Emitida!",
-          message: `Tu pago vía Bancard fue aprobado (autorización ${op.authorization_number ?? "-"}). Factura Nº ${invoice.invoice_number}.`,
+          // Sin mencionar la factura: mientras SIFEN no esté conectado, el número es simulado.
+          title: "¡Pago confirmado!",
+          message: `Tu pago con tarjeta fue aprobado (autorización ${op.authorization_number ?? "-"}). Tu vuelo quedó confirmado.`,
           read: false,
           created_at: FieldValue.serverTimestamp(),
           routeText: `${res.trip?.origin_airport_ident ?? ""} ➔ ${res.trip?.destination_airport_ident ?? ""}`,

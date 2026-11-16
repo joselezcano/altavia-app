@@ -1,4 +1,5 @@
 import { LoadingCard } from "@/components/loading-card";
+import { ScreenHeader } from "@/components/screen-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useFlightTracker } from "@/hooks/useFlightTracker";
@@ -82,6 +83,9 @@ function getFlightStatusBadge(status: string) {
                 border: "border-blue-200",
                 text: "text-blue-800",
                 icon: "airplane-outline",
+                backgroundColor: "#DBEAFE",
+                borderColor: "#BFDBFE",
+                textColor: "#1E40AF",
                 iconColor: "#1e40af",
             };
         case "arrived":
@@ -91,6 +95,9 @@ function getFlightStatusBadge(status: string) {
                 border: "border-emerald-200",
                 text: "text-emerald-800",
                 icon: "checkmark-circle-outline",
+                backgroundColor: "#D1FAE5",
+                borderColor: "#A7F3D0",
+                textColor: "#065F46",
                 iconColor: "#059669",
             };
         case "scheduled":
@@ -100,6 +107,9 @@ function getFlightStatusBadge(status: string) {
                 border: "border-amber-200",
                 text: "text-amber-800",
                 icon: "time-outline",
+                backgroundColor: "#FEF3C7",
+                borderColor: "#FDE68A",
+                textColor: "#92400E",
                 iconColor: "#b45309",
             };
         default:
@@ -109,6 +119,9 @@ function getFlightStatusBadge(status: string) {
                 border: "border-slate-200",
                 text: "text-slate-700",
                 icon: "help-circle-outline",
+                backgroundColor: "#F1F5F9",
+                borderColor: "#E2E8F0",
+                textColor: "#334155",
                 iconColor: "#475569",
             };
     }
@@ -169,29 +182,12 @@ export default function FlightTrackerScreen() {
     const statusBadge = getFlightStatusBadge(flightStatus);
 
     return (
-        <ThemedView className="flex-1 bg-brand-light px-4 pt-2">
-            {/* Top Header */}
-            <View className="flex-row items-center justify-between mb-4 mt-2">
-                <TouchableOpacity
-                    onPress={() => router.push("/(client)/flights")}
-                    className="w-10 h-10 rounded-full bg-white items-center justify-center border border-slate-200"
-                    activeOpacity={0.8}
-                >
-                    <Ionicons name="arrow-back" size={20} color="#030436" />
-                </TouchableOpacity>
-                <View className="items-center">
-                    <ThemedText
-                        type="caption"
-                        className="uppercase font-bold text-brand-gold tracking-widest text-[10px]"
-                    >
-                        Seguimiento en Vivo
-                    </ThemedText>
-                    <ThemedText type="subtitle" className="text-brand-blue font-bold text-lg">
-                        Tracking de Vuelo
-                    </ThemedText>
-                </View>
-                <View className="w-10" />
-            </View>
+        <ThemedView className="flex-1 bg-brand-light px-4">
+            <ScreenHeader
+                title="Seguir el vuelo"
+                subtitle="Seguimiento en vivo"
+                onBack={() => router.push("/(client)/flights")}
+            />
 
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
                 {isLoading
@@ -241,9 +237,12 @@ export default function FlightTrackerScreen() {
                                         </View>
                                     </View>
 
-                                    <View className={`${statusBadge.bg} border ${statusBadge.border} px-3 py-1 rounded-full flex-row items-center gap-1.5`}>
+                                    <View
+                                        className="border px-3 py-1 rounded-full flex-row items-center"
+                                        style={{ gap: 6, backgroundColor: statusBadge.backgroundColor, borderColor: statusBadge.borderColor }}
+                                    >
                                         <Ionicons name={statusBadge.icon as any} size={14} color={statusBadge.iconColor} />
-                                        <ThemedText className={`text-xs font-bold ${statusBadge.text}`}>
+                                        <ThemedText className="text-xs font-bold" style={{ color: statusBadge.textColor }}>
                                             {statusBadge.label}
                                         </ThemedText>
                                     </View>
