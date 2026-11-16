@@ -71,6 +71,16 @@ export default function PilotLayout() {
                     }}
                 />
 
+                {/* Mi perfil de piloto: ruta oculta, se abre desde el avatar */}
+                <Tabs.Screen
+                    name="my-pilot-profile"
+                    options={{
+                        title: "Mi perfil de piloto",
+                        href: null,
+                        tabBarStyle: { display: "none" },
+                    }}
+                />
+
                 {/* Mis propietarios: ruta oculta, se abre desde el avatar */}
                 <Tabs.Screen
                     name="my-owners"

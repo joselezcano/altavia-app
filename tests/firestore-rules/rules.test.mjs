@@ -129,6 +129,16 @@ describe("users", () => {
 });
 
 describe("pilots", () => {
+    test("el piloto completa su propio perfil (documento, licencia, otros datos)", async () => {
+        const profile = {
+            basic: { id_first_name: "Mary", id_last_name: "Test", id_type: "Documento de Identidad", id_number: "1234567" },
+            aeronautical: { pilot_licence: "PC-1", licence_type: "Piloto comercial", licence_permits: "Multimotor", licence_issuer: "DINAC" },
+            other_information: { aeronautical_medical_certificate: "Clase 1", languages: ["es"], flight_hours: 1200 },
+        };
+        await assertSucceeds(updateDoc(doc(as(UIDS.pilot), "pilots", UIDS.pilot), profile));
+        // ...pero no el de otro piloto
+        await assertFails(updateDoc(doc(as(UIDS.pilot), "pilots", "pilotOther"), profile));
+    });
     test("el piloto no puede hacerse encargado", async () => {
         await assertFails(updateDoc(doc(as(UIDS.pilot), "pilots", UIDS.pilot), { isEncargado: true }));
     });

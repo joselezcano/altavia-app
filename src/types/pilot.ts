@@ -213,3 +213,51 @@ export interface UnlinkFromOwnerInput {
     pilotUid: string;
     ownerUid: string;
 }
+
+/** Opciones de los selectores del perfil de piloto (mismos valores que pilotProfileSchema). */
+export const PILOT_ID_TYPES = ["Documento de Identidad", "Pasaporte"] as const;
+export const PILOT_LICENCE_TYPES = [
+    "Alumno Piloto",
+    "Piloto privado",
+    "Piloto comercial",
+    "Piloto con tripulación múltiple – avión",
+    "Piloto de Transporte de Línea Aérea (PTLA)",
+    "Piloto de Planeador",
+] as const;
+export const PILOT_MEDICAL_CLASSES = ["Clase 1", "Clase 2", "Clase 3"] as const;
+export const PILOT_LANGUAGES = [
+    { id: "es", label: "Español" },
+    { id: "en", label: "Inglés" },
+    { id: "pt", label: "Portugués" },
+    { id: "others", label: "Otros" },
+] as const;
+
+/**
+ * Formulario "Mi perfil de piloto": datos del documento, licencia (DINAC R61) y otros datos.
+ * Lo completa el propio piloto; se guarda en pilots/{uid} (basic, aeronautical, other_information).
+ */
+export const PilotProfileFormSchema = z.object({
+    basic: z.object({
+        id_first_name: z.string().trim().min(1, "Ingresá los nombres"),
+        id_last_name: z.string().trim().min(1, "Ingresá los apellidos"),
+        id_type: z.enum(PILOT_ID_TYPES, { error: "Elegí el tipo de documento" }),
+        id_number: z.string().trim().min(3, "Ingresá el número de documento"),
+        id_country: z.string().trim().min(2, "Ingresá el país de expedición"),
+        id_nationality: z.string().trim().min(2, "Ingresá la nacionalidad"),
+        id_date_of_birth: z.date({ error: "Ingresá la fecha de nacimiento" }),
+        telephone: z.string().trim().min(6, "Ingresá un teléfono"),
+    }),
+    aeronautical: z.object({
+        pilot_licence: z.string().trim().min(1, "Ingresá el número de licencia"),
+        licence_type: z.enum(PILOT_LICENCE_TYPES, { error: "Elegí el tipo de licencia" }),
+        licence_permits: z.string().trim().min(1, "Ingresá las habilitaciones"),
+        licence_issuer: z.string().trim().min(2, "Ingresá el emisor de la licencia"),
+    }),
+    other_information: z.object({
+        aeronautical_medical_certificate: z.enum(PILOT_MEDICAL_CLASSES, { error: "Elegí la clase del certificado médico" }),
+        languages: z.array(z.enum(["es", "en", "pt", "others"])).min(1, "Elegí al menos un idioma"),
+        flight_hours: z.number({ error: "Ingresá las horas de vuelo" }).int().nonnegative(),
+    }),
+});
+
+export type PilotProfileForm = z.infer<typeof PilotProfileFormSchema>;

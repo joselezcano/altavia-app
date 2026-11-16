@@ -3,12 +3,16 @@ import { ThemedView } from "@/components/themed-view";
 import { AircraftSpecsDoc } from "@/hooks/useOwnerAircrafts";
 import { usePilotAircrafts } from "@/hooks/usePilotAircrafts";
 import { usePilotDetails } from "@/hooks/usePilotDetails";
+import { isPilotProfileComplete } from "@/utils/pilot-profile";
+import { brandFont } from "@/utils/brand-fonts";
 import { AircraftDetailsHeader } from "@/screens/aircraft-details/components/header";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
     ActivityIndicator,
     ScrollView,
+    StyleSheet,
+    Text,
     TouchableOpacity,
     View,
 } from "react-native";
@@ -99,9 +103,19 @@ export default function PilotDetailsScreen() {
     return (
         <ThemedView className="flex-1 px-4 pt-2">
             {/* Header */}
-            <AircraftDetailsHeader header="Perfil de Piloto" />
+            <AircraftDetailsHeader header="Perfil de piloto" subtitle="Datos del piloto" />
 
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+                {/* Aviso: el piloto todavía no cargó documento y licencia */}
+                {!isPilotProfileComplete(pilot) && (
+                    <View style={incompleteStyles.box}>
+                        <Ionicons name="alert-circle-outline" size={20} color="#030436" />
+                        <Text style={[incompleteStyles.text, brandFont(500)]}>
+                            Perfil incompleto: el piloto todavía no cargó su documento y su licencia. Puede hacerlo desde su avatar → "Mi perfil de piloto".
+                        </Text>
+                    </View>
+                )}
+
                 {/* Title Section Card */}
                 <View className="bg-brand-blue rounded-3xl p-5 mb-4">
                     <View className="flex-row justify-between items-start mb-2">
@@ -284,3 +298,18 @@ export default function PilotDetailsScreen() {
         </ThemedView>
     );
 }
+
+const incompleteStyles = StyleSheet.create({
+    box: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: 10,
+        backgroundColor: "#EAF3FF",
+        borderWidth: 1,
+        borderColor: "#7AB4FF",
+        borderRadius: 16,
+        padding: 14,
+        marginBottom: 14,
+    },
+    text: { flex: 1, fontFamily: "NotoSans_500Medium", fontSize: 14, color: "#030436", lineHeight: 20 },
+});
